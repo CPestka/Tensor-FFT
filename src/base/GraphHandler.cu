@@ -262,7 +262,7 @@ public:
             != 0) {
         std::cout << "Error! The total amount of blocks has to be devisable by"
                   << " radix16_max_blocks "
-                  << "(i.e. (fft_length/(256*radix16_max_warps))
+                  << "(i.e. (fft_length/(256*radix16_max_warps))"
                   << "%radix16_max_blocks == 0)."
                   << std::endl;
         return false;
