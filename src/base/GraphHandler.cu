@@ -535,6 +535,7 @@ private:
   }
 
   //Allocates needed memory for the fft on the device
+  //TODO check alignment requirement
   bool AllocateDeviceMemory(){
     if (cudaMalloc(&dptr_data_, sizeof(__half2) * fft_length_)
         != cudaSuccess) {
@@ -568,11 +569,13 @@ private:
 
     //Set parameters needed for transpose kernel node addition
     for(int i=0; i<transpose_conf_.amount_of_kernels_; i++){
-      void* transpose_kernel_args_[5] = {(void*)&dptr_data_,
+      void* transpose_kernel_args_[7] = {(void*)&dptr_data_,
                                          (void*)&dptr_results_,
                                          &(transpose_conf_.amount_of_kernels_),
                                          &(transpose_conf_.kernel_ids_[i]),
-                                         &(fft_length_)};
+                                         &fft_length_,
+                                         &amount_of_radix_16_steps_,
+                                         &amount_of_radix_2_steps_};
 
       transpose_kernel_params_[i].func = (void*)TransposeKernel;
       transpose_kernel_params_[i].gridDim =
