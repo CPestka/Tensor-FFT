@@ -716,7 +716,9 @@ private:
           dim3(dft_conf_.amount_of_blocks_per_kernel_, 1, 1);
       dft_kernel_params_[i].blockDim =
           dim3(dft_conf_.blocksize_, 1, 1);
-      dft_kernel_params_[i].sharedMemBytes = 0; //TODO
+      //Each warp needs 2 buffers of 16x16x16 halfs
+      dft_kernel_params_[i].sharedMemBytes =
+          sizeof(__half) * dft_conf_.amount_of_warps_per_block_ * 8192;
       dft_kernel_params_[i].kernelParams = dft_kernel_args_;
       dft_kernel_params_[i].extra = nullptr;
     }
@@ -764,7 +766,6 @@ private:
           radix16_kernel_args_[1] = (void*)&dptr_results_IM_;
           radix16_kernel_args_[2] = (void*)&dptr_data_RE_;
           radix16_kernel_args_[3] = (void*)&dptr_data_IM_;
-              ;
         }
 
         radix16_kernel_params_[j][i].func = (void*)Radix16Kernel;
@@ -772,7 +773,10 @@ private:
             dim3(radix16_conf_[j].amount_of_blocks_per_kernel_, 1, 1);
         radix16_kernel_params_[j][i].blockDim =
             dim3(radix16_conf_[j].blocksize_, 1, 1);
-        radix16_kernel_params_[j][i].sharedMemBytes = 0; //TODO
+
+        //Each warp needs 2 buffers of 16x16x16 halfs
+        radix16_kernel_params_[j][i].sharedMemBytes =
+            sizeof(__half) * dft_conf_.amount_of_warps_per_block_ * 8192;
         radix16_kernel_params_[j][i].kernelParams = radix16_kernel_args_;
         radix16_kernel_params_[j][i].extra = nullptr;
       }
@@ -815,7 +819,7 @@ private:
             dim3(radix2_conf_[j].amount_of_blocks_per_kernel_, 1, 1);
         radix2_kernel_params_[j][i].blockDim =
             dim3(radix2_conf_[j].blocksize_, 1, 1);
-        radix2_kernel_params_[j][i].sharedMemBytes = 0; //TODO
+        radix2_kernel_params_[j][i].sharedMemBytes = 0;
         radix2_kernel_params_[j][i].kernelParams = radix2_kernel_args_;
         radix2_kernel_params_[j][i].extra = nullptr;
       }
