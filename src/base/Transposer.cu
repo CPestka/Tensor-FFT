@@ -30,9 +30,10 @@
 //fft_length.
 //TO-SELF:It might be faster to calculate K indecies and do K writes for one
 //thread
-__global__ void TransposeKernel(__half2* input_data, __half2* output_data,
-                                int kernel_amount, int current_kernel_id,
-                                int fft_length, int amount_of_radix16_steps,
+__global__ void TransposeKernel(__half2* input_data, __half* output_data_RE,
+                                __half* output_data_IM, int kernel_amount,
+                                int current_kernel_id, int fft_length,
+                                int amount_of_radix16_steps,
                                 int amount_of_radix2_steps) {
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   int samples_per_kernel = fft_length / kernel_amount;
@@ -69,7 +70,7 @@ __global__ void TransposeKernel(__half2* input_data, __half2* output_data,
       ND_id[i+1] = tmp;
     }
     //Transposes for Radix16 steps
-    int tmp_dim = amount_of_radix2_steps + amount_of_radix_16_;
+    int tmp_dim = amount_of_radix2_steps + amount_of_radix16_steps;
     for(int i=amount_of_radix2_steps; i<tmp_dim; i++){
       //Reinterpted previous linear memory piece of length M as 16xM/16 matrix
       //and compute the according indecies
@@ -93,12 +94,13 @@ __global__ void TransposeKernel(__half2* input_data, __half2* output_data,
       output_id += ND_id[tmp_dim-i] * current_row_length;
     }
     //Step through dimensions from radix2 steps
-    for(int i=1 + amount_of_radix_16_steps; i>=tmp_dim; i++){
+    for(int i=1 + amount_of_radix16_steps; i>=tmp_dim; i++){
       current_row_length = current_row_length * 2;
       output_id += ND_id[tmp_dim-i] * current_row_length;
     }
 
     //Write data sample from input to output arrray
-    output_data[output_id] = input_data[id];
+    output_data_RE[output_id] = __high2half(input_data[id]);
+    output_data_IM[output_id] = __low2half(input_data[id]);
   }
 }

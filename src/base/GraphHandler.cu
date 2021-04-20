@@ -85,8 +85,9 @@ struct Radix2LaunchConfig {
   int blocksize_;
   int amount_of_blocks_per_kernel_;
   int amount_of_kernels_;
-  int radix2_loop_length_;
   std::vector<int> kernel_ids_;
+  std::vector<int> kernel_memory_offfset_;
+  int amount_of_kernels_per_fft_;
 };
 
 //This class is used to perform the fft of a given input.
@@ -107,10 +108,9 @@ struct Radix2LaunchConfig {
 //for a given N,comparative performance is best for large values of L and small
 //fractions K/L, due to the fact that the radix2 part of the algorithm is not
 //accelerated by tensor cores.
-//The template parameter radix2_loop_length and the other parameter of the
-//constructor are performance parameter. For more detail on them and some
-//restrictions on them rising from the fft lenght refere to the functions
-//Create...LaunchConfig().
+//The other parameters of the constructor are performance parameter. For more
+//detail on them and some restrictions on them rising from the fft lenght refere
+//to the functions Create...LaunchConfig().
 //During destruction GraphHandler wont free memory of data and results.
 class GraphHandler {
 public:
@@ -118,8 +118,7 @@ public:
                int amount_host_to_device_memcopies, int dft_max_warps,
                int dft_max_blocks, int radix16_max_warps,
                int radix16_max_blocks, int radix2_max_blocksize,
-               int radix2_max_blocks, int radix2_loop_length,
-               int transpose_blocksize,
+               int radix2_max_blocks, int transpose_blocksize,
                int transpose_amount_of_blocks_per_kernel)
       : fft_length_(fft_length), graph_is_valid_(false), hptr_data_(data),
         hptr_results_RE_(results), hptr_results_IM_(results+fft_length) {
@@ -139,8 +138,7 @@ public:
       tmp = CreateRadix16LaunchConfig(radix16_max_warps, radix16_max_blocks);
     }
     if (tmp) {
-      tmp = CreateRadix2LaunchConfig(radix2_max_blocksize, radix2_max_blocks,
-                                     radix2_loop_length);
+      tmp = CreateRadix2LaunchConfig(radix2_max_blocksize, radix2_max_blocks);
     }
     if (tmp) {
       CreateGraph();
@@ -256,6 +254,10 @@ private:
   __half* dptr_data_IM_;
   __half* dptr_results_RE_;
   __half* dptr_results_IM_;
+  __half* dptr_dft_matrix_batch_RE_;
+  __half* dptr_dft_matrix_batch_IM_;
+  __half hptr_dft_matrix_batch_RE_[16*16*16];
+  __half hptr_dft_matrix_batch_IM_[16*16*16];
   cudaGraph_t fft_graph_; //graph that holds all work to be executed
   cudaStream_t fft_stream_; //stream in which fft_graph_ will be placed
   cudaGraphExec_t executable_fft_graph_;
@@ -263,6 +265,7 @@ private:
   //More details in CreateGraph()
   cudaGraph_t memcpy_transpose_child_graph_;
   cudaGraphNode_t memcpy_transpose_child_graph_node_;
+  cudaGraphNode_t dft_matrix_batch_memcopy_;
   std::vector<cudaGraphNode_t> memcopies_;
   std::vector<cudaGraphNode_t> transpose_kernels_;
   std::vector<cudaKernelNodeParams> transpose_kernel_params_;
@@ -274,13 +277,14 @@ private:
   std::vector<std::vector<cudaKernelNodeParams>> radix2_kernel_params_;
 
   //Determines the amount of radix16 and radix2 steps.
-  //Since the base dft step works on 16 points and uses tensor cores which
-  //require, for the current wwma api, batches of size 16, the intput size has
-  //to be devisable by 256 (thus also fft_length >= 256).
+  //Since the base dft and radix 16 step utilize 16x16 matrix multiplications
+  //performed by tensor cores, which due to a wwmma api limitation have to qued
+  //in batches of 16, the input size of the data has to be devisable by 16*16*16
+  //=4096 (thus also the input size has to be larger than that).
   bool ParseInputLength(){
-    if (((fft_length_ % 256) != 0) || !(IsPowerOf2(fft_length_))) {
-      std::cout << "Input size is NOT a power of 2 or devisable by 256! This "
-                << "algorithm only supports inputsizes that are larger than 256"
+    if (((fft_length_ % 4096) != 0) || !(IsPowerOf2(fft_length_))) {
+      std::cout << "Input size is NOT a power of 2 or devisable by 4096! This "
+                << "algorithm only supports inputsizes that are >= 4096"
                 << " and powers of 2."
                 << std::endl;
       return false;
@@ -288,6 +292,7 @@ private:
       int log2 = ExactLog2(fft_length_);
       amount_of_radix_16_steps_ = (log2 / 4) - 1;
       amount_of_radix_2_steps_ = log2 % 4;
+
       std::cout << "FFT lenght: " << fft_length_ << " = 2**" << log2 << " = 2**"
                 << amount_of_radix_2_steps_ << "*16**" << log2 / 4
                 << std::endl
@@ -341,8 +346,9 @@ private:
     dft_conf_.amount_of_matrices_per_warp_ = 16; //required by current wwma api
 
     //Determines the amount of warps per block and thus also the blocksize
-    if ((dft_conf_.amount_of_ffts_ / 16) <= dft_max_warps) {
-      dft_conf_.amount_of_warps_per_block_ = dft_conf_.amount_of_ffts_ / 16;
+    if ((dft_conf_.amount_of_ffts_ / (16 * 16)) <= dft_max_warps) {
+      dft_conf_.amount_of_warps_per_block_ =
+          dft_conf_.amount_of_ffts_ / (16 * 16);
     } else {
       dft_conf_.amount_of_warps_per_block_ = dft_max_warps;
     }
@@ -352,16 +358,16 @@ private:
     if (dft_conf_.amount_of_warps_per_block_ < dft_max_warps){
       dft_conf_.amount_of_blocks_per_kernel_ = 1;
     } else {
-      if (((dft_conf_.amount_of_ffts_ / 16) % dft_max_warps) != 0) {
+      if (((dft_conf_.amount_of_ffts_ / (16 * 16)) % dft_max_warps) != 0) {
         std::cout << "Error! The total amount of warps has to be devisable by "
                   << "dft_max_warps (i.e. (fft_length/256)%dft_max_warps == 0)."
                   << std::endl;
         return false;
       } else {
-        if (((dft_conf_.amount_of_ffts_ / 16) / dft_max_warps) <=
+        if (((dft_conf_.amount_of_ffts_ / (16 * 16)) / dft_max_warps) <=
             dft_max_blocks) {
           dft_conf_.amount_of_blocks_per_kernel_ =
-              (dft_conf_.amount_of_ffts_ / 16) / dft_max_warps;
+              (dft_conf_.amount_of_ffts_ / (16 * 16)) / dft_max_warps;
         } else {
           dft_conf_.amount_of_blocks_per_kernel_ = dft_max_blocks;
         }
@@ -372,8 +378,8 @@ private:
     if (dft_conf_.amount_of_blocks_per_kernel_ < dft_max_blocks) {
       dft_conf_.amount_of_kernels_ = 1;
     } else {
-      if (((dft_conf_.amount_of_ffts_ / (16 * dft_max_warps)) % dft_max_blocks)
-          != 0) {
+      if (((dft_conf_.amount_of_ffts_ / (16 * 16 * dft_max_warps)) %
+          dft_max_blocks) != 0) {
         std::cout << "Error! The total amount of blocks has to be devisable by "
                   << "dft_max_blocks (i.e. "
                   << "(fft_length/(256*dft_max_warps))%dft_max_blocks == 0)."
@@ -381,7 +387,8 @@ private:
         return false;
       } else {
         dft_conf_.amount_of_kernels_ =
-            (dft_conf_.amount_of_ffts_ / (16 * dft_max_warps)) % dft_max_blocks;
+            (dft_conf_.amount_of_ffts_ / (16 * 16 * dft_max_warps)) %
+            dft_max_blocks;
       }
     }
     for(int i=0; i<dft_conf_.amount_of_kernels_; i++){
@@ -401,8 +408,9 @@ private:
           (fft_length_ / radix16_conf_[i].size_of_ffts_);
 
       //Determine amount of warps per block
-      if ((fft_length_ / 256) <= radix16_max_warps) {
-        radix16_conf_[i].amount_of_warps_per_block_ = fft_length_ / 256;
+      if ((fft_length_ / (16 * 16 * 16)) <= radix16_max_warps) {
+        radix16_conf_[i].amount_of_warps_per_block_ =
+            fft_length_ / (16 * 16 * 16);
       } else {
         radix16_conf_[i].amount_of_warps_per_block_ = radix16_max_warps;
       }
@@ -413,16 +421,17 @@ private:
       if (radix16_conf_[i].amount_of_warps_per_block_ < radix16_max_warps) {
         radix16_conf_[i].amount_of_blocks_per_kernel_ = 1;
       } else {
-        if (((fft_length_ / 256) % radix16_max_warps) != 0) {
+        if (((fft_length_ / (16 * 16 * 16)) % radix16_max_warps) != 0) {
           std::cout << "Error! The total amount of warps has to be devisable by"
                     << " radix16_max_warps "
                     << "(i.e. (fft_length/256)%radix16_max_warps == 0)."
                     << std::endl;
           return false;
         } else {
-          if (((fft_length_ / 256) / radix16_max_warps) <= radix16_max_blocks) {
+          if (((fft_length_ / (16 * 16 * 16)) / radix16_max_warps) <=
+              radix16_max_blocks) {
             radix16_conf_[i].amount_of_blocks_per_kernel_ =
-                (fft_length_ / 256) / radix16_max_warps;
+                (fft_length_ / (16 * 16 * 16)) / radix16_max_warps;
           } else {
             radix16_conf_[i].amount_of_blocks_per_kernel_ = radix16_max_blocks;
           }
@@ -433,8 +442,8 @@ private:
       if (radix16_conf_[i].amount_of_blocks_per_kernel_ < radix16_max_blocks) {
         radix16_conf_[i].amount_of_kernels_ = 1;
       } else {
-        if (((fft_length_ / (256 * radix16_max_warps)) % radix16_max_blocks)
-            != 0) {
+        if (((fft_length_ / ((16 * 16 * 16) * radix16_max_warps)) %
+            radix16_max_blocks) != 0) {
         std::cout << "Error! The total amount of blocks has to be devisable by"
                   << " radix16_max_blocks "
                   << "(i.e. (fft_length/(256*radix16_max_warps))"
@@ -443,7 +452,8 @@ private:
         return false;
         } else {
         radix16_conf_[i].amount_of_kernels_ =
-            (fft_length_ / (256 * radix16_max_warps)) / radix16_max_blocks;
+            (fft_length_ / ((16 * 16 * 16) * radix16_max_warps)) /
+            radix16_max_blocks;
         }
       }
       for(int i=0; i<radix16_conf_[i].amount_of_kernels_; i++){
@@ -453,12 +463,9 @@ private:
     return true;
   }
 
-  //Anlalogous to CreateDFTLaunchConfig but for the radix2 steps
-  //The template parameter radix2_loop_length determines how many calculations
-  //are done per thread for one radix2 step of two ffts. More details in FFT2.cu
+  //Analogous to CreateDFTLaunchConfig but for the radix2 steps
   bool CreateRadix2LaunchConfig(int radix2_max_blocksize,
-                                int radix2_max_blocks,
-                                int radix2_loop_length){
+                                int radix2_max_blocks){
     radix2_conf_.resize(amount_of_radix_2_steps_);
     for(int i=0; i<amount_of_radix_2_steps_; i++){
       radix2_conf_[i].current_radix2_step_ = i;
@@ -466,42 +473,29 @@ private:
           std::pow(16,amount_of_radix_16_steps_+1) * std::pow(2,i);
       radix2_conf_[i].amount_of_ffts_ =
           (fft_length_ / radix2_conf_[i].size_of_ffts_);
-      radix2_conf_[i].radix2_loop_length_ = radix2_loop_length;
 
       //Determine blocksize
-      if ((radix2_conf_[i].size_of_ffts_ % radix2_loop_length) != 0) {
-        std::cout << "Error! Size of fft has to devisable by radix2_loop_length"
-                  << " i.e. 16**(amount_of_radix_16_steps_+1)%"
-                  << "radix2_loop_length == 0."
-                  << std::endl;
-        return false;
+      if (radix2_conf_[i].size_of_ffts_ <= radix2_max_blocksize) {
+        radix2_conf_[i].blocksize_ = radix2_conf_[i].size_of_ffts_;
       } else {
-        if ((radix2_conf_[i].size_of_ffts_ / radix2_loop_length) <=
-            radix2_max_blocksize) {
-          radix2_conf_[i].blocksize_ =
-              radix2_conf_[i].size_of_ffts_ / radix2_loop_length;
-        } else {
-          radix2_conf_[i].blocksize_ = radix2_max_blocksize;
-        }
+        radix2_conf_[i].blocksize_ = radix2_max_blocksize;
       }
 
       //Determine amount of blocks per kernel
       if (radix2_conf_[i].blocksize_ < radix2_max_blocksize) {
         radix2_conf_[i].amount_of_blocks_per_kernel_ = 1;
       } else {
-        if (((radix2_conf_[i].size_of_ffts_ / radix2_loop_length) %
-            radix2_max_blocksize) != 0) {
+        if ((radix2_conf_[i].size_of_ffts_ % radix2_max_blocksize) != 0) {
           std::cout << "Error! Total amount of threads has to be devisable by "
-                    << "radix2_max_blocksize i.e. (16**(amount_of_radix_16_"
-                    << "steps_+1)/radix2_loop_length)%radix2_max_blocksize == 0"
+                    << "radix2_max_blocksize i.e. (16**amount_of_radix_16_"
+                    << "steps_+1)%radix2_max_blocksize == 0"
                     << std::endl;
           return false;
         } else {
-          if (((radix2_conf_[i].size_of_ffts_ / radix2_loop_length) /
-               radix2_max_blocksize) <= radix2_max_blocks) {
+          if ((radix2_conf_[i].size_of_ffts_ / radix2_max_blocksize) <=
+              radix2_max_blocks) {
             radix2_conf_[i].amount_of_blocks_per_kernel_ =
-              (radix2_conf_[i].size_of_ffts_ / radix2_loop_length) /
-              radix2_max_blocksize;
+              radix2_conf_[i].size_of_ffts_ / radix2_max_blocksize;
           } else {
             radix2_conf_[i].amount_of_blocks_per_kernel_ = radix2_max_blocks;
           }
@@ -512,23 +506,32 @@ private:
       if (radix2_conf_[i].amount_of_blocks_per_kernel_ < radix2_max_blocks) {
         radix2_conf_[i].amount_of_kernels_ = 1;
       } else {
-        if (((radix2_conf_[i].size_of_ffts_ /
-              (radix2_loop_length * radix2_max_blocksize))
-             % radix2_max_blocks) != 0) {
+        if (((radix2_conf_[i].size_of_ffts_ / radix2_max_blocksize) %
+            radix2_max_blocks) != 0) {
           std::cout << "Error! Total amount of blocks has to be devisable by "
                     << "radix2_max_blocks i.e. (16**(amount_of_radix_16_"
-                    << "steps_+1)/(radix2_loop_length*radix2_max_blocksize))%"
+                    << "steps_+1)/radix2_max_blocksize)%"
                     << "radix2_max_blocksize == 0"
                     << std::endl;
           return false;
         } else {
           radix2_conf_[i].amount_of_kernels_ =
               radix2_conf_[i].size_of_ffts_ /
-              (radix2_loop_length * radix2_max_blocksize * radix2_max_blocks);
+              (radix2_max_blocksize * radix2_max_blocks);
         }
       }
-      for(int i=0; i<radix2_conf_[i].amount_of_kernels_; i++){
-        radix2_conf_[i].kernel_ids_.push_back(i);
+      for(int j=0; j<radix2_conf_[i].amount_of_kernels_; j++){
+        radix2_conf_[i].kernel_ids_.push_back(j);
+        radix2_conf_[i].kernel_memory_offfset_.push_back(
+            (fft_length_ / radix2_conf_[i].amount_of_kernels_) *
+            radix2_conf_[i].kernel_ids_[j]);
+      }
+      radix2_conf_[i].amount_of_kernels_per_fft_ =
+          radix2_conf_[i].amount_of_kernels_ /
+          std::pow(2,amount_of_radix_2_steps_ -
+                   radix2_conf_[i].current_radix2_step_ - 1);
+      if (radix2_conf_[i].amount_of_kernels_per_fft_ == 0) {
+        radix2_conf_[i].amount_of_kernels_per_fft_ = 1;
       }
     }
     return true;
@@ -543,12 +546,22 @@ private:
     }
     dptr_data_RE_ = (__half*)(dptr_data_);
     dptr_data_IM_ = (__half*)(dptr_data_) + fft_length_;
+
     if (cudaMalloc(&dptr_results_, sizeof(__half2) * fft_length_)
         != cudaSuccess) {
       return false;
     }
     dptr_results_RE_ = (__half*)(dptr_results_);
     dptr_results_IM_ = (__half*)(dptr_results_) + fft_length_;
+
+    if (cudaMalloc(&dptr_dft_matrix_batch_RE_, sizeof(__half) * 16 * 16 * 16)
+        != cudaSuccess) {
+      return false;
+    }
+    if (cudaMalloc(&dptr_dft_matrix_batch_IM_, sizeof(__half) * 16 * 16 * 16)
+        != cudaSuccess) {
+      return false;
+    }
     return true;
   }
 
@@ -569,8 +582,9 @@ private:
 
     //Set parameters needed for transpose kernel node addition
     for(int i=0; i<transpose_conf_.amount_of_kernels_; i++){
-      void* transpose_kernel_args_[7] = {(void*)&dptr_data_,
-                                         (void*)&dptr_results_,
+      void* transpose_kernel_args_[8] = {(void*)&dptr_data_,
+                                         (void*)&dptr_results_RE_,
+                                         (void*)&dptr_results_IM_,
                                          &(transpose_conf_.amount_of_kernels_),
                                          &(transpose_conf_.kernel_ids_[i]),
                                          &fft_length_,
@@ -619,6 +633,48 @@ private:
                    << std::endl;
          return false;
       }
+
+      //Set the data of the dft matrix batch that will bbe used in the dft and
+      //r16 kernel. For a element of the 16x16 matrix a_nm = exp(-2PI*i*n*m/16)
+      //16 consecutive matrices are needed to load one fragment in the dft and
+      //r16 kernels.
+      for(int i=0; i<16; i++){
+        for(int j=0; j<16; j++){
+          for(int k=0; k<16; k++){
+            hptr_dft_matrix_batch_RE_[k + 16 * j + 16 * 16 * i] =
+                __double2half(cos((-2*M_PI*j*k)/16.0));
+            hptr_dft_matrix_batch_IM_[k + 16 * j + 16 * 16 * i] =
+                __double2half(sin((-2*M_PI*j*k)/16.0));
+          }
+        }
+      }
+
+      if (cudaGraphAddMemcpyNode1D(&dft_matrix_batch_memcopy_,
+                                   memcpy_transpose_child_graph_,
+                                   nullptr,
+                                   0,
+                                   (void*)(dptr_dft_matrix_batch_RE_),
+                                   (void*)(hptr_dft_matrix_batch_RE_),
+                                   sizeof(__half) * 16 * 16 *16,
+                                   cudaMemcpyHostToDevice)
+          != cudaSuccess) {
+        std::cout << "Error! Adding dft matrix memcpy node failed!"
+                  << std::endl;
+        return false;
+      }
+      if (cudaGraphAddMemcpyNode1D(&dft_matrix_batch_memcopy_,
+                                   memcpy_transpose_child_graph_,
+                                   nullptr,
+                                   0,
+                                   (void*)(dptr_dft_matrix_batch_IM_),
+                                   (void*)(hptr_dft_matrix_batch_IM_),
+                                   sizeof(__half) * 16 * 16 *16,
+                                   cudaMemcpyHostToDevice)
+          != cudaSuccess) {
+        std::cout << "Error! Adding dft matrix memcpy node failed!"
+                  << std::endl;
+        return false;
+      }
     }
 
     //Packing of memcpy_transpose_child_graph_ into node
@@ -646,8 +702,12 @@ private:
     for(int i=0; i<dft_conf_.amount_of_kernels_; i++){
       //The input for the dft step is created by the transpose kernels which
       //stored their results in dptr_results_
-      void* dft_kernel_args_[6] = {(void*)&dptr_results_, (void*)&dptr_data_RE_,
+      void* dft_kernel_args_[9] = {(void*)&dptr_results_RE_,
+                                   (void*)&dptr_results_IM_,
+                                   (void*)&dptr_data_RE_,
                                    (void*)&dptr_data_IM_,
+                                   (void*)&hptr_dft_matrix_batch_RE_,
+                                   (void*)&hptr_dft_matrix_batch_IM_,
                                    &(dft_conf_.amount_of_kernels_),
                                    &(dft_conf_.kernel_ids_[i]), &(fft_length_)};
 
@@ -734,13 +794,12 @@ private:
     //Set parameters needed for radix2 kernel node additions
     for(int j=0; j<amount_of_radix_2_steps_; j++){
       for(int i=0; i<radix2_conf_[j].amount_of_kernels_; i++){
-        void* radix2_kernel_args_[9] =
+        void* radix2_kernel_args_[7] =
             {(void*)&dptr_data_RE_, (void*)&dptr_data_IM_,
              (void*)&dptr_results_RE_, (void*)&dptr_results_IM_,
-             &(radix2_conf_[j].amount_of_kernels_),
-             &(radix2_conf_[j].kernel_ids_[i]), &fft_length_,
-             &(radix2_conf_[j].current_radix2_step_),
-             &(radix2_conf_[j].radix2_loop_length_)};
+             &(radix2_conf_[j].kernel_memory_offfset_[i]),
+             &(radix2_conf_[j].size_of_ffts_),
+             &(radix2_conf_[j].amount_of_kernels_per_fft_)};
 
         //Depending on the amount of previously performed radix16 and radix2
         //steps the input data is either located in the data or result arrays
@@ -1042,8 +1101,8 @@ private:
     return true;
   }
 
-  //Allocates the needed memory on the device (=2xinput data size), creates the
-  //fft_graph_ and adds all needed nodes to it.
+  //Allocates the needed memory on the device (roughly 2xinput data size),
+  //creates the fft_graph_ and adds all needed nodes to it.
   bool CreateGraph(){
     if (!AllocateDeviceMemory()) {
       std::cout << "Error! Memory allocation on device failed!"
