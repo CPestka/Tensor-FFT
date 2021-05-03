@@ -11,13 +11,13 @@
 
 int main(){
   //Data parameter
-  int fft_length = 16*16*16;
+  int fft_length = 16*16*16*16;
   int amount_of_oscialtions = 1;
   //Kernel / performance parameter
   int amount_host_to_device_memcopies = 1;
-  int dft_max_warps = 16;
+  int dft_max_warps = 4;
   int dft_max_blocks = 256;
-  int radix16_max_warps = 16;
+  int radix16_max_warps = 4;
   int radix16_max_blocks = 256;
   int radix2_max_blocksize = 512;
   int radix2_max_blocks = 256;

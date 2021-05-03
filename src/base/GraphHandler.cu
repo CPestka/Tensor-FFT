@@ -334,11 +334,11 @@ private:
   //there are more blocks in total than dft_max_blocks multiple kernels will be
   //launched.
   //The parameter dft_max_warps can be increased to increase ocupancy
-  //on one SM but will cause register spilling if increased to high. Increasing
-  //dft_max_blocks will cause better ocupancy on the total amount of SMs per GPU
-  //but decreasing it will cause the launch of more kernels which will make it
-  //possible to execute further steps (i.e. the radix steps) on data produced by
-  //kernels that have already finished.
+  //on one SM but this is limited by avaiable recources (registers,
+  //tensor cores,...). Increasing dft_max_blocks will cause better ocupancy on
+  //the total amount of SMs per GPU but decreasing it will cause the launch of
+  //more kernels which will make it possible to execute further steps (i.e. the
+  //radix steps) on data produced by kernels that have already finished.
   //More information about the performance implications of launch configurations
   //can be found in the nvidia proframming guide for cuda.
   bool CreateDFTLaunchConfig(int dft_max_warps, int dft_max_blocks){
@@ -717,8 +717,7 @@ private:
       dft_kernel_params_[i].blockDim =
           dim3(dft_conf_.blocksize_, 1, 1);
       //Each warp needs 2 buffers of 16x16x16 halfs
-      dft_kernel_params_[i].sharedMemBytes =
-          sizeof(__half) * dft_conf_.amount_of_warps_per_block_ * 8192;
+      dft_kernel_params_[i].sharedMemBytes = 0;
       dft_kernel_params_[i].kernelParams = dft_kernel_args_;
       dft_kernel_params_[i].extra = nullptr;
     }

@@ -42,6 +42,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                           int fft_length) {
   int memory_kernel_offset =
       (fft_length / amount_of_kernels) * current_kernel_id;
+      
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -55,7 +56,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
       data_RE_frag;
   wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       data_IM_frag;
-  //TO-SELF:curretnly acc into half vs float -> worse accuracy vs needing
+  //TO-SELF:currently acc into half vs float -> worse accuracy vs needing
   //conversion
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
@@ -91,26 +92,13 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   wmma::store_matrix_sync(output_data_IM + total_memory_offset,
                           accumulator_IM_frag, 16, wmma::mem_row_major);
 
-  //RE(A)xRE(B) - IM(A)xIM(B) has to be performed which cant be done directly
-  //with the fragments. Instead temporarily save the results in 2 buffer arrays,
-  //compute the differnce and store it.
-  extern __shared__ __half shared_memory[];
-  __half* buffer1 = shared_memory + warp_id * 8192;
-  __half* buffer2 = shared_memory + warp_id * 8192 + 4096;
-  //16*16*16*2*4*2 = 64KB max mememory for these buffers per SM (4 TC per SM)
-  //A100 164KB register file -> fine on that
-
-  wmma::store_matrix_sync(buffer1, accumulator_RE_1_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer2, accumulator_RE_2_frag, 16,
-                          wmma::mem_row_major);
-
-  //Each thread in a warp computes 128 values and stores them -> 32*128=4096=
-  //16*16*16
+  //Compute RE(A)xRE(B)-IM(A)xIM(B) with each thread in a warp computing 128
+  //values and storing them -> 32*128=4096=16*16*16
   #pragma unroll
   for(int i=0; i<128; i++){
     int current_id = inter_warp_id * 128 + i;
     output_data_RE[total_memory_offset + current_id] =
-        __hsub(buffer1[current_id], buffer2[current_id]);
+        __hsub(accumulator_RE_1_frag.x[current_id],
+               accumulator_RE_2_frag.x[current_id]);
   }
 }

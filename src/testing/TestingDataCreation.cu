@@ -1,5 +1,4 @@
 //Contains functions that produce example input data for testing of the ffts
-
 #pragma once
 
 #include <cuda_runtime.h>

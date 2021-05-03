@@ -36,17 +36,21 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                               __half* dft_matrix_batch_IM,
                               int kernel_amount, int current_kernel_id,
                               int fft_length, int current_radix16_step) {
-  int memory_kernel_offset =
-      (fft_length / kernel_amount) * current_kernel_id;
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
-  int warp_memory_offset = memory_kernel_offset + (4096 * warp_id);
   int inter_warp_id = thread_id % 32;
+  //Used to devide work for threads in a warp since the problem size is 16 based
   int inter_warp_id_16 = inter_warp_id % 16;
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
+
+  int memory_kernel_offset =
+      (fft_length / kernel_amount) * current_kernel_id;
+  int warp_memory_offset = memory_kernel_offset + (4096 * warp_id);
+  
   int sub_fft_length = (current_radix16_step + 1) * 16;
   int combined_fft_length = sub_fft_length * 16;
 
+  //TO-DO: Use direct acces of data via fragment instead of shared memory buffer
   //Buffers used to store the input data multiplied by the twiddle factors
   //temporarily before loading them into the fragments.
   //16*16*16*2*4*2 = 64KB max mememory for these buffers per SM (4 TC per SM)
