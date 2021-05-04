@@ -269,6 +269,7 @@ private:
   std::vector<cudaGraphNode_t> memcopies_;
   std::vector<cudaGraphNode_t> transpose_kernels_;
   std::vector<cudaKernelNodeParams> transpose_kernel_params_;
+  std::vector<std::vector<void*>> transpose_kernel_args_;
   std::vector<cudaGraphNode_t> dft_kernels_;
   std::vector<cudaKernelNodeParams> dft_kernel_params_;
   std::vector<std::vector<cudaGraphNode_t>> radix16_kernels_;
@@ -582,14 +583,18 @@ private:
 
     //Set parameters needed for transpose kernel node addition
     for(int i=0; i<transpose_conf_.amount_of_kernels_; i++){
-      void* transpose_kernel_args_[8] = {(void*)&dptr_data_,
-                                         (void*)&dptr_results_RE_,
-                                         (void*)&dptr_results_IM_,
-                                         &(transpose_conf_.amount_of_kernels_),
-                                         &(transpose_conf_.kernel_ids_[i]),
-                                         &fft_length_,
-                                         &amount_of_radix_16_steps_,
-                                         &amount_of_radix_2_steps_};
+      std::vector<void*> tmp_args;
+
+      tmp_args.push_back((void*)&dptr_data_);
+      tmp_args.push_back((void*)&dptr__results_RE_);
+      tmp_args.push_back((void*)&dptr__results_IM_);
+      tmp_args.push_back((void*)&transpose_conf_.amount_of_kernels_);
+      tmp_args.push_back((void*)&(transpose_conf_.kernel_ids_[i]));
+      tmp_args.push_back((void*)&fft_length_);
+      tmp_args.push_back((void*)&amount_of_radix_16_steps_);
+      tmp_args.push_back((void*)&amount_of_radix_2_steps_);
+
+      transpose_kernel_args_.push_back(tmp_args);
 
       transpose_kernel_params_[i].func = (void*)TransposeKernel;
       transpose_kernel_params_[i].gridDim =
@@ -597,7 +602,8 @@ private:
       transpose_kernel_params_[i].blockDim =
           dim3(transpose_conf_.blocksize_, 1, 1);
       transpose_kernel_params_[i].sharedMemBytes = 0;
-      transpose_kernel_params_[i].kernelParams = transpose_kernel_args_;
+      transpose_kernel_params_[i].kernelParams =
+          transpose_kernel_args_[i].data();
       transpose_kernel_params_[i].extra = nullptr;
     }
 
