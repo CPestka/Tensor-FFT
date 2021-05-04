@@ -586,8 +586,8 @@ private:
       std::vector<void*> tmp_args;
 
       tmp_args.push_back((void*)&dptr_data_);
-      tmp_args.push_back((void*)&dptr__results_RE_);
-      tmp_args.push_back((void*)&dptr__results_IM_);
+      tmp_args.push_back((void*)&dptr_results_RE_);
+      tmp_args.push_back((void*)&dptr_results_IM_);
       tmp_args.push_back((void*)&transpose_conf_.amount_of_kernels_);
       tmp_args.push_back((void*)&(transpose_conf_.kernel_ids_[i]));
       tmp_args.push_back((void*)&fft_length_);
