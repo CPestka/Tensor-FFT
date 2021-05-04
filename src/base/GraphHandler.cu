@@ -294,7 +294,7 @@ private:
       amount_of_radix_2_steps_ = log2 % 4;
 
       std::cout << "FFT lenght: " << fft_length_ << " = 2**" << log2 << " = 2**"
-                << amount_of_radix_2_steps_ << "*16**" << log2 / 4
+                << amount_of_radix_2_steps_ << " * 16**" << log2 / 4
                 << std::endl
                 << "Amount of DFT steps: 1"
                 << std::endl
@@ -596,7 +596,7 @@ private:
           dim3(transpose_conf_.amount_of_blocks_per_kernel_, 1, 1);
       transpose_kernel_params_[i].blockDim =
           dim3(transpose_conf_.blocksize_, 1, 1);
-      transpose_kernel_params_[i].sharedMemBytes = 0; //TODO
+      transpose_kernel_params_[i].sharedMemBytes = 0;
       transpose_kernel_params_[i].kernelParams = transpose_kernel_args_;
       transpose_kernel_params_[i].extra = nullptr;
     }
@@ -631,6 +631,7 @@ private:
           != cudaSuccess) {
          std::cout << "Error! Adding transpose kernel node failed!"
                    << std::endl;
+         std::cout << cudaGetErrorString(cudaGetLastError()) << std::endl;
          return false;
       }
 

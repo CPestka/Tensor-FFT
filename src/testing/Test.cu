@@ -11,7 +11,7 @@
 
 int main(){
   //Data parameter
-  int fft_length = 16*16*16*16;
+  int fft_length = 16*16*16*16*16*16*4;
   int amount_of_oscialtions = 1;
   //Kernel / performance parameter
   int amount_host_to_device_memcopies = 1;
