@@ -983,6 +983,8 @@ private:
     if (one_or_more_r16) {
       PrepareRadix16Parameters();
 
+      std::cout << "Prepareing r16 para successfull!" << std::endl;
+
       //Determine dependendcies of every radix 16 kernel to the previous kernels
       //Each std::vector<int> contains the id of first and last nodes of the
       //previous step that the current node depends on
@@ -1031,6 +1033,8 @@ private:
         radix16_dependencies.push_back(tmp_r16_dependencies);
       }
 
+      std::cout << "Computing r16 overlapp successfull!" << std::endl;
+
       //Add the radix 16 nodes
       for(int i=0; i<amount_of_radix_16_steps_; i++){
         for(int j=0; j<radix16_conf_[i].amount_of_kernels_; j++){
@@ -1062,11 +1066,14 @@ private:
         }
       }
     }
+    std::cout << "Adding r16 nodes successfull!" << std::endl;
 
     //If there are radix2 steps to be done, add the according nodes to the
     //graph
     if (one_or_more_r2) {
       PrepareRadix2Parameters();
+
+      std::cout << "Prepareing r2 para successfull!" << std::endl;
 
       //Determine dependendcies of every radix 2 kernel to the previous kernels
       //Each std::vector<int> contains the id of first and last nodes of the
@@ -1129,6 +1136,8 @@ private:
         radix2_dependencies.push_back(tmp_r2_dependencies);
       }
 
+      std::cout << "Computing r16 overlapp successfull!" << std::endl;
+
       //Add the radix 2 nodes
       for(int i=0; i<amount_of_radix_2_steps_; i++){
         for(int j=0; j<radix2_conf_[i].amount_of_kernels_; j++){
@@ -1175,6 +1184,7 @@ private:
         }
       }
     }
+    std::cout << "Adding r2 nodes successfull!" << std::endl;
 
     std::cout << "Adding of radix nodes successfull!" << std::endl;
 
