@@ -630,7 +630,7 @@ private:
           dim3(transpose_conf_.blocksize_, 1, 1);
       transpose_kernel_params_[i].sharedMemBytes = 0;
       transpose_kernel_params_[i].kernelParams =
-          &(transpose_kernel_args_[i].data());
+          transpose_kernel_args_[i].data();
       transpose_kernel_params_[i].extra = nullptr;
     }
 
@@ -759,7 +759,7 @@ private:
       dft_kernel_params_[i].blockDim =
           dim3(dft_conf_.blocksize_, 1, 1);
       dft_kernel_params_[i].sharedMemBytes = 0;
-      dft_kernel_params_[i].kernelParams = &(dft_kernel_args_[i].data());
+      dft_kernel_params_[i].kernelParams = dft_kernel_args_[i].data();
       dft_kernel_params_[i].extra = nullptr;
     }
 
@@ -834,7 +834,7 @@ private:
         radix16_kernel_params_[j][i].sharedMemBytes =
             sizeof(__half) * dft_conf_.amount_of_warps_per_block_ * 8192;
         radix16_kernel_params_[j][i].kernelParams =
-            &(radix16_kernel_args_[j][i].data());
+            radix16_kernel_args_[j][i].data();
         radix16_kernel_params_[j][i].extra = nullptr;
       }
     }
@@ -893,7 +893,7 @@ private:
             dim3(radix2_conf_[j].blocksize_, 1, 1);
         radix2_kernel_params_[j][i].sharedMemBytes = 0;
         radix2_kernel_params_[j][i].kernelParams =
-            &(radix2_kernel_args_[j][i].data());
+            radix2_kernel_args_[j][i].data();
         radix2_kernel_params_[j][i].extra = nullptr;
       }
     }

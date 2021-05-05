@@ -44,7 +44,6 @@ int main(){
 
 
   //Executing graph i.e. performing the fft
-  int64_t fft_time_ms;
   if (my_graph_handler.ExecuteGraph()) {
     int64_t fft_time_ms = my_intervall_timer.getTimeInMilliseconds() -
                          setup_time_ms;
@@ -59,6 +58,6 @@ int main(){
   } else {
     std::cout << "Graph execution failed!" << std::endl;
   }
-  
+
   return true;
 }
