@@ -42,17 +42,23 @@ int main(){
   int64_t setup_time_ms = my_intervall_timer.getTimeInMilliseconds();
   std::cout << "Setup took " << setup_time_ms << " ms" << std::endl;
 
-  //Executing graph i.e. performing the fft
-  my_graph_handler.ExecuteGraph();
-  int64_t fft_time_ms = my_intervall_timer.getTimeInMilliseconds() -
-                        setup_time_ms;
-  std::cout << "FFT took " << fft_time_ms << " ms" << std::endl;
 
-  //Returning results to host
-  my_graph_handler.CopyResultsDevicetoHost();
-  int64_t returning_results_time_ms = my_intervall_timer.getTimeInMilliseconds()
-                                      - setup_time_ms - fft_time_ms;
-  std::cout << "Copying results back took " << returning_results_time_ms
-            << " ms" << std::endl;
+  //Executing graph i.e. performing the fft
+  int64_t fft_time_ms;
+  if (my_graph_handler.ExecuteGraph()) {
+    int64_t fft_time_ms = my_intervall_timer.getTimeInMilliseconds() -
+                         setup_time_ms;
+    std::cout << "FFT took " << fft_time_ms << " ms" << std::endl;
+
+    //Returning results to host
+    my_graph_handler.CopyResultsDevicetoHost();
+    int64_t returning_results_time_ms = my_intervall_timer.getTimeInMilliseconds()
+                                       - setup_time_ms - fft_time_ms;
+    std::cout << "Copying results back took " << returning_results_time_ms
+              << " ms" << std::endl;
+  } else {
+    std::cout << "Graph execution failed!" << std::endl;
+  }
+  
   return true;
 }

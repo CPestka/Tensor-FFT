@@ -201,9 +201,13 @@ public:
       return false;
     }
 
+    std::cout << "Graph execution successfull!" << std::endl;
+
     return true;
   }
 
+  //Copies finished fft back to host into the hptr_results_x_ arrays.
+  //Check if graph executed succesfully for the fft in question before calling.
   bool CopyResultsDevicetoHost(){
     if (((amount_of_radix_16_steps_ + amount_of_radix_2_steps_) % 2) == 0) {
       if (cudaMemcpy(hptr_results_RE_, dptr_data_RE_,
@@ -222,6 +226,8 @@ public:
         return false;
       }
     }
+
+    std::cout << "Device to Host memcpy successfull!" << std::endl;
 
     return true;
   }
@@ -272,10 +278,13 @@ private:
   std::vector<std::vector<void*>> transpose_kernel_args_;
   std::vector<cudaGraphNode_t> dft_kernels_;
   std::vector<cudaKernelNodeParams> dft_kernel_params_;
+  std::vector<std::vector<void*>> dft_kernel_args_;
   std::vector<std::vector<cudaGraphNode_t>> radix16_kernels_;
   std::vector<std::vector<cudaKernelNodeParams>> radix16_kernel_params_;
+  std::vector<std::vector<std::vector<void*>>> radix16_kernel_args_;
   std::vector<std::vector<cudaGraphNode_t>> radix2_kernels_;
   std::vector<std::vector<cudaKernelNodeParams>> radix2_kernel_params_;
+  std::vector<std::vector<std::vector<void*>>> radix2_kernel_args_;
 
   //Determines the amount of radix16 and radix2 steps.
   //Since the base dft and radix 16 step utilize 16x16 matrix multiplications
@@ -303,6 +312,9 @@ private:
                 << std::endl
                 << "Amount of radix 2 steps: " << amount_of_radix_2_steps_
                 << std::endl;
+
+      std::cout << "Input parsing successfull!" << std::endl;
+
       return true;
     }
   }
@@ -323,6 +335,9 @@ private:
     for(int i=0; i<amount_of_mem_copies; i++){
       transpose_conf_.kernel_ids_.push_back(i);
     }
+
+    std::cout << "Creating transpose config successfull!" << std::endl;
+
     return true;
   }
 
@@ -395,6 +410,9 @@ private:
     for(int i=0; i<dft_conf_.amount_of_kernels_; i++){
       dft_conf_.kernel_ids_.push_back(i);
     }
+
+    std::cout << "Creating DFT config successfull!" << std::endl;
+
     return true;
   }
 
@@ -461,6 +479,9 @@ private:
         radix16_conf_[i].kernel_ids_.push_back(i);
       }
     }
+
+    std::cout << "Creating Radix16 config successfull!" << std::endl;
+
     return true;
   }
 
@@ -535,6 +556,9 @@ private:
         radix2_conf_[i].amount_of_kernels_per_fft_ = 1;
       }
     }
+
+    std::cout << "Creating radix2 config successfull!" << std::endl;
+
     return true;
   }
 
@@ -563,6 +587,9 @@ private:
         != cudaSuccess) {
       return false;
     }
+
+    std::cout << "Allocating device memory successfull!" << std::endl;
+
     return true;
   }
 
@@ -603,7 +630,7 @@ private:
           dim3(transpose_conf_.blocksize_, 1, 1);
       transpose_kernel_params_[i].sharedMemBytes = 0;
       transpose_kernel_params_[i].kernelParams =
-          transpose_kernel_args_[i].data();
+          &(transpose_kernel_args_[i].data());
       transpose_kernel_params_[i].extra = nullptr;
     }
 
@@ -696,6 +723,8 @@ private:
       return false;
     }
 
+    std::cout << "Adding of memcpy and transpose nodes successfull!" << std::endl;
+
     return true;
   }
 
@@ -707,25 +736,30 @@ private:
 
     //Set parameters needed for dft kernel node additions
     for(int i=0; i<dft_conf_.amount_of_kernels_; i++){
+      std::vector<void*> tmp_args;
+
       //The input for the dft step is created by the transpose kernels which
       //stored their results in dptr_results_
-      void* dft_kernel_args_[9] = {(void*)&dptr_results_RE_,
-                                   (void*)&dptr_results_IM_,
-                                   (void*)&dptr_data_RE_,
-                                   (void*)&dptr_data_IM_,
-                                   (void*)&hptr_dft_matrix_batch_RE_,
-                                   (void*)&hptr_dft_matrix_batch_IM_,
-                                   &(dft_conf_.amount_of_kernels_),
-                                   &(dft_conf_.kernel_ids_[i]), &(fft_length_)};
+      tmp_args.push_back((void*)&dptr_results_RE_);
+      tmp_args.push_back((void*)&dptr_results_IM_);
+
+      tmp_args.push_back((void*)&dptr_data_RE_);
+      tmp_args.push_back((void*)&dptr_data_IM_);
+      tmp_args.push_back((void*)&hptr_dft_matrix_batch_RE_);
+      tmp_args.push_back((void*)&hptr_dft_matrix_batch_IM_);
+      tmp_args.push_back((void*)&dft_conf_.amount_of_kernels_);
+      tmp_args.push_back((void*)&(dft_conf_.kernel_ids_[i]));
+      tmp_args.push_back((void*)&fft_length_);
+
+      dft_kernel_args_.push_back(tmp_args);
 
       dft_kernel_params_[i].func = (void*)DFTKernel;
       dft_kernel_params_[i].gridDim =
           dim3(dft_conf_.amount_of_blocks_per_kernel_, 1, 1);
       dft_kernel_params_[i].blockDim =
           dim3(dft_conf_.blocksize_, 1, 1);
-      //Each warp needs 2 buffers of 16x16x16 halfs
       dft_kernel_params_[i].sharedMemBytes = 0;
-      dft_kernel_params_[i].kernelParams = dft_kernel_args_;
+      dft_kernel_params_[i].kernelParams = &(dft_kernel_args_[i].data());
       dft_kernel_params_[i].extra = nullptr;
     }
 
@@ -740,6 +774,9 @@ private:
          return false;
       }
     }
+
+    std::cout << "Adding of dft nodes successfull!" << std::endl;
+
     return true;
   }
 
@@ -755,35 +792,49 @@ private:
       radix16_kernel_params_.push_back(tmp_r16_kernel_params);
     }
 
-    //Set parameters needed for radix16 kernel node additions
+    //Prepare and store kernel arguments
     for(int j=0; j<amount_of_radix_16_steps_; j++){
+      std::vector<std::vector<void*>> tmp_args_vector;
       for(int i=0; i<radix16_conf_[j].amount_of_kernels_; i++){
-        void* radix16_kernel_args_[8] =
-            {(void*)&dptr_data_RE_, (void*)&dptr_data_IM_,
-             (void*)&dptr_results_RE_, (void*)&dptr_results_IM_,
-             &(radix16_conf_[j].amount_of_kernels_),
-             &(radix16_conf_[j].kernel_ids_[i]), &fft_length_,
-             &(radix16_conf_[j].current_radix16_step_)};
+        std::vector<void*> tmp_args;
 
         //For even indecies the inputdata is located in the data arrays and
         //stored in the results arrays and vice versa for odd indecies.
-        if ((j % 2) != 0) {
-          radix16_kernel_args_[0] = (void*)&dptr_results_RE_;
-          radix16_kernel_args_[1] = (void*)&dptr_results_IM_;
-          radix16_kernel_args_[2] = (void*)&dptr_data_RE_;
-          radix16_kernel_args_[3] = (void*)&dptr_data_IM_;
+        if ((j%2) != 0) {
+          tmp_args.push_back((void*)&dptr_results_RE_);
+          tmp_args.push_back((void*)&dptr_results_IM_);
+          tmp_args.push_back((void*)&dptr_data_RE_);
+          tmp_args.push_back((void*)&dptr_data_IM_);
+        }  else {
+          tmp_args.push_back((void*)&dptr_data_RE_);
+          tmp_args.push_back((void*)&dptr_data_IM_);
+          tmp_args.push_back((void*)&dptr_results_RE_);
+          tmp_args.push_back((void*)&dptr_results_IM_);
         }
+
+        tmp_args.push_back((void*)&radix16_conf_[j].amount_of_kernels_);
+        tmp_args.push_back((void*)&(radix16_conf_[j].kernel_ids_[i]));
+        tmp_args.push_back((void*)&fft_length_);
+        tmp_args.push_back((void*)&(radix16_conf_[j].current_radix16_step_));
+
+        tmp_args_vector.push_back(tmp_args);
+      }
+      radix16_kernel_args_.push_back(tmp_args_vector);
+    }
+
+    //Set parameters needed for radix16 kernel node additions
+    for(int j=0; j<amount_of_radix_16_steps_; j++){
+      for(int i=0; i<radix16_conf_[j].amount_of_kernels_; i++){
 
         radix16_kernel_params_[j][i].func = (void*)Radix16Kernel;
         radix16_kernel_params_[j][i].gridDim =
             dim3(radix16_conf_[j].amount_of_blocks_per_kernel_, 1, 1);
         radix16_kernel_params_[j][i].blockDim =
             dim3(radix16_conf_[j].blocksize_, 1, 1);
-
-        //Each warp needs 2 buffers of 16x16x16 halfs
         radix16_kernel_params_[j][i].sharedMemBytes =
             sizeof(__half) * dft_conf_.amount_of_warps_per_block_ * 8192;
-        radix16_kernel_params_[j][i].kernelParams = radix16_kernel_args_;
+        radix16_kernel_params_[j][i].kernelParams =
+            &(radix16_kernel_args_[j][i].data());
         radix16_kernel_params_[j][i].extra = nullptr;
       }
     }
@@ -801,24 +852,39 @@ private:
       radix2_kernel_params_.push_back(tmp_r2_kernel_params);
     }
 
-    //Set parameters needed for radix2 kernel node additions
+    //Prepare and store kernel arguments
     for(int j=0; j<amount_of_radix_2_steps_; j++){
+      std::vector<std::vector<void*>> tmp_args_vector;
       for(int i=0; i<radix2_conf_[j].amount_of_kernels_; i++){
-        void* radix2_kernel_args_[7] =
-            {(void*)&dptr_data_RE_, (void*)&dptr_data_IM_,
-             (void*)&dptr_results_RE_, (void*)&dptr_results_IM_,
-             &(radix2_conf_[j].kernel_memory_offfset_[i]),
-             &(radix2_conf_[j].size_of_ffts_),
-             &(radix2_conf_[j].amount_of_kernels_per_fft_)};
+        std::vector<void*> tmp_args;
 
         //Depending on the amount of previously performed radix16 and radix2
         //steps the input data is either located in the data or result arrays
         if (((amount_of_radix_16_steps_ + i) % 2) != 0) {
-          radix2_kernel_args_[0] = (void*)&dptr_results_RE_;
-          radix2_kernel_args_[1] = (void*)&dptr_results_IM_;
-          radix2_kernel_args_[2] = (void*)&dptr_data_RE_;
-          radix2_kernel_args_[3] = (void*)&dptr_data_IM_;
+          tmp_args.push_back((void*)&dptr_results_RE_);
+          tmp_args.push_back((void*)&dptr_results_IM_);
+          tmp_args.push_back((void*)&dptr_data_RE_);
+          tmp_args.push_back((void*)&dptr_data_IM_);
+        }  else {
+          tmp_args.push_back((void*)&dptr_data_RE_);
+          tmp_args.push_back((void*)&dptr_data_IM_);
+          tmp_args.push_back((void*)&dptr_results_RE_);
+          tmp_args.push_back((void*)&dptr_results_IM_);
         }
+
+        tmp_args.push_back((void*)&(radix2_conf_[j].kernel_memory_offfset_[i]));
+        tmp_args.push_back((void*)&(radix2_conf_[j].size_of_ffts_));
+        tmp_args.push_back((void*)&(radix2_conf_[j].amount_of_kernels_per_fft_));
+        tmp_args.push_back((void*)&(radix16_conf_[j].current_radix16_step_));
+
+        tmp_args_vector.push_back(tmp_args);
+      }
+      radix2_kernel_args_.push_back(tmp_args_vector);
+    }
+
+    //Set parameters needed for radix2 kernel node additions
+    for(int j=0; j<amount_of_radix_2_steps_; j++){
+      for(int i=0; i<radix2_conf_[j].amount_of_kernels_; i++){
 
         radix2_kernel_params_[j][i].func = (void*)Radix2Kernel;
         radix2_kernel_params_[j][i].gridDim =
@@ -826,7 +892,8 @@ private:
         radix2_kernel_params_[j][i].blockDim =
             dim3(radix2_conf_[j].blocksize_, 1, 1);
         radix2_kernel_params_[j][i].sharedMemBytes = 0;
-        radix2_kernel_params_[j][i].kernelParams = radix2_kernel_args_;
+        radix2_kernel_params_[j][i].kernelParams =
+            &(radix2_kernel_args_[j][i].data());
         radix2_kernel_params_[j][i].extra = nullptr;
       }
     }
@@ -1108,6 +1175,9 @@ private:
         }
       }
     }
+
+    std::cout << "Adding of radix nodes successfull!" << std::endl;
+
     return true;
   }
 
