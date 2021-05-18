@@ -1044,8 +1044,7 @@ private:
             if (cudaGraphAddKernelNode(
                     &(radix16_kernels_[i][j]), fft_graph_,
                     &(dft_kernels_[radix16_dependencies[i][j][0]]),
-                    radix16_dependencies[i][j][0] -
-                    radix16_dependencies[i][j][1] + 1,
+                    radix16_dependencies[i][j].size(),
                     &(radix16_kernel_params_[i][j]))
                 != cudaSuccess) {
                std::cout << "Error! Adding radix16 kernel node failed!"
@@ -1056,8 +1055,7 @@ private:
             if (cudaGraphAddKernelNode(
                     &(radix16_kernels_[i][j]), fft_graph_,
                     &(radix16_kernels_[i-1][radix16_dependencies[i][j][0]]),
-                    radix16_dependencies[i][j][0] -
-                    radix16_dependencies[i][j][1] + 1,
+                    radix16_dependencies[i][j].size(),
                     &(radix16_kernel_params_[i][j]))
                 != cudaSuccess) {
                std::cout << "Error! Adding radix16 kernel node failed!"
