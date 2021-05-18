@@ -942,7 +942,7 @@ private:
       }
       //Loop backwards over all nodes of previous step to find last
       //overlapping node
-      for(int k=previous_step_last_proccessed_element.size(); k>-1; k--){
+      for(int k=previous_step_last_proccessed_element.size()-1; k>-1; k--){
         //Overlap with left boundry
         if ((this_r16_first_needed_element[j] >=
              previous_step_first_proccessed_element[k]) &&
@@ -1024,6 +1024,8 @@ private:
           this_r16_last_needed_element.push_back((k+1)*(fft_length_ /
               radix16_conf_[i].amount_of_kernels_));
         }
+
+        std::cout << "Compute Overlap." << std::endl;
 
         std::vector<std::vector<int>> tmp_r16_dependencies =
             FindOverlappingNodes(previous_step_first_proccessed_element,
