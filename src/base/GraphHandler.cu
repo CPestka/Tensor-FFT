@@ -948,7 +948,7 @@ private:
              previous_step_first_proccessed_element[k]) &&
             (this_r16_first_needed_element[j] <=
              previous_step_last_proccessed_element[k])) {
-          first_needed_node = k;
+          last_needed_node = k;
           break;
         }
         //Overlap with right boundry
@@ -956,7 +956,7 @@ private:
              previous_step_first_proccessed_element[k]) &&
             (this_r16_last_needed_element[j] <=
              previous_step_last_proccessed_element[k])) {
-          first_needed_node = k;
+          last_needed_node = k;
           break;
         }
         //Intervall enclosed
@@ -964,7 +964,7 @@ private:
              previous_step_first_proccessed_element[k]) &&
             (this_r16_last_needed_element[j] >=
              previous_step_last_proccessed_element[k])) {
-          first_needed_node = k;
+          last_needed_node = k;
           break;
         }
       }
@@ -1044,7 +1044,7 @@ private:
             if (cudaGraphAddKernelNode(
                     &(radix16_kernels_[i][j]), fft_graph_,
                     &(dft_kernels_[radix16_dependencies[i][j][0]]),
-                    radix16_dependencies[i][j].size(),
+                    radix16_dependencies[i][j][1]-radix16_dependencies[i][j][0],
                     &(radix16_kernel_params_[i][j]))
                 != cudaSuccess) {
                std::cout << "Error! Adding radix16 kernel node failed!"
@@ -1055,7 +1055,7 @@ private:
             if (cudaGraphAddKernelNode(
                     &(radix16_kernels_[i][j]), fft_graph_,
                     &(radix16_kernels_[i-1][radix16_dependencies[i][j][0]]),
-                    radix16_dependencies[i][j].size(),
+                    radix16_dependencies[i][j][1]-radix16_dependencies[i][j][0],
                     &(radix16_kernel_params_[i][j]))
                 != cudaSuccess) {
                std::cout << "Error! Adding radix16 kernel node failed!"
