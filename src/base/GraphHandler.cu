@@ -1040,6 +1040,7 @@ private:
       //Add the radix 16 nodes
       for(int i=0; i<amount_of_radix_16_steps_; i++){
         for(int j=0; j<radix16_conf_[i].amount_of_kernels_; j++){
+          std::cout << "1" << std::endl;
           if (i == 0) { //dft step is previous step
             if (cudaGraphAddKernelNode(
                     &(radix16_kernels_[i][j]), fft_graph_,
@@ -1051,6 +1052,7 @@ private:
                          << std::endl;
                return false;
             }
+            std::cout << "2" << std::endl;
           } else {  //radix 16 step is previous step
             if (cudaGraphAddKernelNode(
                     &(radix16_kernels_[i][j]), fft_graph_,
@@ -1062,6 +1064,7 @@ private:
                          << std::endl;
                return false;
             }
+            std::cout << "3" << std::endl;
           }
         }
       }
