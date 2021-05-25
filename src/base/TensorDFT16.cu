@@ -10,7 +10,7 @@ using namespace nvcuda;
 
 //The FFT algorithm (here implemented via Radix16Kernel() and Radix2Kernel())
 //rely on smaller already computed ffts for the computation of the larger fft.
-//In this implementation this kernel provides the "first" actualy computed ffts
+//In this implementation this kernel provides the "first" actually computed ffts
 //by computing 16 point dfts via multiplication with the according dft matrix
 //i.e. applying the definition of the dft (an alternative is to go down to ffts
 //of size 1, where the dft(x)=x, and doing another recombination step. This isnt
@@ -33,16 +33,11 @@ using namespace nvcuda;
 //              on GPU from 2x inputdata size to 3X and additional slow memcpy
 //              to device
 //           3. Just compute it in kernel
-//Currently used is version 1.
+//Currently used is version 2.
 __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                           __half* output_data_RE, __half* output_data_IM,
                           __half* dft_matrix_batch_RE,
-                          __half* dft_matrix_batch_IM,
-                          int amount_of_kernels, int current_kernel_id,
-                          int fft_length) {
-  int memory_kernel_offset =
-      (fft_length / amount_of_kernels) * current_kernel_id;
-      
+                          __half* dft_matrix_batch_IM) {
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -56,6 +51,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
       data_RE_frag;
   wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       data_IM_frag;
+
   //TO-SELF:currently acc into half vs float -> worse accuracy vs needing
   //conversion
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
@@ -70,11 +66,12 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   //Load the inputs
   wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE, 16);
   wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM, 16);
+
   //The data for one Kernel launch beginns at input_data_x + memory_offset
   //Each warp then uses one 16x16x16 matrix batch
-  int total_memory_offset = memory_kernel_offset + (warp_id * 4096);
-  wmma::load_matrix_sync(data_RE_frag, input_data_RE + total_memory_offset, 16);
-  wmma::load_matrix_sync(data_IM_frag, input_data_IM + total_memory_offset, 16);
+  int memory_offset = warp_id * 4096;
+  wmma::load_matrix_sync(data_RE_frag, input_data_RE + memory_offset, 16);
+  wmma::load_matrix_sync(data_IM_frag, input_data_IM + memory_offset, 16);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -89,15 +86,15 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                  accumulator_IM_frag);
 
   //Store IM part of the output
-  wmma::store_matrix_sync(output_data_IM + total_memory_offset,
-                          accumulator_IM_frag, 16, wmma::mem_row_major);
+  wmma::store_matrix_sync(output_data_IM + memory_offset, accumulator_IM_frag,
+                          16, wmma::mem_row_major);
 
   //Compute RE(A)xRE(B)-IM(A)xIM(B) with each thread in a warp computing 128
   //values and storing them -> 32*128=4096=16*16*16
   #pragma unroll
   for(int i=0; i<128; i++){
     int current_id = inter_warp_id * 128 + i;
-    output_data_RE[total_memory_offset + current_id] =
+    output_data_RE[memory_offset + current_id] =
         __hsub(accumulator_RE_1_frag.x[current_id],
                accumulator_RE_2_frag.x[current_id]);
   }

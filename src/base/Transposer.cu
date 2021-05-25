@@ -22,26 +22,19 @@
 //implementation for ffts of size 16 by the kernel DFTKernel()). This recursive
 //usage of the algorithm requires numerous transpose operations on different
 //regions of the data.
-//This kernel does not directly perform these transposes. Instead each thread
+//This kernel does not sequentialy perform these transposes. Instead each thread
 //computes for one index of the input array the index in the output array after
-//all transposes and then performs the copy from the input to the output array
+//ALL transposes and then performs the copy from the input to the output array
 //for that element. This reduces the amount of global memory read-writes from
 //fft_length*(amount_of_radix16_steps + amount_of_radix2_steps) to
 //fft_length.
-//TO-SELF:It might be faster to calculate K indecies and do K writes for one
-//thread
-__global__ void TransposeKernel(__half2* input_data, __half* output_data_RE,
-                                __half* output_data_IM, int kernel_amount,
-                                int current_kernel_id, int fft_length,
-                                int amount_of_radix16_steps,
+__global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
+                                __half* output_data_RE, __half* output_data_IM,
+                                int fft_length, int amount_of_radix16_steps,
                                 int amount_of_radix2_steps) {
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  int samples_per_kernel = fft_length / kernel_amount;
 
-  if (id < samples_per_kernel) { //Check if thread has valid input data
-    //Change from index in regards to the input data on which this kernel is
-    //working on to the index in regards to the entire input data
-    id = id + (samples_per_kernel * current_kernel_id);
+  if (id < fft_length) { //Check if thread has valid input data
 
     //Find indecies of N-Dim array representation of output data
     //N = amount_of_radix_16_steps * amount_of_radix2_steps + 1
@@ -100,7 +93,7 @@ __global__ void TransposeKernel(__half2* input_data, __half* output_data_RE,
     }
 
     //Write data sample from input to output arrray
-    output_data_RE[output_id] = __high2half(input_data[id]);
-    output_data_IM[output_id] = __low2half(input_data[id]);
+    output_data_RE[output_id] = input_data_RE[id];
+    output_data_IM[output_id] = input_data_IM[id];
   }
 }

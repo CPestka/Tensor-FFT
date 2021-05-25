@@ -10,23 +10,19 @@
 //is only used to allow for compatibility with all input sizes that are powers
 //of 2.
 //Each thread computes two complex points of the resulting FFT.
+//This kernel performs one combination of 2 N/2 sized ffts and thus if there are
+//multiple of those needed for one radix step, multiple kernels have to be
+//launched and the ptrs to the in/out  data have to point to the beginnning of
+//the fft that is to be proccessed and not to the global start of the data.
 __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
                              __half* output_data_RE, __half* output_data_IM,
-                             int kernel_memory_offfset, int sub_fft_length,
-                             int amount_of_kernels_per_fft) {
-  int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-  int memory_point1_offset = kernel_memory_offfset + thread_id;
+                             int sub_fft_length) {
+  int memory_point1_offset = blockDim.x * blockIdx.x + threadIdx.x;
   int memory_point2_offset = memory_point1_offset + sub_fft_length;
-  int data_point_id;
-  if (blockDim.x * gridDim.x < sub_fft_length) {
-    data_point_id = thread_id;
-  } else {
-    data_point_id = thread_id + (sub_fft_length / amount_of_kernels_per_fft);
-  }
 
   //The twiddle factor for the first point is 1 -> only the second point has to
   //be modified
-  float phase = (-2 * M_PI * data_point_id) / sub_fft_length;
+  float phase = (-2 * M_PI * memory_point1_offset) / sub_fft_length;
   __half twiddle_RE = __float2half(cosf(phase));
   __half twiddle_IM = __float2half(sinf(phase));
 
