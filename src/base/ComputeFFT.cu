@@ -56,9 +56,7 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
      return cudaGetErrorString(cudaPeekAtLastError());
   }
 
-  int max_amount_of_warps =
-      (fft_plan.dft_warps_per_block_ > fft_plan.r16_warps_per_block_) ?
-      fft_plan.dft_warps_per_block_ : fft_plan.r16_warps_per_block_;
+  int max_amount_of_warps = fft_plan.fft_length_ / (16 * 16 * 16);
   //Here we precompute the dft matrix batches needed for the DFTKernel() and
   //Radix16Kernel(). Currently there is one batch precomputed for each warp. The
   //other options are to only precompute one (lower memory usage but read
@@ -74,8 +72,8 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
   dptr_dft_matrix_batch_IM_ =
       dptr_dft_matrix_batch_RE_ + (16 * 16 * 16 * max_amount_of_warps);
 
-  ComputeDFTMatrix<<<max_amount_of_warps, 16*16*16>>>(dptr_dft_matrix_batch_RE_,
-                                                    dptr_dft_matrix_batch_IM_);
+  ComputeDFTMatrix<<<max_amount_of_warps*16, 16*16>>>(dptr_dft_matrix_batch_RE_,
+                                                     dptr_dft_matrix_batch_IM_);
 
   int amount_of_transpose_blocks =
      ceil(static_cast<float>(fft_plan.fft_length_) /
@@ -237,11 +235,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
 
   std::vector<int> max_amount_of_warps;
   for(int i=0; fft_plans.size(); i++){
-    int tmp = (fft_plans[i].dft_warps_per_block_ >
-               fft_plans[i].r16_warps_per_block_) ?
-              fft_plans[i].dft_warps_per_block_ :
-              fft_plans[i].r16_warps_per_block_;
-    max_amount_of_warps.push_back(tmp);
+    max_amount_of_warps.push_back(fft_plans[i].fft_length_ / (16 * 16 * 16));
   }
 
   //Here we precompute the dft matrix batches needed for the DFTKernel() and
@@ -263,7 +257,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
     dptr_dft_matrix_batch_IM_[i] =
         dptr_dft_matrix_batch_RE_[i] + (16 * 16 * 16 * max_amount_of_warps[i]);
 
-    ComputeDFTMatrix<<<max_amount_of_warps[i], 16*16*16, 0, streams[i]>>>(
+    ComputeDFTMatrix<<<max_amount_of_warps[i]*16, 16*16, 0, streams[i]>>>(
         dptr_dft_matrix_batch_RE_[i], dptr_dft_matrix_batch_IM_[i]);
   }
 
