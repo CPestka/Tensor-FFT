@@ -39,9 +39,10 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
   __half* dptr_input_IM;
   __half* dptr_results_RE;
   __half* dptr_results_IM;
-  if (cudaMalloc(&dptr_input_RE, 4 * sizeof(__half) * fft_plan.fft_length_)
+  if (cudaMalloc((void**)(&dptr_input_RE),
+                 4 * sizeof(__half) * fft_plan.fft_length_)
       != cudaSuccess){
-     return "Memory allocation for a fft data array failed";
+     return cudaGetErrorString(cudaPeekAtLastError());
   }
   dptr_input_IM = dptr_input_RE + fft_plan.fft_length_;
   dptr_results_RE = dptr_input_IM + fft_plan.fft_length_;
@@ -52,7 +53,7 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
                  2 * fft_plan.fft_length_ * sizeof(__half),
                  cudaMemcpyHostToDevice)
        != cudaSuccess) {
-     return "Memcpy of input data to device failed";
+     return cudaGetErrorString(cudaPeekAtLastError());
   }
 
   int max_amount_of_warps =
@@ -65,10 +66,10 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
   //kernels. (TODO: find out whats "best")
   __half* dptr_dft_matrix_batch_RE_;
   __half* dptr_dft_matrix_batch_IM_;
-  if (cudaMalloc(&dptr_dft_matrix_batch_RE_,
+  if (cudaMalloc((void**)(&dptr_dft_matrix_batch_RE_),
                  2 * sizeof(__half) * 16 * 16 * 16 * max_amount_of_warps)
       != cudaSuccess) {
-    return "Memory allocation for dptr_dft_matrix_batch_... failed";
+    return cudaGetErrorString(cudaPeekAtLastError());
   }
   dptr_dft_matrix_batch_IM_ =
       dptr_dft_matrix_batch_RE_ + (16 * 16 * 16 * max_amount_of_warps);
@@ -172,15 +173,15 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
                   2 * fft_plan.fft_length_ * sizeof(__half),
                   cudaMemcpyDeviceToHost)
        != cudaSuccess) {
-     return "Memcpy of results to host failed";
+     return cudaGetErrorString(cudaPeekAtLastError());
   }
 
   //Free device memory
   if (cudaFree(dptr_input_RE) != cudaSuccess) {
-     return "Freeing of data array failed";
+     return cudaGetErrorString(cudaPeekAtLastError());
   }
   if (cudaFree(dptr_dft_matrix_batch_RE_) != cudaSuccess) {
-     return "Freeing of data array failed";
+     return cudaGetErrorString(cudaPeekAtLastError());
   }
 
   return std::nullopt;
@@ -199,7 +200,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   streams.resize(fft_plans.size());
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
-       return "Creation of stream failed";
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
   }
 
@@ -215,10 +216,10 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
     dptr_results_RE.push_back(nullptr);
     dptr_results_IM.push_back(nullptr);
 
-    if (cudaMalloc(&(dptr_input_RE[i]),
+    if (cudaMalloc((void**)(&(dptr_input_RE[i])),
                     4 * sizeof(__half) * fft_plans[i].fft_length_)
         != cudaSuccess){
-       return "Memory allocation for a fft data array failed";
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
 
     dptr_input_IM[i] = dptr_input_RE[i] + fft_plans[i].fft_length_;
@@ -230,7 +231,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
                         2 * fft_plans[i].fft_length_ * sizeof(__half),
                         cudaMemcpyHostToDevice, streams[i])
        != cudaSuccess) {
-       return "Memcpy of input data to device failed";
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
   }
 
@@ -253,10 +254,10 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   dptr_dft_matrix_batch_RE_.resize(fft_plans.size(), nullptr);
   dptr_dft_matrix_batch_IM_.resize(fft_plans.size(), nullptr);
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
-    if (cudaMalloc(&(dptr_dft_matrix_batch_RE_[i]),
+    if (cudaMalloc((void**)(&(dptr_dft_matrix_batch_RE_[i])),
                    2 * sizeof(__half) * 16 * 16 * 16 * max_amount_of_warps[i])
         != cudaSuccess) {
-      return "Memory allocation for dptr_dft_matrix_batch_... failed";
+      return cudaGetErrorString(cudaPeekAtLastError());
     }
 
     dptr_dft_matrix_batch_IM_[i] =
@@ -389,15 +390,15 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
                     2 * fft_plans[i].fft_length_ * sizeof(__half),
                     cudaMemcpyDeviceToHost)
          != cudaSuccess) {
-       return "Memcpy of results to host failed";
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
 
     //Free used device memory
     if (cudaFree(dptr_input_RE[i]) != cudaSuccess) {
-       return "Freeing of data array failed";
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
     if (cudaFree(dptr_dft_matrix_batch_RE_[i]) != cudaSuccess) {
-       return "Freeing of data array failed";
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
   }
 
