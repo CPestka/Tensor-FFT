@@ -40,7 +40,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                           __half* dft_matrix_batch_IM) {
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
-  int inter_warp_id = thread_id % 32;
+  //int inter_warp_id = thread_id % 32;
 
   //Declare the fragments
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
@@ -100,4 +100,10 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                accumulator_RE_2_frag.x[current_id]);
   }
   */
+  #pragma unroll
+  for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
+    output_data_RE[memory_offset + i] =
+        __hsub(accumulator_RE_1_frag.x[i],
+               accumulator_RE_2_frag.x[i]);
+  }
 }
