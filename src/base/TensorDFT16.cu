@@ -91,6 +91,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
 
   //Compute RE(A)xRE(B)-IM(A)xIM(B) with each thread in a warp computing 128
   //values and storing them -> 32*128=4096=16*16*16
+  /*
   #pragma unroll
   for(int i=0; i<128; i++){
     int current_id = inter_warp_id * 128 + i;
@@ -98,4 +99,5 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
         __hsub(accumulator_RE_1_frag.x[current_id],
                accumulator_RE_2_frag.x[current_id]);
   }
+  */
 }
