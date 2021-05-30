@@ -221,8 +221,8 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                             wmma::mem_row_major);
     #pragma unroll
     for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
-      buffer_RE[warp_memory_offset + i] = __hsub(accumulator_RE_1_frag.x[i],
-                                                 accumulator_RE_2_frag.x[i]);
+      buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
+                            accumulator_RE_2_frag.x[i]);
     }
 
     //Store the results in the appropriately reordered way into the output array
