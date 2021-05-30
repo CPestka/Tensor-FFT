@@ -310,11 +310,8 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   dptr_current_results_IM.resize(fft_plans.size(), nullptr);
   sub_fft_length.resize(fft_plans.size(), 16);
 
-  int shared_mem_in_bytes = fft_plans[i].r16_warps_per_block_ * 16 * 16 * 16 *
-                            2 * sizeof(__half);
-  cudaFuncSetAttribute(Radix16Kernel,
-                       cudaFuncAttributeMaxDynamicSharedMemorySize,
-                       shared_mem_in_bytes);
+  std::vec<int> shared_mem_in_bytes;
+
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     for(int j=0; j<fft_plans[i].amount_of_r16_steps_; j++){
       //For each step the input data is the output data of the previous step
@@ -333,9 +330,15 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
       int amount_of_r16_blocks =
           fft_plans[i].fft_length_ / fft_plans[i].r2_blocksize_;
 
+      shared_mem_in_bytes.push_back(fft_plans[i].r16_warps_per_block_ * 16 *
+                                    16 * 16 * 2 * sizeof(__half));
+      cudaFuncSetAttribute(Radix16Kernel,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           shared_mem_in_bytes[i]);
+
       Radix16Kernel<<<amount_of_r16_blocks,
                      32 * fft_plans[i].r16_warps_per_block_,
-                     shared_mem_in_bytes, streams[i]>>>(
+                     shared_mem_in_bytes[i], streams[i]>>>(
           dptr_current_input_RE[i], dptr_current_input_IM[i],
           dptr_current_results_RE[i], dptr_current_results_IM[i],
           dptr_dft_matrix_batch_RE_[i], dptr_dft_matrix_batch_IM_[i],
