@@ -119,7 +119,8 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
         fft_plan.fft_length_ / (16 * 16 * 16 * fft_plan.r16_warps_per_block_);
 
     cudaFuncSetAttribute(Radix16Kernel,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize);
+                         cudaFuncAttributeMaxDynamicSharedMemorySize,
+                         cudaSharedmemCarveoutMaxShared);
     std::cout << amount_of_r16_blocks << " " << fft_plan.r16_warps_per_block_
               << " " << 16*16*16*2*sizeof(__half)*fft_plan.r16_warps_per_block_
               << std::endl;
@@ -128,7 +129,7 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
         dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
         dptr_current_results_IM, dptr_dft_matrix_batch_RE_,
         dptr_dft_matrix_batch_IM_, fft_plan.fft_length_, sub_fft_length, i);
-    
+
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 16;
   }
