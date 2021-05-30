@@ -310,7 +310,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   dptr_current_results_IM.resize(fft_plans.size(), nullptr);
   sub_fft_length.resize(fft_plans.size(), 16);
 
-  std::vec<int> shared_mem_in_bytes;
+  std::vector<int> shared_mem_in_bytes;
 
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     for(int j=0; j<fft_plans[i].amount_of_r16_steps_; j++){
