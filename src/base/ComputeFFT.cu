@@ -121,12 +121,12 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
     cudaFuncSetAttribute(Radix16Kernel,
         cudaFuncAttributePreferredSharedMemoryCarveout,
         cudaSharedmemCarveoutMaxShared);
-    Radix16Kernel<<<amount_of_r16_blocks, 32 * fft_plan.r16_warps_per_block_,
+    /*Radix16Kernel<<<amount_of_r16_blocks, 32 * fft_plan.r16_warps_per_block_,
                     fft_plan.r16_warps_per_block_*16*16*16*2*sizeof(__half)>>>(
         dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
         dptr_current_results_IM, dptr_dft_matrix_batch_RE_,
         dptr_dft_matrix_batch_IM_, fft_plan.fft_length_, sub_fft_length, i);
-
+    */
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 16;
   }
