@@ -39,12 +39,11 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
+  int inter_block_warp_id = warp_id % (blockDim.x / 32);
   //Used to devide work for threads in a warp since the problem size is 16 based
   //and the tensor core operations are "warp wide".
   int inter_warp_id_16 = inter_warp_id % 16;
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
-  int warp_memory_offset = 4096 * warp_id;
-  int combined_fft_length = sub_fft_length * 16;
 
   //Declare the fragments
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
@@ -76,9 +75,9 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //for this block -> amount_of_warps_per_block * size_of_fragment (16*16*16) *
   //2 (RE + IM) * sizeof(half); (blockdim.x / 32) = amount_of_warps_per_block
   //For recomended amount_of_warps_per_block=4 -> 64kB -> ok on A100
-  extern __shared__ __half buffer_RE[];
-  int fragment_offset = blockDim.x * 8 * 16;
-  __half* buffer_IM = buffer_RE + fragment_offset;
+  extern __shared__ __half buffer[];
+  __half* buffer_RE = buffer + (8192 * inter_block_warp_id);
+  __half* buffer_IM = buffer_RE + 4096;
 
   //In this case one warp performs 16 combines of 16 size 16 FFTs. This means
   //that the resulting data does not need to be rearanged.
@@ -86,6 +85,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //multiplies with the twiddle factors and stores the now prepared data in the
   //fragment.
   if (current_radix16_step == 0) {
+    int warp_memory_offset = 4096 * warp_id;
     #pragma unroll
     for(int i=0; i<8; i++){
       #pragma unroll
@@ -95,8 +95,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
         int total_memory_offset = warp_memory_offset + matrix_memory_offset;
 
         //Compute RE and IM of twiddle factors
-        float phase = (-2 * M_PI * j * inter_warp_id_16) /
-                        combined_fft_length;
+        float phase = (-2 * M_PI * j * inter_warp_id_16) / 256;
         //TO-SELF: test __cosf vs cos accuracy and speed
         __half twiddle_RE = __float2half(cosf(phase));
         __half twiddle_IM = __float2half(sinf(phase));
@@ -154,8 +153,10 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                  accumulator_RE_2_frag.x[i]);
     }
   } else { //case m > 1
-    int amount_of_substeps = sub_fft_length / 16;
-    int inter_substep_id = warp_id % amount_of_substeps;
+    int combined_fft_length = sub_fft_length * 16;
+    int amount_of_warps_pes_substep = sub_fft_length / (16 * 16);
+    int inter_substep_id = warp_id % amount_of_warps_pes_substep;
+    int substep_id = warp_id / amount_of_warps_pes_substep;
 
     //Each of the 32 threads pre warp loads 8*16=128 (128*32=16*16*16) data
     //points. However the data of the needed 16x16 matrix of input data is not
@@ -167,30 +168,34 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
     for(int i=0; i<8; i++){
       #pragma unroll
       for(int j=0; j<16; j++){
-        int matrix_memory_offset =
+        int buffer_matrix_memory_offset =
             inter_warp_id_16 +
-            (sub_fft_length * j) +
-            (16 * (i + (8 * inter_warp_id_is_upper_16))) +
-            (16 * 16 * warp_id);
-        int total_memory_offset = warp_memory_offset + matrix_memory_offset;
+            (16 * j) +
+            (16 * 16 * (i + (8 * inter_warp_id_is_upper_16)));
+        int global_collum_id = inter_warp_id_16 +
+                               (16 * (i + (8 * inter_warp_id_is_upper_16))) +
+                               (16 * 16 * inter_substep_id);
+        int global_memory_offset = global_collum_id +
+                                   (sub_fft_length * j) +
+                                   (sub_fft_length * 16 * substep_id);
 
         //Compute twiddle factors
-        float phase = (-2 * M_PI * j * inter_substep_id) / combined_fft_length;
+        float phase = (-2 * M_PI * j * global_collum_id) / combined_fft_length;
         //TO-SELF: test __cosf vs cos accuracy and speed
         __half twiddle_RE = __float2half(cosf(phase));
         __half twiddle_IM = __float2half(sinf(phase));
 
         //Fetch current data once from global memory to use it twice
-        __half input_RE = input_data_RE[total_memory_offset];
-        __half input_IM = input_data_IM[total_memory_offset];
+        __half input_RE = input_data_RE[global_memory_offset];
+        __half input_IM = input_data_IM[global_memory_offset];
 
         //Store modified data to buffer arrays
         //mod_RE = RE*twid_RE - IM*twid_IM
-        buffer_RE[matrix_memory_offset] =
+        buffer_RE[buffer_matrix_memory_offset] =
             __hfma(input_RE , twiddle_RE,
                    __hmul(-1.0, __hmul(input_IM, twiddle_IM)));
         //mod_IM = RE*twid_IM + IM*twid_RE
-        buffer_IM[matrix_memory_offset] =
+        buffer_IM[buffer_matrix_memory_offset] =
             __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
       }
     }
@@ -228,37 +233,20 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
     for(int i=0; i<8; i++){
       #pragma unroll
       for(int j=0; j<16; j++){
-        int buffer_memory_offset = inter_warp_id_16 +
-                                   16 * j +
-                                   256 * (i + (8 * inter_warp_id_is_upper_16));
-        int results_memory_offset =
+        int buffer_matrix_memory_offset =
             inter_warp_id_16 +
-            (sub_fft_length * j) +
-            (16 * (i + (8 * inter_warp_id_is_upper_16))) +
-            (16 * 16 * warp_id) +
-            warp_memory_offset;
+            (16 * j) +
+            (16 * 16 * (i + (8 * inter_warp_id_is_upper_16)));
+        int global_memory_offset = inter_warp_id_16 +
+                                   (16 * (i + (8 * inter_warp_id_is_upper_16)))+
+                                   (16 * 16 * inter_substep_id) +
+                                   (sub_fft_length * j) +
+                                   (sub_fft_length * 16 * substep_id);
 
-        output_data_IM[results_memory_offset] = buffer_IM[buffer_memory_offset];
-      }
-    }
-
-    //RE(A)xRE(B) - IM(A)xIM(B) has to be performed and store it in the
-    //correctly reorded way.
-    #pragma unroll
-    for(int i=0; i<8; i++){
-      #pragma unroll
-      for(int j=0; j<16; j++){
-        int buffer_memory_offset = inter_warp_id_16 +
-                                   16 * j +
-                                   256 * (i + (8 * inter_warp_id_is_upper_16));
-        int results_memory_offset =
-            inter_warp_id_16 +
-            (sub_fft_length * j) +
-            (16 * (i + (8 * inter_warp_id_is_upper_16))) +
-            (16 * 16 * warp_id) +
-            warp_memory_offset;
-
-        output_data_RE[results_memory_offset] = buffer_RE[buffer_memory_offset];
+        output_data_RE[global_memory_offset] =
+            buffer_RE[buffer_matrix_memory_offset];
+        output_data_IM[global_memory_offset] =
+            buffer_IM[buffer_matrix_memory_offset];
       }
     }
   }
