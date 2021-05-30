@@ -120,7 +120,7 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
 
     cudaFuncSetAttribute(Radix16Kernel,
                          cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         cudaSharedmemCarveoutMaxShared);
+                         fft_plan.r16_warps_per_block_*16*16*16*2*sizeof(__half));
     std::cout << amount_of_r16_blocks << " " << fft_plan.r16_warps_per_block_
               << " " << 16*16*16*2*sizeof(__half)*fft_plan.r16_warps_per_block_
               << std::endl;
