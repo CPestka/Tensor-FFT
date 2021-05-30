@@ -118,14 +118,13 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
     int amount_of_r16_blocks =
         fft_plan.fft_length_ / (16 * 16 * 16 * fft_plan.r16_warps_per_block_);
 
+    int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ * 16 * 16 * 16 *
+                              2 * sizeof(__half);
     cudaFuncSetAttribute(Radix16Kernel,
                          cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         fft_plan.r16_warps_per_block_*16*16*16*2*sizeof(__half));
-    std::cout << amount_of_r16_blocks << " " << fft_plan.r16_warps_per_block_
-              << " " << 16*16*16*2*sizeof(__half)*fft_plan.r16_warps_per_block_
-              << std::endl;
+                         shared_mem_in_bytes);
     Radix16Kernel<<<amount_of_r16_blocks, 32 * fft_plan.r16_warps_per_block_,
-                    fft_plan.r16_warps_per_block_*16*16*16*2*sizeof(__half)>>>(
+                    shared_mem_in_bytes>>>(
         dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
         dptr_current_results_IM, dptr_dft_matrix_batch_RE_,
         dptr_dft_matrix_batch_IM_, fft_plan.fft_length_, sub_fft_length, i);
@@ -161,13 +160,12 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
     //launch multiple kernels
     for(int j=0; j<(remaining_sub_ffts/2); j++){
       int memory_offset = j * sub_fft_length;
-      /*Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
+      Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
           dptr_current_input_IM + memory_offset,
           dptr_current_results_RE + memory_offset,
           dptr_current_results_IM + memory_offset,
           sub_fft_length);
-      */
     }
 
     //Update sub_fft_length
@@ -312,9 +310,11 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   dptr_current_results_IM.resize(fft_plans.size(), nullptr);
   sub_fft_length.resize(fft_plans.size(), 16);
 
+  int shared_mem_in_bytes = fft_plans[i].r16_warps_per_block_ * 16 * 16 * 16 *
+                            2 * sizeof(__half);
   cudaFuncSetAttribute(Radix16Kernel,
-      cudaFuncAttributePreferredSharedMemoryCarveout,
-      cudaSharedmemCarveoutMaxShared);
+                       cudaFuncAttributeMaxDynamicSharedMemorySize,
+                       shared_mem_in_bytes);
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     for(int j=0; j<fft_plans[i].amount_of_r16_steps_; j++){
       //For each step the input data is the output data of the previous step
@@ -334,8 +334,8 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
           fft_plans[i].fft_length_ / fft_plans[i].r2_blocksize_;
 
       Radix16Kernel<<<amount_of_r16_blocks,
-                     32 * fft_plans[i].r16_warps_per_block_, fft_plans[i].r16_warps_per_block_*16*16*16*2*sizeof(__half)
-                     , streams[i]>>>(
+                     32 * fft_plans[i].r16_warps_per_block_,
+                     shared_mem_in_bytes, streams[i]>>>(
           dptr_current_input_RE[i], dptr_current_input_IM[i],
           dptr_current_results_RE[i], dptr_current_results_IM[i],
           dptr_dft_matrix_batch_RE_[i], dptr_dft_matrix_batch_IM_[i],
