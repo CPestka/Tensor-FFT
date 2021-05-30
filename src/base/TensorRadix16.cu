@@ -23,7 +23,7 @@ using namespace nvcuda;
 //matrix is performed. For m > 1 the matrix multiplication is split into m
 //16x16 * 16x16 matrixmultiplications and the results are then recombined
 //by storing the results in the correct place in memory. Also due to this the
-//input data for m > 1 isnt linaer in memory but for one 16x16 matrix instead
+//input data for m > 1 isnt linear in memory but for one 16x16 matrix instead
 //16 offset linear chuncks of length 16.
 //The needed batching of the matrix multiplications for the tensor cores is (16
 //16x16 matrices have to be qued at once) is handeled for the m = 1 case by
@@ -68,6 +68,18 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE, 16);
   wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM, 16);
 
+  //Since fragments can only be accessed uniformly, elementwise multiplication
+  //with different elements, cant be done by simply looping over the fragment
+  //elements and the reordering of the results when storing them back to memory
+  //can not be done directly with the fragments at all.
+  //For this purpose we we utilize a shared memory buffer of size of the data
+  //for this block -> amount_of_warps_per_block * size_of_fragment (16*16*16) *
+  //2 (RE + IM) * sizeof(half); (blockdim.x / 32) = amount_of_warps_per_block
+  //For recomended amount_of_warps_per_block=4 -> 64kB -> ok on A100
+  extern __shared__ __half buffer_RE[];
+  int fragment_offset = blockDim.x * 8 * 16;
+  __half* buffer_IM = buffer_RE + fragment_offset;
+
   //In this case one warp performs 16 combines of 16 size 16 FFTs. This means
   //that the resulting data does not need to be rearanged.
   //Each of the 32 threads per warp loads 8*16=128 (128*32=16*16*16) data points
@@ -95,14 +107,18 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
 
         //Store modified data to buffer arrays
         //mod_RE = RE*twid_RE - IM*twid_IM
-        data_RE_frag.x[matrix_memory_offset] =
+        buffer_RE[matrix_memory_offset] =
             __hfma(input_RE , twiddle_RE,
                    __hmul(-1.0, __hmul(input_IM, twiddle_IM)));
         //mod_IM = RE*twid_IM + IM*twid_RE
-        data_IM_frag.x[matrix_memory_offset] =
+        buffer_IM[matrix_memory_offset] =
             __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
       }
     }
+
+    //Load the modified data from shared mem buffer
+    wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
+    wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
 
     //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
     //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -122,12 +138,20 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
 
     //RE(A)xRE(B) - IM(A)xIM(B) has to be performed. Each thread in a warp
     //computes 128 values and stores them -> 32*128=4096=16*16*16
+    /*
     #pragma unroll
     for(int i=0; i<128; i++){
       int current_id = inter_warp_id * 128 + i;
       output_data_RE[warp_memory_offset + current_id] =
           __hsub(accumulator_RE_1_frag.x[current_id],
                  accumulator_RE_2_frag.x[current_id]);
+    }
+    */
+    #pragma unroll
+    for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
+      output_data_RE[warp_memory_offset + i] =
+          __hsub(accumulator_RE_1_frag.x[i],
+                 accumulator_RE_2_frag.x[i]);
     }
   } else { //case m > 1
     int amount_of_substeps = sub_fft_length / 16;
@@ -162,14 +186,18 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
 
         //Store modified data to buffer arrays
         //mod_RE = RE*twid_RE - IM*twid_IM
-        data_RE_frag.x[matrix_memory_offset] =
+        buffer_RE[matrix_memory_offset] =
             __hfma(input_RE , twiddle_RE,
                    __hmul(-1.0, __hmul(input_IM, twiddle_IM)));
         //mod_IM = RE*twid_IM + IM*twid_RE
-        data_IM_frag.x[matrix_memory_offset] =
+        buffer_IM[matrix_memory_offset] =
             __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
       }
     }
+
+    //Load the modified data from shared mem buffer
+    wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
+    wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
 
     //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
     //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -182,6 +210,15 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                    accumulator_IM_frag);
     wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
                    accumulator_IM_frag);
+
+    //Store results to buffer
+    wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
+                            wmma::mem_row_major);
+    #pragma unroll
+    for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
+      buffer_RE[warp_memory_offset + i] = __hsub(accumulator_RE_1_frag.x[i],
+                                                 accumulator_RE_2_frag.x[i]);
+    }
 
     //Store the results in the appropriately reordered way into the output array
     //The data is stored back the way it was intialy the i.e. a 16^mx16 linear=
@@ -201,8 +238,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
             (16 * 16 * warp_id) +
             warp_memory_offset;
 
-        output_data_IM[results_memory_offset] =
-            accumulator_IM_frag.x[buffer_memory_offset];
+        output_data_IM[results_memory_offset] = buffer_IM[buffer_memory_offset];
       }
     }
 
@@ -222,9 +258,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
             (16 * 16 * warp_id) +
             warp_memory_offset;
 
-        output_data_RE[results_memory_offset] =
-            accumulator_RE_1_frag.x[buffer_memory_offset] -
-            accumulator_RE_2_frag.x[buffer_memory_offset];
+        output_data_RE[results_memory_offset] = buffer_RE[buffer_memory_offset];
       }
     }
   }

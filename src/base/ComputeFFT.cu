@@ -118,7 +118,8 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
     int amount_of_r16_blocks =
         fft_plan.fft_length_ / (16 * 16 * 16 * fft_plan.r16_warps_per_block_);
 
-    Radix16Kernel<<<amount_of_r16_blocks, 32 * fft_plan.r16_warps_per_block_>>>(
+    Radix16Kernel<<<amount_of_r16_blocks, 32 * fft_plan.r16_warps_per_block_,
+                    fft_plan.r16_warps_per_block_*16*16*16*2*sizeof(__half)>>>(
         dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
         dptr_current_results_IM, dptr_dft_matrix_batch_RE_,
         dptr_dft_matrix_batch_IM_, fft_plan.fft_length_, sub_fft_length, i);
@@ -323,7 +324,8 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
           fft_plans[i].fft_length_ / fft_plans[i].r2_blocksize_;
 
       Radix16Kernel<<<amount_of_r16_blocks,
-                     32 * fft_plans[i].r16_warps_per_block_, 0, streams[i]>>>(
+                     32 * fft_plans[i].r16_warps_per_block_, fft_plans[i].r16_warps_per_block_*16*16*16*2*sizeof(__half)
+                     , streams[i]>>>(
           dptr_current_input_RE[i], dptr_current_input_IM[i],
           dptr_current_results_RE[i], dptr_current_results_IM[i],
           dptr_dft_matrix_batch_RE_[i], dptr_dft_matrix_batch_IM_[i],

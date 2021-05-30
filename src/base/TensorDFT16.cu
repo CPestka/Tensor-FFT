@@ -100,6 +100,8 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                accumulator_RE_2_frag.x[current_id]);
   }
   */
+  //Compute RE(A)xRE(B)-IM(A)xIM(B)
+  //Special access patern for uniform operation on all elements of fragments
   #pragma unroll
   for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
     output_data_RE[memory_offset + i] =
