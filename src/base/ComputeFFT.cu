@@ -160,7 +160,7 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
     //launch multiple kernels
     for(int j=0; j<(remaining_sub_ffts/2); j++){
       int memory_offset = j * 2 * sub_fft_length;
-      std::cout << amount_of_r2_blocks << " " << fft_plan.r2_blocksize_ <<
+      std::cout << amount_of_r2_blocks << " " << fft_plan.r2_blocksize_
                 << " " << sub_fft_length << std::endl;
       Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
