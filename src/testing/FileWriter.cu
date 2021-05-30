@@ -13,7 +13,7 @@ void WriteResultsToFile(std::string file_name, int fft_length, __half* data){
     for(int i=0; i<fft_length; i++){
       float re = data[i];
       float im = data[i + fft_length];
-      myfile << re << " " << im << "\n";
+      myfile << i/fft_length << " " << re << " " << im << "\n";
     }
     myfile.close();
   } else {
