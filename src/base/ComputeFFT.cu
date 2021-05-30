@@ -118,6 +118,9 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
     int amount_of_r16_blocks =
         fft_plan.fft_length_ / (16 * 16 * 16 * fft_plan.r16_warps_per_block_);
 
+    cudaFuncSetAttribute(Radix16Kernel,
+        cudaFuncAttributePreferredSharedMemoryCarveout,
+        cudaSharedmemCarveoutMaxShared);
     Radix16Kernel<<<amount_of_r16_blocks, 32 * fft_plan.r16_warps_per_block_,
                     fft_plan.r16_warps_per_block_*16*16*16*2*sizeof(__half)>>>(
         dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
@@ -305,6 +308,9 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   dptr_current_results_IM.resize(fft_plans.size(), nullptr);
   sub_fft_length.resize(fft_plans.size(), 16);
 
+  cudaFuncSetAttribute(Radix16Kernel,
+      cudaFuncAttributePreferredSharedMemoryCarveout,
+      cudaSharedmemCarveoutMaxShared);
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     for(int j=0; j<fft_plans[i].amount_of_r16_steps_; j++){
       //For each step the input data is the output data of the previous step
