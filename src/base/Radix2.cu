@@ -22,7 +22,7 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
 
   //The twiddle factor for the first point is 1 -> only the second point has to
   //be modified
-  float phase = (-2 * M_PI * memory_point1_offset) / sub_fft_length;
+  float phase = (-2 * M_PI * memory_point1_offset) / (sub_fft_length * 2);
   __half twiddle_RE = __float2half(cosf(phase));
   __half twiddle_IM = __float2half(sinf(phase));
 
