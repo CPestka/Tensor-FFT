@@ -30,8 +30,8 @@ int main(){
   }
 
   std::vector<float> weights;
-  weights.push_back(2.0);
-  weights.push_back(1.4);
+  weights.push_back(1.0);
+  //weights.push_back(1.4);
   std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length, weights);
 
   WriteResultsToFile("input.dat", fft_length, data.get());
