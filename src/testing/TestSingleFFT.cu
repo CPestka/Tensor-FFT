@@ -13,10 +13,10 @@
 #include "FileWriter.cu"
 
 int main(){
-  int fft_length = 16*16*16*16*16*2*2;
+  int fft_length = 16*16*16;
   int transpose_blocksize = 256;
-  int dft_warps_per_block = 4;
-  int r16_warps_per_block = 4;
+  int dft_warps_per_block = 1;
+  int r16_warps_per_block = 1;
   int r2_blocksize = 256;
 
   Plan my_plan;
@@ -33,6 +33,8 @@ int main(){
   weights.push_back(2.0);
   weights.push_back(1.4);
   std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length, weights);
+
+  WriteResultsToFile("input.dat", fft_length, data.get());
 
   IntervallTimer timer;
   auto error_mess = ComputeFFT(my_plan, data.get());
