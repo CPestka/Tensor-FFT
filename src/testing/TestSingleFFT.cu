@@ -42,7 +42,7 @@ int main(){
             << std::endl;
 
   if (error_mess) {
-    std::cout << error_mess.value() << std::endl;
+    std::cout << "Error: " << error_mess.value() << std::endl;
   } else {
     WriteResultsToFile("results.dat", fft_length, data.get());
   }
