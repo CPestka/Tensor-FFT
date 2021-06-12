@@ -55,9 +55,7 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
       int current_row_length = fft_length / 2;
       ND_id[0] = id % current_row_length;
       ND_id[1] = id / current_row_length;
-
-      int output_id = ND_id[0];
-      int current_id_row_length = 2;
+      int output_id = ND_id[0] * current_row_length;
 
       //Repeat the reinterprete step for each further radix2 step
       for(int i=1; i<amount_of_r2_steps; i++){
@@ -66,8 +64,7 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
         ND_id[i+1] = ND_id[i] / current_row_length;
         ND_id[i] = ND_id[i] % current_row_length;
 
-        output_id += current_id_row_length * ND_id[i];
-        current_id_row_length *= 2;
+        output_id += (current_row_length * ND_id[i]);
       }
 
       //Analogous to above but for the radix 16 steps -> size of first dimension
@@ -79,10 +76,9 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
         ND_id[i+1] = ND_id[i] / current_row_length;
         ND_id[i] = ND_id[i] % current_row_length;
 
-        output_id += (current_id_row_length * ND_id[i]);
-        current_id_row_length *= 16;
+        output_id += (current_row_length * ND_id[i]);
       }
-      output_id += (current_id_row_length * ND_id[max_dim_id]);
+      output_id += ND_id[max_dim_id];
 
       //Move input data to correct position
       output_data_RE[output_id] = input_data_RE[id];
@@ -94,9 +90,7 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
       int current_row_length = fft_length / 16;
       ND_id[0] = id % current_row_length;
       ND_id[1] = id / current_row_length;
-
       int output_id = ND_id[0];
-      int current_id_row_length = 16;
 
       //Repeat the reinterprete step for each further radix2 step
       for(int i=1; i<amount_of_r16_steps; i++){
@@ -105,10 +99,9 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
       ND_id[i+1] = ND_id[i] / current_row_length;
       ND_id[i] = ND_id[i] % current_row_length;
 
-      output_id += (current_id_row_length * ND_id[i]);
-      current_id_row_length *= 16;
+      output_id += (current_row_length * ND_id[i]);
       }
-      output_id += (current_id_row_length * ND_id[amount_of_r16_steps]);
+      output_id += ND_id[amount_of_r16_steps];
 
       //Move input data to correct position
       output_data_RE[output_id] = input_data_RE[id];
