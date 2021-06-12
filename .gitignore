@@ -1,3 +1,4 @@
 a.out
+*.dat
 /data/*
 /benchmark/results/*

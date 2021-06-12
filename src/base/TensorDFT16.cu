@@ -38,9 +38,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                           __half* output_data_RE, __half* output_data_IM,
                           __half* dft_matrix_batch_RE,
                           __half* dft_matrix_batch_IM) {
-  int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-  int warp_id = thread_id / 32;
-  //int inter_warp_id = thread_id % 32;
+  int warp_id = (blockDim.x * blockIdx.x + threadIdx.x) / 32;
 
   //Declare the fragments
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
@@ -64,12 +62,12 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   wmma::fill_fragment(accumulator_IM_frag, 0.0f);
 
   //Load the inputs
-  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE, 16);
-  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM, 16);
+  int memory_offset = warp_id * 4096;
+  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE + memory_offset, 16);
+  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM + memory_offset, 16);
 
   //The data for one Kernel launch beginns at input_data_x + memory_offset
   //Each warp then uses one 16x16x16 matrix batch
-  int memory_offset = warp_id * 4096;
   wmma::load_matrix_sync(data_RE_frag, input_data_RE + memory_offset, 16);
   wmma::load_matrix_sync(data_IM_frag, input_data_IM + memory_offset, 16);
 
@@ -89,17 +87,6 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   wmma::store_matrix_sync(output_data_IM + memory_offset, accumulator_IM_frag,
                           16, wmma::mem_row_major);
 
-  //Compute RE(A)xRE(B)-IM(A)xIM(B) with each thread in a warp computing 128
-  //values and storing them -> 32*128=4096=16*16*16
-  /*
-  #pragma unroll
-  for(int i=0; i<128; i++){
-    int current_id = inter_warp_id * 128 + i;
-    output_data_RE[memory_offset + current_id] =
-        __hsub(accumulator_RE_1_frag.x[current_id],
-               accumulator_RE_2_frag.x[current_id]);
-  }
-  */
   //Compute RE(A)xRE(B)-IM(A)xIM(B)
   //Special access patern for uniform operation on all elements of fragments
   #pragma unroll

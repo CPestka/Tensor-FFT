@@ -64,8 +64,11 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   wmma::fill_fragment(accumulator_IM_frag, 0.0f);
 
   //Load the inputs
-  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE, 16);
-  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM, 16);
+  int warp_memory_offset = 4096 * warp_id;
+  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE + warp_memory_offset,
+                         16);
+  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM + warp_memory_offset,
+                         16);
 
   //Since fragments can only be accessed uniformly, elementwise multiplication
   //with different elements, cant be done by simply looping over the fragment
@@ -85,7 +88,6 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //multiplies with the twiddle factors and stores the now prepared data in the
   //fragment.
   if (current_radix16_step == 0) {
-    int warp_memory_offset = 4096 * warp_id;
     #pragma unroll
     for(int i=0; i<8; i++){
       #pragma unroll

@@ -15,8 +15,8 @@
 int main(){
   int fft_length = 16*16*16*16*16*2;
   int transpose_blocksize = 256;
-  int dft_warps_per_block = 1;
-  int r16_warps_per_block = 1;
+  int dft_warps_per_block = (fft_length >= 16*16*16*4) ? 4 : 1;
+  int r16_warps_per_block = (fft_length >= 16*16*16*4) ? 4 : 1;
   int r2_blocksize = 256;
 
   Plan my_plan;
