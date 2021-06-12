@@ -85,7 +85,7 @@ std::optional<std::string> ComputeFFT(Plan fft_plan, __half* data){
                               fft_plan.transposer_blocksize_>>>(
         dptr_input_RE, dptr_input_IM, dptr_results_RE, dptr_results_IM,
         fft_plan.fft_length_, fft_plan.amount_of_r16_steps_);
-  }else {
+  } else {
     TransposeKernel<<<amount_of_transpose_blocks,
                       fft_plan.transposer_blocksize_>>>(
         dptr_input_RE, dptr_input_IM, dptr_results_RE, dptr_results_IM,
@@ -286,13 +286,14 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> fft_plans,
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     if (fft_plans[i].amount_of_r2_steps_ == 0) {
       TransposeKernelNoRadix2<<<amount_of_transpose_blocks[i],
-                       fft_plans[i].transposer_blocksize_, 0, streams[i]>>>(
+                                fft_plans[i].transposer_blocksize_, 0,
+                                streams[i]>>>(
           dptr_input_RE[i], dptr_input_IM[i], dptr_results_RE[i],
           dptr_results_IM[i], fft_plans[i].fft_length_,
           fft_plans[i].amount_of_r16_steps_);
     } else {
       TransposeKernel<<<amount_of_transpose_blocks[i],
-                       fft_plans[i].transposer_blocksize_, 0, streams[i]>>>(
+                        fft_plans[i].transposer_blocksize_, 0, streams[i]>>>(
           dptr_input_RE[i], dptr_input_IM[i], dptr_results_RE[i],
           dptr_results_IM[i], fft_plans[i].fft_length_,
           fft_plans[i].amount_of_r16_steps_, fft_plans[i].amount_of_r2_steps_);
