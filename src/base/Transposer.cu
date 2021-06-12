@@ -45,34 +45,61 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
     //-> Use int[14] instead of dynamic mem
     int ND_id[14];
 
-    //Reinterprete as transposed 2D array with the size of dim 0 as 2
-    //i.e. entires with even initial id in first row, with odd in second
-    //the dimension with more elements of the previous step is the one with
-    //the higher dim id (due to the transpose).
-    //Also compute new index i.e. perform the calculation for the memory postion
-    //of x[ND_id[max_dim_id]]....[ND_id[0]]
-    int current_row_length = fft_length / 2;
-    ND_id[0] = id % current_row_length;
-    ND_id[1] = id / current_row_length;
+    if (amount_of_r2_steps != 0) {
+      //Reinterprete as transposed 2D array with the size of dim 0 as 2
+      //i.e. entires with even initial id in first row, with odd in second
+      //the dimension with more elements of the previous step is the one with
+      //the higher dim id (due to the transpose).
+      //Also compute new index i.e. perform the calculation for the memory postion
+      //of x[ND_id[max_dim_id]]....[ND_id[0]]
+      int current_row_length = fft_length / 2;
+      ND_id[0] = id % current_row_length;
+      ND_id[1] = id / current_row_length;
 
-    int output_id = ND_id[0];
-    int current_id_row_length = 2;
+      int output_id = ND_id[0];
+      int current_id_row_length = 2;
 
-    //Repeat the reinterprete step for each further radix2 step
-    for(int i=1; i<amount_of_r2_steps; i++){
-      current_row_length = current_row_length / 2;
+      //Repeat the reinterprete step for each further radix2 step
+      for(int i=1; i<amount_of_r2_steps; i++){
+        current_row_length = current_row_length / 2;
 
-      ND_id[i+1] = ND_id[i] / current_row_length;
-      ND_id[i] = ND_id[i] % current_row_length;
+        ND_id[i+1] = ND_id[i] / current_row_length;
+        ND_id[i] = ND_id[i] % current_row_length;
 
-      output_id += current_id_row_length * ND_id[i];
-      current_id_row_length *= 2;
-    }
+        output_id += current_id_row_length * ND_id[i];
+        current_id_row_length *= 2;
+      }
 
-    //Analogous to above but for the radix 16 steps -> size of first dimension
-    //is 16
-    int max_dim_id = amount_of_r2_steps + amount_of_r16_steps;
-    for(int i=amount_of_r2_steps; i<max_dim_id; i++){
+      //Analogous to above but for the radix 16 steps -> size of first dimension
+      //is 16
+      int max_dim_id = amount_of_r2_steps + amount_of_r16_steps;
+      for(int i=amount_of_r2_steps; i<max_dim_id; i++){
+        current_row_length = current_row_length / 16;
+
+        ND_id[i+1] = ND_id[i] / current_row_length;
+        ND_id[i] = ND_id[i] % current_row_length;
+
+        output_id += (current_id_row_length * ND_id[i]);
+        current_id_row_length *= 16;
+      }
+      output_id += (current_id_row_length * ND_id[max_dim_id]);
+
+      //Move input data to correct position
+      output_data_RE[output_id] = input_data_RE[id];
+      output_data_IM[output_id] = input_data_IM[id];
+    } else {
+      //Reinterprete as transposed 2D array, like in above kernel but with size 16.
+      //Also compute new index i.e. perform the calculation for the memory postion
+      //of x[ND_id[0]][ND_id[1]]....[ND_id[max_dim_id]]
+      int current_row_length = fft_length / 16;
+      ND_id[0] = id % current_row_length;
+      ND_id[1] = id / current_row_length;
+
+      int output_id = ND_id[0];
+      int current_id_row_length = 16;
+
+      //Repeat the reinterprete step for each further radix2 step
+      for(int i=1; i<amount_of_r16_steps; i++){
       current_row_length = current_row_length / 16;
 
       ND_id[i+1] = ND_id[i] / current_row_length;
@@ -80,57 +107,12 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
 
       output_id += (current_id_row_length * ND_id[i]);
       current_id_row_length *= 16;
+      }
+      output_id += (current_id_row_length * ND_id[amount_of_r16_steps]);
+
+      //Move input data to correct position
+      output_data_RE[output_id] = input_data_RE[id];
+      output_data_IM[output_id] = input_data_IM[id];
     }
-    output_id += (current_id_row_length * ND_id[max_dim_id]);
-
-    //Move input data to correct position
-    output_data_RE[output_id] = input_data_RE[id];
-    output_data_IM[output_id] = input_data_IM[id];
   }
-}
-
-__global__ void TransposeKernelNoRadix2(__half* input_data_RE,
-                                        __half* input_data_IM,
-                                        __half* output_data_RE,
-                                        __half* output_data_IM,
-                                        int fft_length,
-                                        int amount_of_r16_steps) {
-  //The thread id is the id for the entry of the input array we wish to store to
-  //the correct position in the output array
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-  if (id < fft_length) { //Check if entry within bounds
-
-  //Find indecies of N-Dim array representation of output data
-  //N = amount_of_radix_16_steps * amount_of_radix2_steps + 1
-  //N indecies need to be computed. Due to memory constrains, for current GPUs
-  //, N < 14 (16⁸*2³*(sizeof(2*__half2)=8) \\aprox 275GB for N=14)
-  //-> Use int[14] instead of dynamic mem
-  int ND_id[14];
-
-  //Reinterprete as transposed 2D array, like in above kernel but with size 16.
-  //Also compute new index i.e. perform the calculation for the memory postion
-  //of x[ND_id[0]][ND_id[1]]....[ND_id[max_dim_id]]
-  int current_row_length = fft_length / 16;
-  ND_id[0] = id % current_row_length;
-  ND_id[1] = id / current_row_length;
-
-  int output_id = ND_id[0];
-  int current_id_row_length = 16;
-
-  //Repeat the reinterprete step for each further radix2 step
-  for(int i=1; i<amount_of_r16_steps; i++){
-  current_row_length = current_row_length / 16;
-
-  ND_id[i+1] = ND_id[i] / current_row_length;
-  ND_id[i] = ND_id[i] % current_row_length;
-
-  output_id += (current_id_row_length * ND_id[i]);
-  current_id_row_length *= 16;
-  }
-  output_id += (current_id_row_length * ND_id[amount_of_r16_steps]);
-
-  //Move input data to correct position
-  output_data_RE[output_id] = input_data_RE[id];
-  output_data_IM[output_id] = input_data_IM[id];
 }
