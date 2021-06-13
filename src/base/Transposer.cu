@@ -39,11 +39,12 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
                                 int amount_of_r2_steps) {
   //The thread id is the id for the entry of the input array we wish to store to
   //the correct position in the output array
-  int tmp = blockDim.x * blockIdx.x + threadIdx.x;
+  int id = blockDim.x * blockIdx.x + threadIdx.x;
 
-  if (tmp < fft_length) { //Check if entry within bounds
+  if (id < fft_length) { //Check if entry within bounds
     int output_id = 0;
     int current_row_length = fft_length;
+    int tmp = id;
 
     for(int i=0; i<amount_of_r2_steps; i++){
       current_row_length = current_row_length / 2;
