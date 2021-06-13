@@ -28,29 +28,33 @@
 //for that element. This reduces the amount of global memory read-writes from
 //fft_length*(amount_of_radix16_steps + amount_of_radix2_steps) to
 //fft_length.
+//Example: fft_length=N=2*16*16*16=8192 -> with position in inital array x[i]
+//the position in the output array is then y[i%2][(i/2)%16]][((i/2)/16)%16]
+//[(((i/2)/16)/16)/16]. The according memory offset can be computed from those
+//indecies y[id_0][id_1]... In this case -> output_offset = (N/2)*id_0 +
+//(N/32)*id_1 + (N/512)*id_2 + (N/8192)*id_3
 __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
                                 __half* output_data_RE, __half* output_data_IM,
                                 int fft_length, int amount_of_r16_steps,
                                 int amount_of_r2_steps) {
   //The thread id is the id for the entry of the input array we wish to store to
   //the correct position in the output array
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int tmp = blockDim.x * blockIdx.x + threadIdx.x;
 
-  if (id < fft_length) { //Check if entry within bounds
+  if (tmp < fft_length) { //Check if entry within bounds
     int output_id = 0;
-    int tmp = fft_length;
     int current_row_length = fft_length;
 
     for(int i=0; i<amount_of_r2_steps; i++){
       current_row_length = current_row_length / 2;
       output_id += ((tmp % 2) * current_row_length);
-      tmp = current_row_length;
+      tmp = tmp / 2;
     }
 
     for(int i=0; i<amount_of_r16_steps; i++){
       current_row_length = current_row_length / 16;
       output_id += ((tmp % 16) * current_row_length);
-      tmp = current_row_length;
+      tmp = tmp / 16;
     }
     output_id += tmp;
 
