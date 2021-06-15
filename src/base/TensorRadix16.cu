@@ -97,10 +97,10 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
         int total_memory_offset = warp_memory_offset + matrix_memory_offset;
 
         //Compute RE and IM of twiddle factors
-        float phase = (-2 * M_PI * j * inter_warp_id_16) / 256;
+        float phase = (2 * M_PI * j * inter_warp_id_16) / 256;
         //TO-SELF: test __cosf vs cos accuracy and speed
         __half twiddle_RE = __float2half(cosf(phase));
-        __half twiddle_IM = __float2half(sinf(phase));
+        __half twiddle_IM = __float2half(-sinf(phase));
 
         //Fetch current data once from global memory to use it twice
         __half input_RE = input_data_RE[total_memory_offset];
@@ -182,10 +182,10 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                                    (sub_fft_length * 16 * substep_id);
 
         //Compute twiddle factors
-        float phase = (-2 * M_PI * j * global_collum_id) / combined_fft_length;
+        float phase = (2 * M_PI * j * global_collum_id) / combined_fft_length;
         //TO-SELF: test __cosf vs cos accuracy and speed
         __half twiddle_RE = __float2half(cosf(phase));
-        __half twiddle_IM = __float2half(sinf(phase));
+        __half twiddle_IM = __float2half(-sinf(phase));
 
         //Fetch current data once from global memory to use it twice
         __half input_RE = input_data_RE[global_memory_offset];

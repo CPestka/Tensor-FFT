@@ -61,15 +61,23 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
   wmma::fill_fragment(accumulator_IM_frag, 0.0f);
 
-  //Load the inputs
+  //Compute ptrs to data for this warp
   int memory_offset = warp_id * 4096;
-  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE + memory_offset, 16);
-  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM + memory_offset, 16);
+  __half* warp_dft_matrix_batch_RE = dft_matrix_batch_RE + memory_offset;
+  __half* warp_dft_matrix_batch_IM = dft_matrix_batch_IM + memory_offset;
+  __half* warp_input_data_RE = input_data_RE + memory_offset;
+  __half* warp_input_data_IM = input_data_IM + memory_offset;
+  __half* warp_output_data_RE = output_data_RE + memory_offset;
+  __half* warp_output_data_IM = output_data_IM + memory_offset;
+
+  //Load the inputs
+  wmma::load_matrix_sync(dft_RE_frag, warp_dft_matrix_batch_RE, 16);
+  wmma::load_matrix_sync(dft_IM_frag, warp_dft_matrix_batch_IM, 16);
 
   //The data for one Kernel launch beginns at input_data_x + memory_offset
   //Each warp then uses one 16x16x16 matrix batch
-  wmma::load_matrix_sync(data_RE_frag, input_data_RE + memory_offset, 16);
-  wmma::load_matrix_sync(data_IM_frag, input_data_IM + memory_offset, 16);
+  wmma::load_matrix_sync(data_RE_frag, warp_input_data_RE, 16);
+  wmma::load_matrix_sync(data_IM_frag, warp_input_data_IM, 16);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -84,15 +92,14 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                  accumulator_IM_frag);
 
   //Store IM part of the output
-  wmma::store_matrix_sync(output_data_IM + memory_offset, accumulator_IM_frag,
-                          16, wmma::mem_row_major);
+  wmma::store_matrix_sync(warp_output_data_IM, accumulator_IM_frag, 16,
+                          wmma::mem_row_major);
 
   //Compute RE(A)xRE(B)-IM(A)xIM(B)
   //Special access patern for uniform operation on all elements of fragments
   #pragma unroll
   for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
-    output_data_RE[memory_offset + i] =
-        __hsub(accumulator_RE_1_frag.x[i],
-               accumulator_RE_2_frag.x[i]);
+    warp_output_data_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
+                                    accumulator_RE_2_frag.x[i]);
   }
 }
