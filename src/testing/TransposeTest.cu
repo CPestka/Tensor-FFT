@@ -71,7 +71,7 @@ int main(){
   dptr_results_IM = dptr_results_RE + fft_length;
 
   //Memcpy of input data to device
-  cudaMemcpy(dptr_input_RE, data, 2 * fft_length * sizeof(__half),
+  cudaMemcpy(dptr_input_RE, data.get(), 2 * fft_length * sizeof(__half),
                  cudaMemcpyHostToDevice);
 
   int amount_of_transpose_blocks =
@@ -84,7 +84,7 @@ int main(){
       fft_length, amount_of_r16_steps, amount_of_r2_steps);
 
   //Memcpy of input data to device
-  cudaMemcpy(data, dptr_input_RE, 2 * fft_length * sizeof(__half),
+  cudaMemcpy(data.get(), dptr_input_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("transposed_kernel.dat", fft_length, data.get());
