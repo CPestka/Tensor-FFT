@@ -64,20 +64,15 @@ int main(){
   __half* dptr_input_IM;
   __half* dptr_results_RE;
   __half* dptr_results_IM;
-  if (cudaMalloc((void**)(&dptr_input_RE), 4 * sizeof(__half) * fft_length)
-     != cudaSuccess){
-     return cudaGetErrorString(cudaPeekAtLastError());
-  }
+  cudaMalloc((void**)(&dptr_input_RE), 4 * sizeof(__half) * fft_length);
+
   dptr_input_IM = dptr_input_RE + fft_length;
   dptr_results_RE = dptr_input_IM + fft_length;
   dptr_results_IM = dptr_results_RE + fft_length;
 
   //Memcpy of input data to device
-  if (cudaMemcpy(dptr_input_RE, data, 2 * fft_length * sizeof(__half),
-                 cudaMemcpyHostToDevice)
-       != cudaSuccess) {
-     return cudaGetErrorString(cudaPeekAtLastError());
-  }
+  cudaMemcpy(dptr_input_RE, data, 2 * fft_length * sizeof(__half),
+                 cudaMemcpyHostToDevice);
 
   int amount_of_transpose_blocks =
      ceil(static_cast<float>(fft_length) /
@@ -89,11 +84,8 @@ int main(){
       fft_length, amount_of_r16_steps, amount_of_r2_steps);
 
   //Memcpy of input data to device
-  if (cudaMemcpy(data, dptr_input_RE, 2 * fft_length * sizeof(__half),
-                 cudaMemcpyDeviceToHost)
-       != cudaSuccess) {
-     return cudaGetErrorString(cudaPeekAtLastError());
-  }
+  cudaMemcpy(data, dptr_input_RE, 2 * fft_length * sizeof(__half),
+                 cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("transposed_kernel.dat", fft_length, data.get());
 }
