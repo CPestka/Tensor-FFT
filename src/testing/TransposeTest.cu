@@ -51,14 +51,10 @@ int main(){
       for(int k=0; k<16; k++){
         tmp1_RE[k][j][i] = tmp_RE[i][k][j];
         tmp1_IM[k][j][i] = tmp_IM[i][k][j];
+        transposed_data[i + 16*j + 16*16*k] = tmp1_RE[k][j][i];
+        transposed_data[i + 16*j + 16*16*k + fft_length] = tmp1_IM[k][j][i];
       }
     }
-  }
-  __half tmp2_RE[16*16*16] = tmp1_RE;
-  __half tmp2_IM[16*16*16] = tmp1_IM;
-  for(int i=0; i<16*16*16; i++){
-    transposed_data[i] = tmp2_RE[i];
-    transposed_data[i + fft_length] = tmp2_IM[i];
   }
 
   WriteResultsToFile("transposed_test.dat", fft_length, transposed_data.get());
