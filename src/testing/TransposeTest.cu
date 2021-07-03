@@ -25,8 +25,8 @@ int main(){
 
   WriteResultsToFile("input.dat", fft_length, data.get());
 
-  std::unique_ptr<__half> transposed_data =
-      std::make_unique<__half>(2 * fft_length);
+  std::unique_ptr<__half[]> transposed_data =
+      std::make_unique<__half[]>(2 * fft_length);
 
   for(int i=0; i<fft_length*2; i++){
     transposed_data[i] = data[i];
