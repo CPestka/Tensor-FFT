@@ -33,9 +33,9 @@ int main(){
   }
 
   __half tmp_RE[16][16][16];
-  tmp_RE = transposed_data;
+  tmp_RE = transposed_data.get();
   __half tmp_IM[16][16][16];
-  tmp_IM = transposed_data + fft_length;
+  tmp_IM = transposed_data.get() + fft_length;
   __half tmp1_RE[16][16][16];
   __half tmp1_IM[16][16][16];
 
