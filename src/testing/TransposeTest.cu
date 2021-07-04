@@ -9,6 +9,7 @@
 
 #include "TestingDataCreation.cu"
 #include "FileWriter.cu"
+#include "../base/Transposer.cu"
 
 bool transpose16_test(){
   int fft_length = 16*16*16;
@@ -16,9 +17,9 @@ bool transpose16_test(){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data_1 =
-      CreateSineSuperpostion(fft_length, weights).get();
+      CreateSineSuperpostion(fft_length, weights);
   std::unique_ptr<__half[]> data_2 =
-      CreateSineSuperpostion(fft_length, weights).get();
+      CreateSineSuperpostion(fft_length, weights);
 
   WriteResultsToFile("input.dat", fft_length, data_1.get());
 
