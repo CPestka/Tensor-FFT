@@ -7,11 +7,11 @@
 int main(){
   if (!transpose16_test()){
     std::cout << "Transpose 16*16*16 test failed!" << std::endl;
-    return;
+    return false;
   }
   if (!transpose16_2_test()){
     std::cout << "Transpose 16*16*16*2*2 test failed!" << std::endl;
-    return;
+    return false;
   }
 
   /*
@@ -41,4 +41,5 @@ int main(){
   */
 
   std::cout << "All tests passed!" <<std::endl;
+  return true;
 }
