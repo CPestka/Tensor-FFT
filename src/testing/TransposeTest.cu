@@ -122,9 +122,9 @@ bool transpose16_2_test(){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data_1 =
-      CreateSineSuperpostion(fft_length, weights).get();
+      CreateSineSuperpostion(fft_length, weights);
   std::unique_ptr<__half[]> data_2 =
-      CreateSineSuperpostion(fft_length, weights).get();
+      CreateSineSuperpostion(fft_length, weights);
 
   WriteResultsToFile("input.dat", fft_length, data_1.get());
 
