@@ -106,10 +106,10 @@ bool transpose16_test(){
   WriteResultsToFile("transposed_test_kernel.dat", fft_length, data_1.get());
 
   for(int i=0; i<fft_length; i++){
-    __half cpu_re = data_2[i];
-    __half gpu_re = data_1[i];
-    __half cpu_im = data_2[i + fft_length];
-    __half gpu_im = data_1[i + fft_length];
+    float cpu_re = data_2[i];
+    float gpu_re = data_1[i];
+    float cpu_im = data_2[i + fft_length];
+    float gpu_im = data_1[i + fft_length];
     if ((cpu_re != gpu_re) || (cpu_im != gpu_im)){
       std::cout << "Results of transpose on cpu and gpu are different!"
                 << std::endl;
@@ -279,10 +279,10 @@ bool transpose16_2_test(){
   WriteResultsToFile("transposed_test_kernel.dat", fft_length, data_1.get());
 
   for(int i=0; i<fft_length; i++){
-    __half cpu_re = data_2[i];
-    __half gpu_re = data_1[i];
-    __half cpu_im = data_2[i + fft_length];
-    __half gpu_im = data_1[i + fft_length];
+    float cpu_re = data_2[i];
+    float gpu_re = data_1[i];
+    float cpu_im = data_2[i + fft_length];
+    float gpu_im = data_1[i + fft_length];
     if ((cpu_re != gpu_re) || (cpu_im != gpu_im)){
       std::cout << "Results of transpose on cpu and gpu are different!"
                 << std::endl;
