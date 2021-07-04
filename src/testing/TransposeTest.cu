@@ -100,7 +100,7 @@ bool transpose16_test(){
       fft_length, 2, 0);
 
   //Memcpy of input data to device
-  cudaMemcpy(data_1.get(), dptr_input_RE, 2 * fft_length * sizeof(__half),
+  cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("transposed_test_kernel.dat", fft_length, data_1.get());
@@ -273,7 +273,7 @@ bool transpose16_2_test(){
       fft_length, 2, 2);
 
   //Memcpy of input data to device
-  cudaMemcpy(data_1.get(), dptr_input_RE, 2 * fft_length * sizeof(__half),
+  cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("transposed_test_kernel.dat", fft_length, data_1.get());
