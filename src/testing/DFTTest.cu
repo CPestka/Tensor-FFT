@@ -80,25 +80,26 @@ bool dft16_test(){
   cudaMalloc((void**)(&dptr_cuFFT_in), sizeof(__half2) * 16);
   cudaMalloc((void**)(&dptr_cuFFT_out), sizeof(__half2) * 16);
 
+  cufftHandle plan;
+  cufftResult r;
+  r = cufftCreate(&plan);
+  assert(r == CUFFT_SUCCESS);
+  size_t size = 0;
+  long long fft_length_1 = 16;
+  r = cufftXtMakePlanMany(plan, 1, &fft_length_1, nullptr, 1, 1, CUDA_C_16F,
+                          nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
+  assert(r == CUFFT_SUCCESS);
+
   for(int i=0; i<16*16; i++){
     PrepareCuFFTInput<<<1,1>>>(dptr_input_RE + 16*i, dptr_input_IM + 16*i,
                                dptr_cuFFT_in);
     cudaDeviceSynchronize();
 
-    cufftHandle plan;
-    cufftResult r;
-    r = cufftCreate(&plan);
-    assert(r == CUFFT_SUCCESS);
-    size_t size = 0;
-    long long fft_length_1 = 16;
-    r = cufftXtMakePlanMany(plan, 1, &fft_length_1, nullptr, 1, 1, CUDA_C_16F,
-                            nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
-    std::cout << "i= " << i << " Error: " << r << std::endl;
-    assert(r == CUFFT_SUCCESS);
     r = cufftXtExec(plan, dptr_cuFFT_in, dptr_cuFFT_out, CUFFT_FORWARD);
     assert(r == CUFFT_SUCCESS);
 
     cudaDeviceSynchronize();
+    
     SaveCuFFTResults<<<1,1>>>(dptr_cuFFT_out, dptr_results_cuFFT_RE + 16*i,
                               dptr_results_cuFFT_IM + 16*i);
   }
