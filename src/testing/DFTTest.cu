@@ -93,7 +93,7 @@ bool dft16_test(){
     long long fft_length_1 = 16;
     r = cufftXtMakePlanMany(plan, 1, &fft_length_1, nullptr, 1, 1, CUDA_C_16F,
                             nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
-    std::cout << r << std::endl;
+    std::cout << "Error: " << r << std::endl;
     assert(r == CUFFT_SUCCESS);
     r = cufftXtExec(plan, dptr_cuFFT_in, dptr_cuFFT_out, CUFFT_FORWARD);
     assert(r == CUFFT_SUCCESS);
