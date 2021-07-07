@@ -8,6 +8,7 @@
 #include <cuda.h>
 #include <cufft.h>
 #include <cufftXt.h>
+#include <assert.h>
 
 #include "TestingDataCreation.cu"
 #include "FileWriter.cu"
