@@ -117,6 +117,8 @@ bool transpose16_test(){
     }
   }
 
+  cudaFree(dptr_input_RE);
+
   return true;
 }
 
@@ -289,6 +291,8 @@ bool transpose16_2_test(){
       return false;
     }
   }
+
+  cudaFree(dptr_input_RE);
 
   return true;
 }
