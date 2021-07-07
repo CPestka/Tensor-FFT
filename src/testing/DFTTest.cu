@@ -83,6 +83,7 @@ bool dft16_test(){
   for(int i=0; i<16*16; i++){
     PrepareCuFFTInput<<<1,1>>>(dptr_input_RE + 16*i, dptr_input_IM + 16*i,
                                dptr_cuFFT_in);
+    cudaDeviceSynchronize();
 
     cufftHandle plan;
     cufftResult r;
@@ -96,6 +97,7 @@ bool dft16_test(){
     r = cufftXtExec(plan, dptr_cuFFT_in, dptr_cuFFT_out, CUFFT_FORWARD);
     assert(r == CUFFT_SUCCESS);
 
+    cudaDeviceSynchronize();
     SaveCuFFTResults<<<1,1>>>(dptr_cuFFT_out, dptr_results_cuFFT_RE + 16*i,
                               dptr_results_cuFFT_IM + 16*i);
   }
