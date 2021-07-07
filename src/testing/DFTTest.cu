@@ -63,8 +63,8 @@ bool dft16_test(){
           static_cast<float>(transpose_blocksize));
 
   TransposeKernel<<<amount_of_transpose_blocks, transpose_blocksize>>>(
-      dptr_input_RE, dptr_input_IM, dptr_results_RE, dptr_results_IM,
-      fft_length, 2, 0);
+      dptr_input_RE, dptr_input_IM, dptr_results_kernel_RE,
+      dptr_results_kernel_IM, fft_length, 2, 0);
 
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
              cudaMemcpyDeviceToHost);
@@ -110,8 +110,9 @@ bool dft16_test(){
       std::cout << "Results of dfts are different!"
                 << "CuFFT: " << cpu_re << " " << cpu_im << " Kernel: " << gpu_re
                 << " " << gpu_im << std::endl;
-    if ((fabs(cpu_re - gpu_re) > 0.01) || (fabs(cpu_im - gpu_im) > 0.01)){
-      return false;
+      if ((fabs(cpu_re - gpu_re) > 0.01) || (fabs(cpu_im - gpu_im) > 0.01)){
+        return false;
+      }
     }
   }
 
