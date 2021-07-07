@@ -17,7 +17,7 @@ int main(){
 
   if (!dft16_test()){
     std::cout << "DFT kernel test failed for 16*16*16!" << std::endl;
-    return;
+    return false;
   }
 
   /*
