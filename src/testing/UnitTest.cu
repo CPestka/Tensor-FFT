@@ -14,11 +14,12 @@ int main(){
     return false;
   }
 
-  /*
-  if (!dft_16_test()){
+  if (!dft16_test()){
     std::cout << "DFT kernel test failed for 16*16*16!" << std::endl;
     return;
   }
+
+  /*
   if (!dft_16_2_test()){
     std::cout << "DFT kernel test failed for 16*16*16*2*2!" << std::endl;
     return;
