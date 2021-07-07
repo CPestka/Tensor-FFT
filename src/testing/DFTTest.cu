@@ -1,4 +1,7 @@
 //Used to test correctness of the dft kernel
+
+#pragma once
+
 #include <iostream>
 #include <cstdint>
 #include <string>
