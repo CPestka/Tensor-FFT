@@ -3,6 +3,7 @@
 #include <string>
 
 #include "TransposeTest.cu"
+#include "DFTTest.cu"
 
 int main(){
   if (!transpose16_test()){
@@ -42,5 +43,6 @@ int main(){
   */
 
   std::cout << "All tests passed!" <<std::endl;
+
   return true;
 }
