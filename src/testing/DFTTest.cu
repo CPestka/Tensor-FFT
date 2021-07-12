@@ -75,6 +75,7 @@ bool dft16_test(){
 
   WriteResultsToFile("dft_test_kernel.dat", fft_length, data_1.get());
 
+  /*
   __half2* dptr_cuFFT_in;
   __half2* dptr_cuFFT_out;
   cudaMalloc((void**)(&dptr_cuFFT_in), sizeof(__half2) * 16);
@@ -99,7 +100,7 @@ bool dft16_test(){
     assert(r == CUFFT_SUCCESS);
 
     cudaDeviceSynchronize();
-    
+
     SaveCuFFTResults<<<1,1>>>(dptr_cuFFT_out, dptr_results_cuFFT_RE + 16*i,
                               dptr_results_cuFFT_IM + 16*i);
   }
@@ -115,7 +116,7 @@ bool dft16_test(){
     float cpu_im = data_2[i + fft_length];
     float gpu_im = data_1[i + fft_length];
     if ((cpu_re != gpu_re) || (cpu_im != gpu_im)){
-      std::cout << "Results of dfts are different!"
+      std::cout << "Results of dfts are different! "
                 << "CuFFT: " << cpu_re << " " << cpu_im << " Kernel: " << gpu_re
                 << " " << gpu_im << std::endl;
       if ((fabs(cpu_re - gpu_re) > 0.01) || (fabs(cpu_im - gpu_im) > 0.01)){
@@ -123,10 +124,10 @@ bool dft16_test(){
       }
     }
   }
-
+  */
   cudaFree(dptr_input_RE);
-  cudaFree(dptr_cuFFT_in);
-  cudaFree(dptr_cuFFT_out);
+  //cudaFree(dptr_cuFFT_in);
+  //cudaFree(dptr_cuFFT_out);
 
   return true;
 }
