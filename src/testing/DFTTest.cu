@@ -84,10 +84,10 @@ bool dft16_test(){
   assert(r == CUFFT_SUCCESS);
   size_t size = 0;
   long long fft_length_1 = 16;
-  /*
   r = cufftXtMakePlanMany(plan, 1, &fft_length_1, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   assert(r == CUFFT_SUCCESS);
+  /*
 
   for(int i=0; i<16*16; i++){
     int offset = 16*i;
