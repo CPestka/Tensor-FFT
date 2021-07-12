@@ -16,6 +16,7 @@
 #include "TestingDataCreation.cu"
 #include "FileWriter.cu"
 #include "../base/Transposer.cu"
+#include "../base/TensorDFT16.cu"
 
 __global__ void PrepareCuFFTInput(__half* input_RE, __half* input_IM,
                                   __half2* cuFFT_in){
@@ -70,8 +71,8 @@ bool dft16_test(){
       dptr_input_RE, dptr_input_IM, dptr_results_kernel_RE,
       dptr_results_kernel_IM, fft_length, 2, 0);
 
-  __half* dptr_dft_matrix_batch_RE_;
-  __half* dptr_dft_matrix_batch_IM_;
+  __half* dptr_dft_matrix_batch_RE;
+  __half* dptr_dft_matrix_batch_IM;
   cudaMalloc((void**)(&dptr_dft_matrix_batch_RE_),
              2 * sizeof(__half) * 16 * 16 * 16);
   dptr_dft_matrix_batch_IM_ =
