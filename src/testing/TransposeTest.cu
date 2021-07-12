@@ -77,7 +77,7 @@ bool transpose16_test(){
     }
   }
 
-  WriteResultsToFile("transposed_test_cpu.dat", fft_length, data_2.get());
+  WriteResultsToFile("transposed_test_cpu16.dat", fft_length, data_2.get());
 
   __half* dptr_input_RE;
   __half* dptr_input_IM;
@@ -106,7 +106,7 @@ bool transpose16_test(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  WriteResultsToFile("transposed_test_kernel.dat", fft_length, data_1.get());
+  WriteResultsToFile("transposed_test_kernel16.dat", fft_length, data_1.get());
 
   for(int i=0; i<fft_length; i++){
     float cpu_re = data_2[i];
@@ -252,7 +252,7 @@ bool transpose16_2_test(){
     }
   }
 
-  WriteResultsToFile("transposed_test_cpu.dat", fft_length, data_2.get());
+  WriteResultsToFile("transposed_test_cpu2.dat", fft_length, data_2.get());
 
   __half* dptr_input_RE;
   __half* dptr_input_IM;
@@ -281,7 +281,7 @@ bool transpose16_2_test(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  WriteResultsToFile("transposed_test_kernel.dat", fft_length, data_1.get());
+  WriteResultsToFile("transposed_test_kernel2.dat", fft_length, data_1.get());
 
   for(int i=0; i<fft_length; i++){
     float cpu_re = data_2[i];
