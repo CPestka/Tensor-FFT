@@ -77,13 +77,14 @@ bool dft16_test(){
   __half2* dptr_cuFFT_out;
   cudaMalloc((void**)(&dptr_cuFFT_in), sizeof(__half2) * 16);
   cudaMalloc((void**)(&dptr_cuFFT_out), sizeof(__half2) * 16);
-  /*
+
   cufftHandle plan;
   cufftResult r;
   r = cufftCreate(&plan);
   assert(r == CUFFT_SUCCESS);
   size_t size = 0;
   long long fft_length_1 = 16;
+  /*
   r = cufftXtMakePlanMany(plan, 1, &fft_length_1, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   assert(r == CUFFT_SUCCESS);
@@ -151,7 +152,7 @@ bool dft16_test(){
 
   cudaFree(dptr_cuFFT_out);
   cudaFree(dptr_cuFFT_in);
-  //cufftDestroy(plan);
+  cufftDestroy(plan);
   cudaFree(dptr_input_RE);
 
   return true;
