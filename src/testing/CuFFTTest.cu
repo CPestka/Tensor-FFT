@@ -50,6 +50,7 @@ int main(){
              cudaMemcpyDeviceToHost);
   WriteResultsToFileHalf2("cuFFTresults.dat", fft_length, results.get());
 
-  cudaFree(dptr_data);
+  cufftDestroy(plan);
   cudaFree(dptr_results);
+  cudaFree(dptr_data);
 }

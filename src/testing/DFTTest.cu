@@ -77,7 +77,6 @@ bool dft16_test(){
   cudaMalloc((void**)(&dptr_cuFFT_in), sizeof(__half2) * 16);
   cudaMalloc((void**)(&dptr_cuFFT_out), sizeof(__half2) * 16);
 
-  /*
   cufftHandle plan;
   cufftResult r;
   r = cufftCreate(&plan);
@@ -111,7 +110,6 @@ bool dft16_test(){
              2 * fft_length * sizeof(__half), cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("dft_test_cuFFT.dat", fft_length, data_2.get());
-  */
 
   __half* dptr_dft_matrix_batch_RE;
   __half* dptr_dft_matrix_batch_IM;
@@ -148,9 +146,10 @@ bool dft16_test(){
     }
   }
   */
-  cudaFree(dptr_input_RE);
-  cudaFree(dptr_cuFFT_in);
+  cufftDestroy(plan);
   cudaFree(dptr_cuFFT_out);
+  cudaFree(dptr_cuFFT_in);
+  cudaFree(dptr_input_RE);
 
   return true;
 }
