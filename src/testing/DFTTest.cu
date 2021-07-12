@@ -70,7 +70,21 @@ bool dft16_test(){
       dptr_input_RE, dptr_input_IM, dptr_results_kernel_RE,
       dptr_results_kernel_IM, fft_length, 2, 0);
 
-  cudaMemcpy(data_1.get(), dptr_results_kernel_RE, 2*fft_length*sizeof(__half),
+  __half* dptr_dft_matrix_batch_RE_;
+  __half* dptr_dft_matrix_batch_IM_;
+  cudaMalloc((void**)(&dptr_dft_matrix_batch_RE_),
+             2 * sizeof(__half) * 16 * 16 * 16);
+  dptr_dft_matrix_batch_IM_ =
+      dptr_dft_matrix_batch_RE_ + (16 * 16 * 16);
+
+  ComputeDFTMatrix<<<16, 16*16>>>(dptr_dft_matrix_batch_RE_,
+                                  dptr_dft_matrix_batch_IM_);
+
+  DFTKernel<<<1,32>>>(dptr_results_kernel_RE, dptr_results_kernel_IM,
+                      dptr_input_RE, dptr_input_IM, dptr_dft_matrix_batch_RE,
+                      dptr_dft_matrix_batch_IM);
+
+  cudaMemcpy(data_1.get(), dptr_input_RE, 2*fft_length*sizeof(__half),
              cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("dft_test_kernel.dat", fft_length, data_1.get());
