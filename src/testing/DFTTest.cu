@@ -87,6 +87,7 @@ bool dft16_test(){
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   assert(r == CUFFT_SUCCESS);
 
+  /*
   for(int i=0; i<16*16; i++){
     int offset = 16*i;
     PrepareCuFFTInput<<<1,1>>>(dptr_results_kernel_RE + offset,
@@ -101,13 +102,17 @@ bool dft16_test(){
 
     SaveCuFFTResults<<<1,1>>>(dptr_cuFFT_out, dptr_results_cuFFT_RE + offset,
                               dptr_results_cuFFT_IM + offset);
+
+    cudaDeviceSynchronize();
+
   }
 
   cudaMemcpy(data_2.get(), dptr_results_cuFFT_RE,
              2 * fft_length * sizeof(__half), cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("dft_test_cuFFT.dat", fft_length, data_2.get());
-
+  */
+  
   __half* dptr_dft_matrix_batch_RE;
   __half* dptr_dft_matrix_batch_IM;
   cudaMalloc((void**)(&dptr_dft_matrix_batch_RE),
