@@ -79,7 +79,8 @@ bool dft_matrix16_test(){
   std::cout << "GPU_RE:" << std::endl;
   for(int j=0; j<16; j++){
     for(int i=0; i<16; i++){
-      std::cout << dft_matrix_gpu_RE[i + 16*j] << " ";
+      double gpu_RE = dft_matrix_gpu_RE[i + 16*j];
+      std::cout << gpu_RE << " ";
     }
     std::cout << std::endl;
   }
@@ -88,7 +89,8 @@ bool dft_matrix16_test(){
   std::cout << "GPU_IM:" << std::endl;
   for(int j=0; j<16; j++){
     for(int i=0; i<16; i++){
-      std::cout << dft_matrix_gpu_IM[i + 16*j] << " ";
+      double gpu_IM = dft_matrix_gpu_IM[i + 16*j];
+      std::cout << gpu_IM << " ";
     }
     std::cout << std::endl;
   }

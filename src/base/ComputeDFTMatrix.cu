@@ -1,3 +1,4 @@
+#pragma once 
 //This precompute batches of the dft matrix that is used in each call of the
 //DFTKernel() and Radix16Kernel().
 //The number of threads has to be equal to the amount of entries to be computed.
