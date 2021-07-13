@@ -44,20 +44,6 @@ bool dft_matrix16_test(){
 
   cudaDeviceSynchronize();
 
-  for(int j=0; j<16; j++){
-    for(int i=0; i<16; i++){
-      double gpu_RE = dft_matrix_gpu_RE[i + 16*j];
-      double gpu_IM = dft_matrix_gpu_IM[i + 16*j];
-
-      if ((fabs((dft_matrix_cpu_RE[j][i] - gpu_RE)) > 0.0001) ||
-          (fabs((dft_matrix_cpu_IM[j][i] - gpu_IM)) > 0.0001)){
-        std::cout << "DFT matrix on CPU and GPU are different!"
-                  << std::endl;
-        return false;
-      }
-    }
-  }
-
   std::cout << "CPU_RE:" << std::endl;
   for(int j=0; j<16; j++){
     for(int i=0; i<16; i++){
@@ -95,6 +81,20 @@ bool dft_matrix16_test(){
     std::cout << std::endl;
   }
   std::cout << std::endl;
+
+  for(int j=0; j<16; j++){
+    for(int i=0; i<16; i++){
+      double gpu_RE = dft_matrix_gpu_RE[i + 16*j];
+      double gpu_IM = dft_matrix_gpu_IM[i + 16*j];
+
+      if ((fabs((dft_matrix_cpu_RE[j][i] - gpu_RE)) > 0.001) ||
+          (fabs((dft_matrix_cpu_IM[j][i] - gpu_IM)) > 0.001)){
+        std::cout << "DFT matrix on CPU and GPU are different!"
+                  << std::endl;
+        return false;
+      }
+    }
+  }
 
   return true;
 }
