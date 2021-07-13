@@ -3,6 +3,7 @@
 #include <string>
 
 #include "TransposeTest.cu"
+#include "DFTMatrixTest.cu"
 #include "DFTTest.cu"
 
 int main(){
@@ -15,12 +16,21 @@ int main(){
     return false;
   }
 
+  if (!dft_matrix16_test()){
+    std::cout << "DFT matrix test 16*16 failed!" << std::endl;
+    return false;
+  }
+  /*
+  if (!dft_matrix16_2_test()){
+    std::cout << "DFT matrix test 16*16*16*16*2 failed!" << std::endl;
+    return false;
+  }
+
   if (!dft16_test()){
     std::cout << "DFT kernel test failed for 16*16*16!" << std::endl;
     return false;
   }
 
-  /*
   if (!dft_16_2_test()){
     std::cout << "DFT kernel test failed for 16*16*16*2*2!" << std::endl;
     return;

@@ -102,7 +102,6 @@ bool transpose16_test(){
       dptr_input_RE, dptr_input_IM, dptr_results_RE, dptr_results_IM,
       fft_length, 2, 0);
 
-  //Memcpy of input data to device
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
