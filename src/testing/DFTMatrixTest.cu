@@ -35,7 +35,7 @@ bool dft_matrix16_test(){
   cudaMalloc((void**)(&dptr_dft_matrix_gpu_RE), sizeof(__half)*16*16);
   cudaMalloc((void**)(&dptr_dft_matrix_gpu_IM), sizeof(__half)*16*16);
 
-  ComputeDFTMatrix<<<1,16>>>(dptr_dft_matrix_gpu_RE, dptr_dft_matrix_gpu_IM);
+  ComputeDFTMatrix<<<1,16*16>>>(dptr_dft_matrix_gpu_RE, dptr_dft_matrix_gpu_IM);
 
   cudaMemcpy(dft_matrix_gpu_RE.get(), dptr_dft_matrix_gpu_RE,
              16*16*sizeof(__half), cudaMemcpyDeviceToHost);

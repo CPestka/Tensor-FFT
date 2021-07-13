@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 //This precompute batches of the dft matrix that is used in each call of the
 //DFTKernel() and Radix16Kernel().
 //The number of threads has to be equal to the amount of entries to be computed.
@@ -11,7 +11,7 @@ __global__ void ComputeDFTMatrix(__half* dft_matrix_batch_RE,
   int row_id = inter_matrix_id % 16;
   int collum_id = inter_matrix_id / 16;
 
-  float phase = (2 * row_id * collum_id * M_PI) / 16.0;
+  float phase = (static_cast<float>(2 * row_id * collum_id) * M_PI) / 16.0;
   dft_matrix_batch_RE[thread_id] = __float2half(cosf(phase));
   dft_matrix_batch_IM[thread_id] = __float2half(-sinf(phase));
 }
