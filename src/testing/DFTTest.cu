@@ -75,7 +75,7 @@ bool dft_0_test(){
     for(int j=0; j<16; j++){
       bool RE_correct = fabs(static_cast<double>(data_RE[16*i + j])) < 0.002;
       bool IM_correct = fabs(static_cast<double>(data_IM[16*i + j])) < 0.002;
-      if ((RE_correct!) || (IM_correct!)) {
+      if ((!RE_correct) || (!IM_correct)) {
         std::cout << "Results of dft by Kernel are incorrect for example data "
                   << "of only 0." << std::endl;
         return false;
@@ -157,7 +157,7 @@ bool dft_sin_test(){
         IM_correct = fabs(static_cast<double>(data_IM[16*i + j])) < 0.002 ;
       }
 
-      if ((RE_correct!) || (IM_correct!)) {
+      if ((!RE_correct) || (!IM_correct)) {
         std::cout << "Results of dft by Kernel are incorrect for example data "
                   << "of sin(x) x e [0:2*PI]." << std::endl;
         return false;
