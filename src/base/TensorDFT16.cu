@@ -82,13 +82,13 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
   //RE(A)xIM(B) + IM(A)xRE(B)
-  wmma::mma_sync(accumulator_RE_1_frag, dft_RE_frag, data_RE_frag,
+  wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
                  accumulator_RE_1_frag);
-  wmma::mma_sync(accumulator_RE_2_frag, dft_IM_frag, data_IM_frag,
+  wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
                  accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_frag, dft_RE_frag, data_IM_frag,
+  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
                  accumulator_IM_frag);
-  wmma::mma_sync(accumulator_IM_frag, dft_IM_frag, data_RE_frag,
+  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
                  accumulator_IM_frag);
 
   //Store IM part of the output
