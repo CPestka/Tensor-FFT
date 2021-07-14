@@ -84,7 +84,8 @@ bool dft_sin_test(){
     for(int i=0; i<16; i++){
       data_RE[j*16 + i] = sin((2*M_PI*i)/16.0);
       data_IM[j*16 + i] = 0;
-      std::cout << data_RE[j*16 + i] << " " << data_IM[j*16 +i] << std::endl;
+      std::cout << static_cast<double>(data_RE[j*16 + i]) << " "
+                << static_cast<double>(data_IM[j*16 + i])<< std::endl;
     }
   }
 
