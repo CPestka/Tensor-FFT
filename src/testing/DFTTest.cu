@@ -49,7 +49,7 @@ bool dft_0_test(){
   cudaMalloc((void**)(&dptr_dft_matrix_RE), sizeof(__half)*16*16*16);
   cudaMalloc((void**)(&dptr_dft_matrix_IM), sizeof(__half)*16*16*16);
 
-  ComputeDFTMatrix<<<16,16*16>>>(dptr_dft_matrix__RE, dptr_dft_matrix__IM);
+  ComputeDFTMatrix<<<16,16*16>>>(dptr_dft_matrix_RE, dptr_dft_matrix_IM);
 
   DFTKernel<<<1,32>>>(dptr_data_RE, dptr_data_IM, dptr_results_RE,
                       dptr_results_IM, dptr_dft_matrix_RE, dptr_dft_matrix_IM);
@@ -60,7 +60,7 @@ bool dft_0_test(){
              cudaMemcpyDeviceToHost);
 
   cudaDeviceSynchronize();
-  
+
   WriteResultsToFile("dft_0_test.dat", fft_length, data_RE.get(),
                      data_IM.get());
 
@@ -74,6 +74,7 @@ bool dft_0_test(){
   return true;
 }
 
+/*
 __global__ void PrepareCuFFTInput(__half* input_RE, __half* input_IM,
                                   __half2* cuFFT_in){
   for(int i=0; i<16; i++){
@@ -142,7 +143,6 @@ bool dft16_normal_test(){
   r = cufftXtMakePlanMany(plan, 1, &fft_length_1, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   assert(r == CUFFT_SUCCESS);
-  /*
 
   for(int i=0; i<16*16; i++){
     int offset = 16*i;
@@ -167,7 +167,6 @@ bool dft16_normal_test(){
              2 * fft_length * sizeof(__half), cudaMemcpyDeviceToHost);
 
   WriteResultsToFile("dft_test_cuFFT.dat", fft_length, data_2.get());
-  */
 
   __half* dptr_dft_matrix_batch_RE;
   __half* dptr_dft_matrix_batch_IM;
@@ -188,7 +187,6 @@ bool dft16_normal_test(){
 
   WriteResultsToFile("dft_test_kernel.dat", fft_length, data_1.get());
 
-  /*
   for(int i=0; i<fft_length; i++){
     float cpu_re = data_2[i];
     float gpu_re = data_1[i];
@@ -203,7 +201,6 @@ bool dft16_normal_test(){
       }
     }
   }
-  */
 
   cudaFree(dptr_cuFFT_out);
   cudaFree(dptr_cuFFT_in);
@@ -212,3 +209,5 @@ bool dft16_normal_test(){
 
   return true;
 }
+
+*/
