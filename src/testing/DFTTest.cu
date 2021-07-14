@@ -71,6 +71,18 @@ bool dft_0_test(){
   cudaFree(dptr_data_IM);
   cudaFree(dptr_data_RE);
 
+  for(int i=0; i<16*16; i++){
+    for(int j=0; j<16; j++){
+      bool RE_correct = fabs(static_cast<double>(data_RE[16*i + j])) < 0.002 ;
+      bool IM_correct = fabs(static_cast<double>(data_IM[16*i + j])) < 0.002 ;
+      if (RE_correct! || IM_correct!) {
+        std::cout << "Results of dft by Kernel are incorrect for example data "
+                  << "of only 0." << std::endl;
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -130,6 +142,28 @@ bool dft_sin_test(){
   cudaFree(dptr_results_RE);
   cudaFree(dptr_data_IM);
   cudaFree(dptr_data_RE);
+
+  for(int i=0; i<16*16; i++){
+    for(int j=0; j<16; j++){
+      bool RE_correct = fabs(static_cast<double>(data_RE[16*i + j])) < 0.002 ;
+      bool IM_correct;
+      if (j==1 || j==15){
+        if (j==1){
+          IM_correct = fabs(static_cast<double>(data_IM[16*i + j]) + 8) < 0.002;
+        } else {
+          IM_correct = fabs(static_cast<double>(data_IM[16*i + j]) - 8) < 0.002;
+        }
+      } else {
+        IM_correct = fabs(static_cast<double>(data_IM[16*i + j])) < 0.002 ;
+      }
+
+      if (RE_correct! || IM_correct!) {
+        std::cout << "Results of dft by Kernel are incorrect for example data "
+                  << "of sin(x) x e [0:2*PI]." << std::endl;
+        return false;
+      }
+    }
+  }
 
   return true;
 }
