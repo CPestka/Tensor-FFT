@@ -42,13 +42,13 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
 
   //Declare the fragments
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      dft_RE_frag;
-  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      dft_IM_frag;
-  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       data_RE_frag;
-  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
       data_IM_frag;
+  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+      dft_RE_frag;
+  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+      dft_IM_frag;
 
   //TO-SELF:currently acc into half vs float -> worse accuracy vs needing
   //conversion
