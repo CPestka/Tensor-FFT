@@ -61,7 +61,7 @@ bool dft_0_test(){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFile("dft_0_test.dat", fft_length, data_RE.get(),
+  WriteResultsToFile("dft_0_test.dat", 16*16*16, data_RE.get(),
                      data_IM.get());
 
   cudaFree(dptr_dft_matrix_IM);
