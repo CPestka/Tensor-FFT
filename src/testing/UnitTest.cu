@@ -25,13 +25,18 @@ int main(){
     return false;
   }
 
-  /*
-  if (!dft16_test()){
+  if (!dft_0_test()){
     std::cout << "DFT kernel test failed for 16*16*16!" << std::endl;
     return false;
   }
 
-  if (!dft_16_2_test()){
+  /*
+  if (!dft16_normal_test()){
+    std::cout << "DFT kernel test failed for 16*16*16!" << std::endl;
+    return false;
+  }
+
+  if (!dft_16_2_normal_test()){
     std::cout << "DFT kernel test failed for 16*16*16*2*2!" << std::endl;
     return;
   }
