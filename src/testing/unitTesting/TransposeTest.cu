@@ -1,19 +1,19 @@
-//Used to test correctness of transposer
+//Used to test correctness of transposer kernel
 
 #pragma once
 
 #include <iostream>
-#include <cstdint>
 #include <string>
 #include <vector>
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "TestingDataCreation.cu"
-#include "FileWriter.cu"
-#include "../base/Transposer.cu"
+#include "../TestingDataCreation.cu"
+#include "../FileWriter.cu"
+#include "../../base/Transposer.cu"
 
+//Tests functionality of transposer kernel on example data of size 16^3
 bool transpose16_test(){
   int fft_length = 16*16*16;
 
@@ -24,8 +24,9 @@ bool transpose16_test(){
   std::unique_ptr<__half[]> data_2 =
       CreateSineSuperpostion(fft_length, weights);
 
-  WriteResultsToFile("input.dat", fft_length, data_1.get());
+  WriteResultsToFile("test_transpose_16_input.dat", fft_length, data_1.get());
 
+  //Perform transposes by hand on the cpu
   __half old1_RE[16*16][16];
   __half old1_IM[16*16][16];
   __half new1_RE[16][16*16];
@@ -77,8 +78,9 @@ bool transpose16_test(){
     }
   }
 
-  WriteResultsToFile("transposed_test_cpu16.dat", fft_length, data_2.get());
+  WriteResultsToFile("test_transpose_16_cpu.dat", fft_length, data_2.get());
 
+  //Perform transposes via the kernel on the gpu
   __half* dptr_input_RE;
   __half* dptr_input_IM;
   __half* dptr_results_RE;
@@ -96,8 +98,7 @@ bool transpose16_test(){
   int amount_of_transpose_blocks =
      ceil(static_cast<float>(fft_length) /
           static_cast<float>(transpose_blocksize));
-  //Launch kernel that performs the transposes to prepare the data for the
-  //radix steps
+
   TransposeKernel<<<amount_of_transpose_blocks, transpose_blocksize>>>(
       dptr_input_RE, dptr_input_IM, dptr_results_RE, dptr_results_IM,
       fft_length, 2, 0);
@@ -105,8 +106,9 @@ bool transpose16_test(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  WriteResultsToFile("transposed_test_kernel16.dat", fft_length, data_1.get());
+  WriteResultsToFile("test_transpose_16_gpu.dat", fft_length, data_1.get());
 
+  //Compare results
   for(int i=0; i<fft_length; i++){
     float cpu_re = data_2[i];
     float gpu_re = data_1[i];
@@ -124,6 +126,7 @@ bool transpose16_test(){
   return true;
 }
 
+//Tests functionality of transposer kernel on example data of size 16^3*2^2
 bool transpose16_2_test(){
   int fft_length = 16*16*16*2*2;
 
@@ -134,8 +137,9 @@ bool transpose16_2_test(){
   std::unique_ptr<__half[]> data_2 =
       CreateSineSuperpostion(fft_length, weights);
 
-  WriteResultsToFile("input.dat", fft_length, data_1.get());
+  WriteResultsToFile("test_transpose_2_input.dat", fft_length, data_1.get());
 
+  //Perform transposes by hand on the cpu
   __half old1_RE[16*16*16*2][2];
   __half old1_IM[16*16*16*2][2];
   __half new1_RE[2][2*16*16*16];
@@ -251,8 +255,9 @@ bool transpose16_2_test(){
     }
   }
 
-  WriteResultsToFile("transposed_test_cpu2.dat", fft_length, data_2.get());
+  WriteResultsToFile("test_transpose_2_cpu.dat", fft_length, data_2.get());
 
+  //Perform transposes via the kernel on the gpu
   __half* dptr_input_RE;
   __half* dptr_input_IM;
   __half* dptr_results_RE;
@@ -270,18 +275,17 @@ bool transpose16_2_test(){
   int amount_of_transpose_blocks =
      ceil(static_cast<float>(fft_length) /
           static_cast<float>(transpose_blocksize));
-  //Launch kernel that performs the transposes to prepare the data for the
-  //radix steps
+
   TransposeKernel<<<amount_of_transpose_blocks, transpose_blocksize>>>(
       dptr_input_RE, dptr_input_IM, dptr_results_RE, dptr_results_IM,
       fft_length, 2, 2);
 
-  //Memcpy of input data to device
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  WriteResultsToFile("transposed_test_kernel2.dat", fft_length, data_1.get());
+  WriteResultsToFile("test_transpose_2_gpu.dat", fft_length, data_1.get());
 
+  //Compare results
   for(int i=0; i<fft_length; i++){
     float cpu_re = data_2[i];
     float gpu_re = data_1[i];

@@ -30,8 +30,14 @@ int main(){
               << std::endl;
     return false;
   }
-  if (!dft_sin_test()){
+  if (!dft_sin_test_16()){
     std::cout << "DFT kernel test failed for 16*16*16 with sin(x) x [0:2*PI]!"
+              << std::endl;
+    return false;
+  }
+  if (!dft_sin_test_16()){
+    std::cout << "DFT kernel test failed for 16*16*16*16*2 with sin(x) x"
+              << " [0:2*PI]!"
               << std::endl;
     return false;
   }

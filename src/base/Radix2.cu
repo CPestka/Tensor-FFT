@@ -5,14 +5,15 @@
 #include <cuda.h>
 #include <cuda_fp16.h>
 
-//This kernel performs the radix 2 combinattion steps if neccessary. Since it
-//can not utilize tensor cores it is much slowwer than the radix 16 kernel and
+//This kernel performs the radix 2 combination steps if neccessary. Since it
+//can not utilize tensor cores it is much slower than the radix 16 kernel and
 //is only used to allow for compatibility with all input sizes that are powers
 //of 2.
-//Each thread computes two complex points of the resulting FFT.
+//Each thread computes two complex points of the resulting FFT and thus the toal
+//number of threads lauched has to equal sub_fft_length i.e. N/2.
 //This kernel performs one combination of 2 N/2 sized ffts and thus if there are
 //multiple of those needed for one radix step, multiple kernels have to be
-//launched and the ptrs to the in/out  data have to point to the beginnning of
+//launched and the ptrs to the in/out data have to point to the beginnning of
 //the fft that is to be proccessed and not to the global start of the data.
 __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
                              __half* output_data_RE, __half* output_data_IM,

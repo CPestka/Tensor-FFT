@@ -12,10 +12,12 @@
 
 #include "../base/ComputeDFTMatrix.cu"
 
+//Test of correctness of single dft matrix computed via the kernel
 bool dft_matrix16_test(){
   float dft_matrix_cpu_RE[16][16];
   float dft_matrix_cpu_IM[16][16];
 
+  //Compute on cpu
   for(int i=0; i<16; i++){
     for(int j=0; j<16; j++){
       dft_matrix_cpu_RE[j][i] = cos((2*M_PI*i*j)/16);
@@ -33,6 +35,7 @@ bool dft_matrix16_test(){
   cudaMalloc((void**)(&dptr_dft_matrix_gpu_RE), sizeof(__half)*16*16);
   cudaMalloc((void**)(&dptr_dft_matrix_gpu_IM), sizeof(__half)*16*16);
 
+  //Compute on gpu
   ComputeDFTMatrix<<<1,16*16>>>(dptr_dft_matrix_gpu_RE, dptr_dft_matrix_gpu_IM);
 
   cudaMemcpy(dft_matrix_gpu_RE.get(), dptr_dft_matrix_gpu_RE,
@@ -42,46 +45,7 @@ bool dft_matrix16_test(){
 
   cudaDeviceSynchronize();
 
-  /*
-  std::cout << "CPU_RE:" << std::endl;
-  for(int j=0; j<16; j++){
-    for(int i=0; i<16; i++){
-      std::cout << dft_matrix_cpu_RE[j][i] << " ";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-
-  std::cout << "CPU_IM:" << std::endl;
-  for(int j=0; j<16; j++){
-    for(int i=0; i<16; i++){
-      std::cout << dft_matrix_cpu_IM[j][i] << " ";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-
-  std::cout << "GPU_RE:" << std::endl;
-  for(int j=0; j<16; j++){
-    for(int i=0; i<16; i++){
-      double gpu_RE = dft_matrix_gpu_RE[i + 16*j];
-      std::cout << gpu_RE << " ";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-
-  std::cout << "GPU_IM:" << std::endl;
-  for(int j=0; j<16; j++){
-    for(int i=0; i<16; i++){
-      double gpu_IM = dft_matrix_gpu_IM[i + 16*j];
-      std::cout << gpu_IM << " ";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-  */
-
+  //Compare results
   for(int j=0; j<16; j++){
     for(int i=0; i<16; i++){
       double gpu_RE = dft_matrix_gpu_RE[i + 16*j];
@@ -99,10 +63,12 @@ bool dft_matrix16_test(){
   return true;
 }
 
+//Test of correctness of 16*16*2 dft matrices computed via the kernel
 bool dft_matrix16_2_test(){
   float dft_matrix_cpu_RE[16][16];
   float dft_matrix_cpu_IM[16][16];
 
+  //CPU comparision
   for(int i=0; i<16; i++){
     for(int j=0; j<16; j++){
       dft_matrix_cpu_RE[j][i] = cos((2*M_PI*i*j)/16);
@@ -120,6 +86,7 @@ bool dft_matrix16_2_test(){
   cudaMalloc((void**)(&dptr_dft_matrix_gpu_RE), sizeof(__half)*16*16*16*16*2);
   cudaMalloc((void**)(&dptr_dft_matrix_gpu_IM), sizeof(__half)*16*16*16*16*2);
 
+  //Computation of matrices on gpu
   ComputeDFTMatrix<<<16*16*2,16*16>>>(dptr_dft_matrix_gpu_RE,
                                       dptr_dft_matrix_gpu_IM);
 
@@ -130,6 +97,7 @@ bool dft_matrix16_2_test(){
 
   cudaDeviceSynchronize();
 
+  //Check gpu results
   for(int k=0; k<16*16*2; k++){
     for(int j=0; j<16; j++){
       for(int i=0; i<16; i++){

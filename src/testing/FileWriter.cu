@@ -22,7 +22,7 @@ void WriteResultsToFile(std::string file_name, int fft_length, __half* data){
   }
 }
 
-//Writes results of a fft that uses __half to file
+//Writes results of a fft that uses 2 __half to file
 void WriteResultsToFile(std::string file_name, int fft_length, __half* data_RE,
                         __half* data_IM){
   std::ofstream myfile (file_name);

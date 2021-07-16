@@ -18,21 +18,23 @@ using namespace nvcuda;
 //Radix16Kernel() step)
 //Since the tensor cores that are used here can not perform complex
 //multiplications directly, the data is instead split into RE and IM part which
-//are then used to compute the complex multiplication. Due to this the data is
-//from this kernel on is used in form of 2 __half arrays instead of 1 __half2
-//array.
-//Each warp loads its corresponding 2*16 16x16 matrices of data into the
+//are then used to compute the complex multiplication. Due to this the data
+//is used in form of 2 __half arrays instead of 1 __half2 array in this
+//implementation to reduce.
+//Each warp loads its corresponding 2 16x16 matrices of data into the
 //fragments, which are used by nvidias wmma api to hold the data for the tensor
 //core matrix multiplication. The multiplications are then performed and the
 //results are stored back to memory.
-//TO-SELF: Not sure which memory solution best for dft_matrix data. 3 possible
+//TO-SELF: Not sure which memory solution best for dft_matrix data. 4 possible
 //sloutions: 1. 1 fragment in global memory + low memory usage - all warps read
 //              same data -> conflict while loading fragments
 //           2. 1 fragment for each warp in global memory + no conflict - uses
 //              same amount of memory than whole input data - memory requirement
 //              on GPU from 2x inputdata size to 3X and additional slow memcpy
 //              to device
-//           3. Just compute it in kernel
+//           3. 1 fragment for each warp but more calculation per warp
+//           4. Just compute it in kernel (+ same possiblity as 3.)
+//  Also precomputation could be replaced by read from file
 //Currently used is version 2.
 __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
                           __half* output_data_RE, __half* output_data_IM,
@@ -62,7 +64,7 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   wmma::fill_fragment(accumulator_IM_frag, 0.0f);
 
   //Compute ptrs to data for this warp
-  int memory_offset = warp_id * 4096;
+  int memory_offset = warp_id * 256;
   __half* warp_dft_matrix_batch_RE = dft_matrix_batch_RE + memory_offset;
   __half* warp_dft_matrix_batch_IM = dft_matrix_batch_IM + memory_offset;
   __half* warp_input_data_RE = input_data_RE + memory_offset;

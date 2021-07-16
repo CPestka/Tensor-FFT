@@ -1,4 +1,7 @@
 #pragma once
+
+//Provides some Objects that can be used time sections of code
+
 #include <chrono>
 #include <cstdint>
 

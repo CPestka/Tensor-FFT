@@ -26,6 +26,17 @@ std::unique_ptr<__half[]> CreateSineSuperpostion(int amount_of_timesamples,
   return data;
 }
 
+//Returns ptr to zero valued data
+std::unique_ptr<__half[]> CreateZeros(int lenth){
+  std::unique_ptr<__half[]> data = std::make_unique<__half[]>(2 * length);
+
+  for(int i=0; i<length; i++){
+    data[i] = 0;
+    data[i + amount_of_timesamples] = 0;
+  }
+  return data;
+}
+
 //Creates half precission data which is a superpostion of the a_i * sin(2*i * x)
 //with x [0:1] and a_i provided by weights
 //Has amount_of_timesamples half2 elements holding one complex value each
