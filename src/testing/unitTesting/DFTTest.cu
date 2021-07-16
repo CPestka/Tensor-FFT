@@ -12,11 +12,11 @@
 #include <cufftXt.h>
 #include <assert.h>
 
-#include "TestingDataCreation.cu"
-#include "FileWriter.cu"
-#include "../base/Transposer.cu"
-#include "../base/TensorDFT16.cu"
-#include "../base/ComputeDFTMatrix.cu"
+#include "../TestingDataCreation.cu"
+#include "../FileWriter.cu"
+#include "../../base/Transposer.cu"
+#include "../../base/TensorDFT16.cu"
+#include "../../base/ComputeDFTMatrix.cu"
 
 //Tests the dft kernel on zero valued data
 bool dft_0_test(){
