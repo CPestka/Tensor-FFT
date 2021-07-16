@@ -10,7 +10,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "../base/ComputeDFTMatrix.cu"
+#include "../../base/ComputeDFTMatrix.cu"
 
 //Test of correctness of single dft matrix computed via the kernel
 bool dft_matrix16_test(){
