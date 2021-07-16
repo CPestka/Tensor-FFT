@@ -3,16 +3,22 @@
 #include <string>
 #include <optional>
 
-//Holds the neccesary info for the computation of a fft of a give length.
+//Holds the neccesary info for the computation of a fft of a given length.
 //Use CreatePlan() to obtain a plan.
 struct Plan{
   int fft_length_;
   int amount_of_r16_steps_;
   int amount_of_r2_steps_;
+  int max_amount_of_warps_;
+
   int transposer_blocksize_;
-  //Should probably be = (amount of tenosr cores per SM) if input size allows it
+  int transposer_amount_of_blocks_;
+
   int dft_warps_per_block_;
+  int dft_amount_of_blocks_;
+
   int r16_warps_per_block_;
+  int r16_amount_of_blocks_;
 
   int r2_blocksize_;
 };
@@ -45,31 +51,15 @@ int ExactLog2(int x) {
 
 //Prefered way to create a Plan for a fft of size fft_length. The other
 //parameters are performance parameters whos optimal value depends on the fft
-//size and the used GPU. Current decent guesses for good valuse for the
-//blocksizes are 256 or 512 and for the warp amounts 4 (if size >= 16^3*2^4;
-//else use 1)
+//size and the used GPU.
+//This overload of the function uses best guesses for the performance parameters
+//(i.e. the blocksizes and resulting amount of blocks)
 //The used algorithm starts allways with a dft step (size 16) followed by one or
 //more radix 16 steps and finishes with 0-3 radix 2 steps (to achieve
 //compatibility with all inputsizes that are powers of 2 that are large enough)
-std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
-                               int dft_warps_per_block, int r16_warps_per_block,
-                               int r2_blocksize){
+//Due to this the input size has to be a power of 2 and at least of size 16^3.
+std::optional<Plan> CreatePlan(int fft_length){
   Plan my_plan;
-
-  my_plan.fft_length_ = fft_length;
-  my_plan.transposer_blocksize_ = transposer_blocksize;
-  if ((fft_length % (dft_warps_per_block * 16 * 16 * 16)) != 0) {
-    std::cout << "Error! fft_length must be devisable by dft_warps_per_block * "
-              << "16³"  << std::endl;
-    return std::nullopt;
-  }
-  my_plan.dft_warps_per_block_ = dft_warps_per_block;
-  if ((fft_length % (r16_warps_per_block * 16 * 16 * 16)) != 0) {
-    std::cout << "Error! fft_length must be devisable by r16_warps_per_block * "
-              << "16³"  << std::endl;
-    return std::nullopt;
-  }
-  my_plan.r16_warps_per_block_ = r16_warps_per_block;
 
   if (!IsPowerOf2(fft_length)) {
     std::cout << "Error! Input size has to be a power of 2!" << std::endl;
@@ -78,29 +68,103 @@ std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
 
   int log2_of_fft_lenght = ExactLog2(fft_length);
 
-  if ((log2_of_fft_lenght / 4) < 3) {
+  if (log2_of_fft_lenght < 12) {
     std::cout << "Error! Input size has to be larger than 4096 i.e. 16^3"
               << std::endl;
     return std::nullopt;
   }
+  my_plan.fft_length_ = fft_length;
 
   my_plan.amount_of_r16_steps_ = (log2_of_fft_lenght / 4) - 1;
   my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
+  my_plan.max_amount_of_warps_ = fft_length / 256;
+
+  my_plan.transposer_blocksize_ = 512;
+  my_plan.transposer_amount_of_blocks_ = fft_length / 512;
+
+  my_plan.dft_warps_per_block_ = 4;
+  my_plan.dft_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
+                                  my_plan.dft_warps_per_block_;
+
+  my_plan.r16_warps_per_block_ = 4;
+  my_plan.r16_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
+                                  my_plan.r16_warps_per_block_;
+
+  my_plan.r2_blocksize_ = 512;
+
+  return std::move(my_plan);
+}
+
+//This overload takes the performance parameters as input
+std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
+                               int dft_kernel_warps_per_block,
+                               int r16_kernel_warps_per_block,
+                               int r2_blocksize){
+  Plan my_plan;
+
+  if (!IsPowerOf2(fft_length)) {
+    std::cout << "Error! Input size has to be a power of 2!" << std::endl;
+    return std::nullopt;
+  }
+
+  int log2_of_fft_lenght = ExactLog2(fft_length);
+
+  if (log2_of_fft_lenght < 12) {
+    std::cout << "Error! Input size has to be larger than 4096 i.e. 16^3"
+              << std::endl;
+    return std::nullopt;
+  }
+  my_plan.fft_length_ = fft_length;
+
+  my_plan.amount_of_r16_steps_ = (log2_of_fft_lenght / 4) - 1;
+  my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
+  my_plan.max_amount_of_warps_ = fft_length / 256;
+
+  if ((fft_length % transposer_blocksize) != 0) {
+    std::cout << "Error! fft_length has to be evenly devisable by "
+              << "transposer_blocksize."
+              << std::endl;
+    return std::nullopt;
+  }
+  my_plan.transposer_blocksize_ = transpose_blocksize;
+  my_plan.transposer_amount_of_blocks_ = fft_length / transposer_blocksize;
+
+  if ((my_plan.max_amount_of_warps_ % dft_kernel_warps_per_block) != 0) {
+    std::cout << "Error! max_amount_of_warps_ i.e. fft_length/256 has to be "
+              << "evenly devisable by dft_kernel_warps_per_block."
+              << std::endl;
+    return std::nullopt;
+  }
+  my_plan.dft_warps_per_block_ = dft_kernel_warps_per_block;
+  my_plan.dft_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
+                                  my_plan.dft_warps_per_block_;
+
+  if ((my_plan.max_amount_of_warps_ % r16_kernel_warps_per_block) != 0) {
+    std::cout << "Error! max_amount_of_warps_ i.e. fft_length/256 has to be "
+              << "evenly devisable by r16_kernel_warps_per_block."
+              << std::endl;
+    return std::nullopt;
+  }
+  my_plan.r16_warps_per_block_ = r16_kernel_warps_per_block;
+  my_plan.r16_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
+                                  my_plan.r16_warps_per_block_;
 
   int tmp = 1;
   for(int i=0; i<my_plan.amount_of_r2_steps_; i++){
-    tmp = tmp *2;
+    tmp = tmp * 2;
   }
-  int minimal_r2_blocksize = fft_length / tmp;
-  if ((r2_blocksize >= minimal_r2_blocksize) ||
-      ((fft_length % minimal_r2_blocksize) != 0)) {
-    std::cout << "Error! fft_length has to be devisable by r2_blocksize and has"
-              << " r2_blocksize must be >= minimal_r2_blocksize (fft_length / "
-              << "2^amount_of_r2_steps_"
+  int smallest_r2_subfft_length = fft_length / tmp;
+
+  if ((smallest_r2_subfft_length % r2_blocksize) != 0) {
+    std::cout << "Error! smallest_r2_subfft_length i.e. "
+              << "pow(2,(log2_of_fft_lenght / 4)) has to be "
+              << "evenly devisable by r2_blocksize."
               << std::endl;
     return std::nullopt;
   }
   my_plan.r2_blocksize_ = r2_blocksize;
-  
+
   return std::move(my_plan);
 }
+
+//TODO: overload that reads optimized parameters from file

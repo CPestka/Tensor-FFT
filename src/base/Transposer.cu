@@ -41,26 +41,24 @@ __global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
   //the correct position in the output array
   int id = blockDim.x * blockIdx.x + threadIdx.x;
 
-  if (id < fft_length) { //Check if entry within bounds
-    int output_id = 0;
-    int current_row_length = fft_length;
-    int tmp = id;
+  int output_id = 0;
+  int current_row_length = fft_length;
+  int tmp = id;
 
-    for(int i=0; i<amount_of_r2_steps; i++){
-      current_row_length = current_row_length / 2;
-      output_id += ((tmp % 2) * current_row_length);
-      tmp = tmp / 2;
-    }
-
-    for(int i=0; i<amount_of_r16_steps; i++){
-      current_row_length = current_row_length / 16;
-      output_id += ((tmp % 16) * current_row_length);
-      tmp = tmp / 16;
-    }
-    output_id += tmp;
-
-    //Move input data to correct position
-    output_data_RE[output_id] = input_data_RE[id];
-    output_data_IM[output_id] = input_data_IM[id];
+  for(int i=0; i<amount_of_r2_steps; i++){
+    current_row_length = current_row_length / 2;
+    output_id += ((tmp % 2) * current_row_length);
+    tmp = tmp / 2;
   }
+
+  for(int i=0; i<amount_of_r16_steps; i++){
+    current_row_length = current_row_length / 16;
+    output_id += ((tmp % 16) * current_row_length);
+    tmp = tmp / 16;
+  }
+  output_id += tmp;
+
+  //Move input data to correct position
+  output_data_RE[output_id] = input_data_RE[id];
+  output_data_IM[output_id] = input_data_IM[id];
 }
