@@ -72,7 +72,7 @@ public:
 
   std::optional<std::string> CopyResultsDeviceToHost(__half* data) {
     if (cudaMemcpy(data, dptr_results_RE_, 2 * fft_length_ * sizeof(__half),
-                   cudaMemcpyHostToDevice)
+                   cudaMemcpyDeviceToHost)
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
@@ -93,7 +93,7 @@ public:
       __half* data, cudaStream_t &stream) {
     if (cudaMemcpyAsync(data, dptr_results_RE_,
                         2 * fft_length_ * sizeof(__half),
-                        cudaMemcpyHostToDevice, stream)
+                        cudaMemcpyDeviceToHost, stream)
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
