@@ -30,14 +30,15 @@ bool full_test_16(){
     return false;
   }
 
+  std::string error_mess;
+
   //Construct a DataHandler for data on GPU
   DataHandler my_handler(fft_length);
-  if (my_handler.PeakAtLastError().value() != cudaSuccess) {
-    std::cout << "Memory allocation on device failed." << std::endl;
+  error_mess = my_handler.PeakAtLastError().value();
+  if (error_mess != "") {
+    std::cout << error_mess << std::endl;
     return false;
   }
-
-  std::string error_mess;
 
   //Copy data to gpu
   error_mess = my_handler.CopyDataHostToDevice(data).value();

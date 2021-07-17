@@ -55,7 +55,10 @@ public:
   }
 
   std::optional<std::string> PeakAtLastError() {
-    return cudaGetErrorString(cudaPeekAtLastError());
+    if (cudaPeekAtLastError() != cudaSuccess){
+      return "Memory allocation on device failed.";
+    }
+    return std::nullopt;
   }
 
   std::optional<std::string> CopyDataHostToDevice(__half* data) {
