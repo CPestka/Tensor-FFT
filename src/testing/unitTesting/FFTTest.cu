@@ -61,6 +61,8 @@ bool full_test_16(){
     return false;
   }
 
+  cudaDeviceSynchronize();
+
   WriteResultsToFile("test_fft_16.dat", fft_length, data);
 
   return true;
