@@ -82,11 +82,13 @@ std::optional<Plan> CreatePlan(int fft_length){
   my_plan.transposer_blocksize_ = 256;
   my_plan.transposer_amount_of_blocks_ = fft_length / 256;
 
-  my_plan.dft_warps_per_block_ = 4;
+  my_plan.dft_warps_per_block_ = my_plan.max_amount_of_warps_ <= 4 ?
+                                 my_plan.max_amount_of_warps_ : 4;
   my_plan.dft_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
                                   my_plan.dft_warps_per_block_;
 
-  my_plan.r16_warps_per_block_ = 4;
+  my_plan.r16_warps_per_block_ = my_plan.max_amount_of_warps_ <= 4 ?
+                                my_plan.max_amount_of_warps_ : 4;
   my_plan.r16_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
                                   my_plan.r16_warps_per_block_;
 
