@@ -70,8 +70,16 @@ public:
     return std::nullopt;
   }
 
-  std::optional<std::string> CopyResultsDeviceToHost(__half* data) {
-    if (cudaMemcpy(data, dptr_results_RE_, 2 * fft_length_ * sizeof(__half),
+  std::optional<std::string> CopyResultsDeviceToHost(__half* data,
+                                                     int amount_of_r16_steps,
+                                                     int amount_of_r2_steps) {
+    __half* results;
+    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) != 0) {
+      results = dptr_results_RE_;
+    } else {
+      results = dptr_input_RE_;
+    }
+    if (cudaMemcpy(data, results, 2 * fft_length_ * sizeof(__half),
                    cudaMemcpyDeviceToHost)
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
@@ -90,9 +98,15 @@ public:
   }
 
   std::optional<std::string> CopyResultsDeviceToHostAsync(
-      __half* data, cudaStream_t &stream) {
-    if (cudaMemcpyAsync(data, dptr_results_RE_,
-                        2 * fft_length_ * sizeof(__half),
+      __half* data, int amount_of_r16_steps, int amount_of_r2_steps,
+      cudaStream_t &stream) {
+    __half* results;
+    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) != 0) {
+      results = dptr_results_RE_;
+    } else {
+      results = dptr_input_RE_;
+    }
+    if (cudaMemcpyAsync(data, results, 2 * fft_length_ * sizeof(__half),
                         cudaMemcpyDeviceToHost, stream)
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
@@ -131,8 +145,8 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
             << fft_plan.dft_warps_per_block_ * 32 << std::endl;
   DFTKernel<<<fft_plan.dft_amount_of_blocks_,
               32 * fft_plan.dft_warps_per_block_>>>(
-      data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
-      data.dptr_results_IM_, data.dptr_dft_matrix_RE_, data.dptr_dft_matrix_IM_);
+      data.dptr_results_RE_, data.dptr_results_IM_, data.dptr_input_RE_,
+      data.dptr_input_IM_, data.dptr_dft_matrix_RE_, data.dptr_dft_matrix_IM_);
 
   __half* dptr_current_input_RE;
   __half* dptr_current_input_IM;
@@ -144,15 +158,15 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
     //For each step the input data is the output data of the previous step
     if ((i % 2) == 0) {
-      dptr_current_input_RE = data.dptr_results_RE_;
-      dptr_current_input_IM = data.dptr_results_IM_;
-      dptr_current_results_RE = data.dptr_input_RE_;
-      dptr_current_results_IM = data.dptr_input_IM_;
-    } else {
       dptr_current_input_RE = data.dptr_input_RE_;
       dptr_current_input_IM = data.dptr_input_IM_;
       dptr_current_results_RE = data.dptr_results_RE_;
       dptr_current_results_IM = data.dptr_results_IM_;
+    } else {
+      dptr_current_input_RE = data.dptr_results_RE_;
+      dptr_current_input_IM = data.dptr_results_IM_;
+      dptr_current_results_RE = data.dptr_input_RE_;
+      dptr_current_results_IM = data.dptr_input_IM_;
     }
 
     int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ * 16 * 16 *
@@ -182,7 +196,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
           dptr_current_results_IM, data.dptr_dft_matrix_RE_,
           data.dptr_dft_matrix_IM_, fft_plan.fft_length_, sub_fft_length, i);
     }
-    
+
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 16;
   }
@@ -257,8 +271,8 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     DFTKernel<<<fft_plans[i].dft_amount_of_blocks_,
                 32 * fft_plans[i].dft_warps_per_block_, 0, streams[i]>>>(
-        data[i].dptr_input_RE_, data[i].dptr_input_IM_,
         data[i].dptr_results_RE_, data[i].dptr_results_IM_,
+        data[i].dptr_input_RE_, data[i].dptr_input_IM_,
         data[i].dptr_dft_matrix_RE_, data[i].dptr_dft_matrix_IM_);
   }
 
@@ -279,30 +293,44 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
     for(int j=0; j<fft_plans[i].amount_of_r16_steps_; j++){
       //For each step the input data is the output data of the previous step
       if ((j % 2) == 0) {
-        dptr_current_input_RE[i] = data[i].dptr_results_RE_;
-        dptr_current_input_IM[i] = data[i].dptr_results_IM_;
-        dptr_current_results_RE[i] = data[i].dptr_input_RE_;
-        dptr_current_results_IM[i] = data[i].dptr_input_IM_;
-      } else {
         dptr_current_input_RE[i] = data[i].dptr_input_RE_;
         dptr_current_input_IM[i] = data[i].dptr_input_IM_;
         dptr_current_results_RE[i] = data[i].dptr_results_RE_;
         dptr_current_results_IM[i] = data[i].dptr_results_IM_;
+      } else {
+        dptr_current_input_RE[i] = data[i].dptr_results_RE_;
+        dptr_current_input_IM[i] = data[i].dptr_results_IM_;
+        dptr_current_results_RE[i] = data[i].dptr_input_RE_;
+        dptr_current_results_IM[i] = data[i].dptr_input_IM_;
       }
 
       shared_mem_in_bytes.push_back(fft_plans[i].r16_warps_per_block_ *
                                     16 * 16 * 2 * sizeof(__half));
-      cudaFuncSetAttribute(Radix16Kernel,
-                           cudaFuncAttributeMaxDynamicSharedMemorySize,
-                           shared_mem_in_bytes[i]);
 
-      Radix16Kernel<<<fft_plans[i].r16_amount_of_blocks_,
-                     32 * fft_plans[i].r16_warps_per_block_,
-                     shared_mem_in_bytes[i], streams[i]>>>(
-          dptr_current_input_RE[i], dptr_current_input_IM[i],
-          dptr_current_results_RE[i], dptr_current_results_IM[i],
-          data[i].dptr_dft_matrix_RE_, data[i].dptr_dft_matrix_IM_,
-          fft_plans[i].fft_length_, sub_fft_length[i], j);
+      if (j == 0) {
+        cudaFuncSetAttribute(Radix16KernelFirstStep,
+                             cudaFuncAttributeMaxDynamicSharedMemorySize,
+                             shared_mem_in_bytes[i]);
+
+        Radix16KernelFirstStep<<<fft_plans[i].r16_amount_of_blocks_,
+                                 32 * fft_plans[i].r16_warps_per_block_,
+                                 shared_mem_in_bytes[i], streams[i]>>>(
+            dptr_current_input_RE[i], dptr_current_input_IM[i],
+            dptr_current_results_RE[i], dptr_current_results_IM[i],
+            data[i].dptr_dft_matrix_RE_, data[i].dptr_dft_matrix_IM_);
+      } else {
+        cudaFuncSetAttribute(Radix16Kernel,
+                             cudaFuncAttributeMaxDynamicSharedMemorySize,
+                             shared_mem_in_bytes[i]);
+
+        Radix16Kernel<<<fft_plans[i].r16_amount_of_blocks_,
+                       32 * fft_plans[i].r16_warps_per_block_,
+                       shared_mem_in_bytes[i], streams[i]>>>(
+            dptr_current_input_RE[i], dptr_current_input_IM[i],
+            dptr_current_results_RE[i], dptr_current_results_IM[i],
+            data[i].dptr_dft_matrix_RE_, data[i].dptr_dft_matrix_IM_,
+            fft_plans[i].fft_length_, sub_fft_length[i], j);
+      }
 
       //Update sub_fft_length
       sub_fft_length[i] = sub_fft_length[i] * 16;
@@ -314,15 +342,15 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
     for(int j=0; j<fft_plans[i].amount_of_r2_steps_; j++){
       //For each step the input data is the output data of the previous step
       if (((j + fft_plans[i].amount_of_r16_steps_) % 2) == 0) {
-        dptr_current_input_RE[i] = data[i].dptr_results_RE_;
-        dptr_current_input_IM[i] = data[i].dptr_results_IM_;
-        dptr_current_results_RE[i] = data[i].dptr_input_RE_;
-        dptr_current_results_IM[i] = data[i].dptr_input_IM_;
-      } else {
         dptr_current_input_RE[i] = data[i].dptr_input_RE_;
         dptr_current_input_IM[i] = data[i].dptr_input_IM_;
         dptr_current_results_RE[i] = data[i].dptr_results_RE_;
         dptr_current_results_IM[i] = data[i].dptr_results_IM_;
+      } else {
+        dptr_current_input_RE[i] = data[i].dptr_results_RE_;
+        dptr_current_input_IM[i] = data[i].dptr_results_IM_;
+        dptr_current_results_RE[i] = data[i].dptr_input_RE_;
+        dptr_current_results_IM[i] = data[i].dptr_input_IM_;
       }
 
       int amount_of_r2_blocks = sub_fft_length[i] / fft_plans[i].r2_blocksize_;
