@@ -49,7 +49,7 @@ int main(){
     return false;
   }
   if (!full_test_2()){
-    std::cout << "FFT test for a length of 16^5*2^3 failed." << std::endl;
+    std::cout << "FFT test for a length of 16^4*2^3 failed." << std::endl;
     return false;
   }
 
@@ -59,7 +59,7 @@ int main(){
     return false;
   }
   if (!cuFFT_2()){
-    std::cout << "Generation of comparision data for FFT 16^5*2^3 test by cuFFT"
+    std::cout << "Generation of comparision data for FFT 16^4*2^3 test by cuFFT"
               << " failed." << std::endl;
     return false;
   }

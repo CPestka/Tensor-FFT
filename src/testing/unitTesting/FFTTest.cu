@@ -72,7 +72,7 @@ bool full_test_16(){
 }
 
 bool full_test_2(){
-  int fft_length = 16*16*16*16*16*2*2*2;
+  int fft_length = 16*16*16*16*2*2*2;
 
   //Prepare input data on cpu
   std::vector<float> weights;
