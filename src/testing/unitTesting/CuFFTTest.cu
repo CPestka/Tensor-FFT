@@ -1,3 +1,4 @@
+#pragma once
 //Provides comparision for the fft test via cuFFT
 #include <iostream>
 #include <memory>
