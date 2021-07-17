@@ -267,7 +267,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
                            cudaFuncAttributeMaxDynamicSharedMemorySize,
                            shared_mem_in_bytes[i]);
 
-      Radix16Kernel<<<fft_plans[i].amount_of_r16_blocks,
+      Radix16Kernel<<<fft_plans[i].r16_amount_of_blocks_,
                      32 * fft_plans[i].r16_warps_per_block_,
                      shared_mem_in_bytes[i], streams[i]>>>(
           dptr_current_input_RE[i], dptr_current_input_IM[i],
@@ -296,7 +296,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
         dptr_current_results_IM[i] = data[i].dptr_results_IM_;
       }
 
-      int amount_of_r2_blocks = sub_fft_length / fft_plans[i].r2_blocksize_;
+      int amount_of_r2_blocks = sub_fft_length[i] / fft_plans[i].r2_blocksize_;
 
       int remaining_sub_ffts = 1;
       for(int k=0; k<fft_plans[i].amount_of_r2_steps_ - j; k++){
@@ -325,6 +325,7 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
 }
 
 //Create a stream for each fft
+/*
 std::vector<cudaStream_t> streams;
 streams.resize(fft_plans.size());
 for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
@@ -332,3 +333,4 @@ for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
      return cudaGetErrorString(cudaPeekAtLastError());
   }
 }
+*/
