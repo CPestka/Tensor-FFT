@@ -54,7 +54,7 @@ bool full_test_16(){
   }
 
   //Copy results back to cpu
-  error_mess = my_handler.CopyResultsDevicetoHost(data).value();
+  error_mess = my_handler.CopyResultsDeviceToHost(data).value();
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
