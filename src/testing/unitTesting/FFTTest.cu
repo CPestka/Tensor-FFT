@@ -34,28 +34,28 @@ bool full_test_16(){
 
   //Construct a DataHandler for data on GPU
   DataHandler my_handler(fft_length);
-  error_mess = my_handler.PeakAtLastError().value();
+  error_mess = my_handler.PeakAtLastError().value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
   }
 
   //Copy data to gpu
-  error_mess = my_handler.CopyDataHostToDevice(data).value();
+  error_mess = my_handler.CopyDataHostToDevice(data).value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
   }
 
   //Compute FFT
-  error_mess = ComputeFFT(my_plan, my_handler).value();
+  error_mess = ComputeFFT(my_plan, my_handler).value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
   }
 
   //Copy results back to cpu
-  error_mess = my_handler.CopyResultsDeviceToHost(data).value();
+  error_mess = my_handler.CopyResultsDeviceToHost(data).value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
