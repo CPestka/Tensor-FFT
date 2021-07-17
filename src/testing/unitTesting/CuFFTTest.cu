@@ -8,7 +8,7 @@
 #include <cuda_fp16.h>
 
 #include "../FileWriter.cu"
-#include "TestingDataCreation.cu"
+#include "../TestingDataCreation.cu"
 
 
 bool cuFFT_16(){
