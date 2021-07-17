@@ -7,7 +7,7 @@
 #include <cufftXt.h>
 #include <cuda_fp16.h>
 
-#include "FileWriter.cu"
+#include "../FileWriter.cu"
 #include "TestingDataCreation.cu"
 
 
