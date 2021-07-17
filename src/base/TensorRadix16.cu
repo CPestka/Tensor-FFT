@@ -203,7 +203,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //matrix consists of 16 length 16 linear chuncks, which are offset in
   //respect to each other by sub_fft_length=16^m.
   #pragma unroll
-  for(int k=0; k<8; i++){
+  for(int k=0; k<8; k++){
     int i = k + (8 * inter_warp_id_is_upper_16);
     int j = inter_warp_id_16 + (inter_substep_id * 16);
     int global_memory_offset = j +
@@ -261,7 +261,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //row-major array and is then reinterpreted as a linear in memory FFT of
   //length 16^(m+1)
   #pragma unroll
-  for(int k=0; k<8; i++){
+  for(int k=0; k<8; k++){
     int i = k + (8 * inter_warp_id_is_upper_16);
     int j = inter_warp_id_16 + (inter_substep_id * 16);
     int global_memory_offset = j +

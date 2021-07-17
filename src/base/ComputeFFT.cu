@@ -64,6 +64,7 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+    return std::nullopt;
   }
 
   std::optional<std::string> CopyResultsFromDeviceToHost(__half* data) {
@@ -72,6 +73,7 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+    return std::nullopt;
   }
 
   std::optional<std::string> CopyDataFromHostToDeviceAsync(
@@ -81,6 +83,7 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+    return std::nullopt;
   }
 
   std::optional<std::string> CopyResultsFromDeviceToHostAsync(
@@ -91,13 +94,13 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+    return std::nullopt;
   }
 
   ~DataHandler(){
     cudaFree(dptr_dft_matrix_RE_);
     cudaFree(dptr_input_RE_);
   }
-private:
   int fft_length_;
   __half* dptr_input_RE_;
   __half* dptr_input_IM_;
