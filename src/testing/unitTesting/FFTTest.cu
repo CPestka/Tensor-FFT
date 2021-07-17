@@ -11,8 +11,10 @@
 #include "../../base/ComputeFFT.cu"
 #include "../TestingDataCreation.cu"
 #include "../FileWriter.cu"
+#include "../Timer.h"
 
 bool full_test_16(){
+  MillisecondsScopeTimer my_timer();
   int fft_length = 16*16;
 
   //Prepare input data on cpu
@@ -72,7 +74,7 @@ bool full_test_16(){
 }
 
 bool full_test_2(){
-  int fft_length = 16*16*16*16*2*2*2;
+  int fft_length = 16*16*16*2*2*2;
 
   //Prepare input data on cpu
   std::vector<float> weights;
