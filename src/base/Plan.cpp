@@ -68,8 +68,8 @@ std::optional<Plan> CreatePlan(int fft_length){
 
   int log2_of_fft_lenght = ExactLog2(fft_length);
 
-  if (log2_of_fft_lenght < 12) {
-    std::cout << "Error! Input size has to be larger than 4096 i.e. 16^3"
+  if (log2_of_fft_lenght < 8) {
+    std::cout << "Error! Input size has to be larger than 256 i.e. 16^2"
               << std::endl;
     return std::nullopt;
   }
@@ -79,8 +79,8 @@ std::optional<Plan> CreatePlan(int fft_length){
   my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
   my_plan.max_amount_of_warps_ = fft_length / 256;
 
-  my_plan.transposer_blocksize_ = 512;
-  my_plan.transposer_amount_of_blocks_ = fft_length / 512;
+  my_plan.transposer_blocksize_ = 256;
+  my_plan.transposer_amount_of_blocks_ = fft_length / 256;
 
   my_plan.dft_warps_per_block_ = 4;
   my_plan.dft_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
@@ -90,7 +90,7 @@ std::optional<Plan> CreatePlan(int fft_length){
   my_plan.r16_amount_of_blocks_ = my_plan.max_amount_of_warps_ /
                                   my_plan.r16_warps_per_block_;
 
-  my_plan.r2_blocksize_ = 512;
+  my_plan.r2_blocksize_ = 256;
 
   return std::move(my_plan);
 }
@@ -110,7 +110,7 @@ std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
   int log2_of_fft_lenght = ExactLog2(fft_length);
 
   if (log2_of_fft_lenght < 12) {
-    std::cout << "Error! Input size has to be larger than 4096 i.e. 16^3"
+    std::cout << "Error! Input size has to be larger than 256 i.e. 16^2"
               << std::endl;
     return std::nullopt;
   }

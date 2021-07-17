@@ -42,32 +42,10 @@ int main(){
     return false;
   }
 
-  /*
-  if (!dft16_normal_test()){
-    std::cout << "DFT kernel test failed for 16*16*16!" << std::endl;
+  if (!full_test_16()){
+    std::cout << "FFT test for a length of 16*16 failed." << std::endl;
     return false;
   }
-
-  if (!dft_16_2_normal_test()){
-    std::cout << "DFT kernel test failed for 16*16*16*2*2!" << std::endl;
-    return;
-  }
-
-  if (!r16_16_test()){
-    std::cout << "R16 kernel test failed for 16*16*16!" << std::endl;
-    return;
-  }
-  if (!r16_16_2_test()){
-    std::cout << "R16 kernel test failed for 16*16*16*2*2!" << std::endl;
-    return;
-  }
-
-
-  if (!r2_test()){
-    std::cout << "R2 kernel test failed for 16*16*16*2*2!" << std::endl;
-    return;
-  }
-  */
 
   std::cout << "All tests passed!" <<std::endl;
 
