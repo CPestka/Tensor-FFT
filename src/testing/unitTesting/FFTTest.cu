@@ -29,6 +29,8 @@ bool full_test_16(){
     return false;
   }
 
+  WriteResultsToFile("test_fft_16_input.dat", fft_length, data.get());
+
   std::string error_mess;
 
   //Construct a DataHandler for data on GPU
@@ -62,7 +64,7 @@ bool full_test_16(){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFile("test_fft_16.dat", fft_length, data.get());
+  WriteResultsToFile("test_fft_16_results.dat", fft_length, data.get());
 
   return true;
 }
