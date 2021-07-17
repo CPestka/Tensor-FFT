@@ -19,12 +19,12 @@ bool full_test_16(){
   __half* data;
   std::vector<float> weights;
   weights.push_back(1.0);
-  data = CreateSineSuperpostion(fft_length, weights).get());
+  data = CreateSineSuperpostion(fft_length, weights).get();
 
   //Get plan
   Plan my_plan;
   if (CreatePlan(fft_length)) {
-    my_plan = CreatePlan(fft_length);
+    my_plan = CreatePlan(fft_length).value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
     return false;
@@ -32,7 +32,7 @@ bool full_test_16(){
 
   //Construct a DataHandler for data on GPU
   DataHandler my_handler(fft_length);
-  if (my_data.PeakAtLastError() != cudaSuccess) {
+  if (my_handler.PeakAtLastError() != cudaSuccess) {
     std::cout << "Memory allocation on device failed." << std::endl;
     return false;
   }
@@ -40,21 +40,21 @@ bool full_test_16(){
   std::string error_mess;
 
   //Copy data to gpu
-  error_mess = my_handler.CopyDataFromHostToDevice(data);
+  error_mess = my_handler.CopyDataHostToDevice(data).value();
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
   }
 
   //Compute FFT
-  error_mess = ComputeFFT(my_plan, my_handler);
+  error_mess = ComputeFFT(my_plan, my_handler).value();
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
   }
 
   //Copy results back to cpu
-  error_mess = my_handler.CopyResultsDevicetoHost(data);
+  error_mess = my_handler.CopyResultsDevicetoHost(data).value();
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;

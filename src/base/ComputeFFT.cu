@@ -58,7 +58,7 @@ public:
     return cudaGetErrorString(cudaPeekAtLastError());
   }
 
-  std::optional<std::string> CopyDataFromHostToDevice(__half* data) {
+  std::optional<std::string> CopyDataHostToDevice(__half* data) {
     if (cudaMemcpy(dptr_input_RE_, data, 2 * fft_length_ * sizeof(__half),
                    cudaMemcpyHostToDevice)
          != cudaSuccess) {
@@ -67,7 +67,7 @@ public:
     return std::nullopt;
   }
 
-  std::optional<std::string> CopyResultsFromDeviceToHost(__half* data) {
+  std::optional<std::string> CopyResultsDeviceToHost(__half* data) {
     if (cudaMemcpy(data, dptr_results_RE_, 2 * fft_length_ * sizeof(__half),
                    cudaMemcpyHostToDevice)
          != cudaSuccess) {
@@ -76,7 +76,7 @@ public:
     return std::nullopt;
   }
 
-  std::optional<std::string> CopyDataFromHostToDeviceAsync(
+  std::optional<std::string> CopyDataHostToDeviceAsync(
       __half* data, cudaStream_t &stream) {
     if (cudaMemcpyAsync(dptr_input_RE_, data, 2 * fft_length_ * sizeof(__half),
                    cudaMemcpyHostToDevice, stream)
@@ -86,7 +86,7 @@ public:
     return std::nullopt;
   }
 
-  std::optional<std::string> CopyResultsFromDeviceToHostAsync(
+  std::optional<std::string> CopyResultsDeviceToHostAsync(
       __half* data, cudaStream_t &stream) {
     if (cudaMemcpyAsync(data, dptr_results_RE_,
                         2 * fft_length_ * sizeof(__half),
