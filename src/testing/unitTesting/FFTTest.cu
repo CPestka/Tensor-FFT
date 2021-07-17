@@ -29,7 +29,7 @@ bool full_test_16(){
     return false;
   }
 
-  WriteResultsToFile("test_fft_16_input.dat", fft_length, data.get());
+  WriteResultsREToFile("test_fft_16_input.dat", fft_length, data.get());
 
   std::string error_mess;
 

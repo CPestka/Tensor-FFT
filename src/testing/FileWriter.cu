@@ -22,6 +22,20 @@ void WriteResultsToFile(std::string file_name, int fft_length, __half* data){
   }
 }
 
+//Writes results of a fft that uses __half to file
+void WriteResultsREToFile(std::string file_name, int fft_length, __half* data){
+  std::ofstream myfile (file_name);
+  if (myfile.is_open()) {
+    for(int i=0; i<fft_length; i++){
+      float re = data[i];
+      myfile << re << "\n";
+    }
+    myfile.close();
+  } else {
+    std::cout << "Unable to open file " << file_name << std::endl;
+  }
+}
+
 //Writes results of a fft that uses 2 __half to file
 void WriteResultsToFile(std::string file_name, int fft_length, __half* data_RE,
                         __half* data_IM){
