@@ -126,7 +126,7 @@ std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
               << std::endl;
     return std::nullopt;
   }
-  my_plan.transposer_blocksize_ = transpose_blocksize;
+  my_plan.transposer_blocksize_ = transposer_blocksize;
   my_plan.transposer_amount_of_blocks_ = fft_length / transposer_blocksize;
 
   if ((my_plan.max_amount_of_warps_ % dft_kernel_warps_per_block) != 0) {

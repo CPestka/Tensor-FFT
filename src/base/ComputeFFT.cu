@@ -122,8 +122,8 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   //Launch baselayer DFT step kernel
   DFTKernel<<<fft_plan.dft_amount_of_blocks_,
               32 * fft_plan.dft_warps_per_block_>>>(
-      data.dptr_input_RE, data.dptr_input_IM, data.dptr_results_RE,
-      data.dptr_results_IM, data.dptr_dft_matrix_RE_, data.dptr_dft_matrix_IM_);
+      data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
+      data.dptr_results_IM_, data.dptr_dft_matrix_RE_, data.dptr_dft_matrix_IM_);
 
   __half* dptr_current_input_RE;
   __half* dptr_current_input_IM;
@@ -135,15 +135,15 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
     //For each step the input data is the output data of the previous step
     if ((i % 2) == 0) {
-      dptr_current_input_RE = data.dptr_results_RE;
-      dptr_current_input_IM = data.dptr_results_IM;
-      dptr_current_results_RE = data.dptr_input_RE;
-      dptr_current_results_IM = data.dptr_input_IM;
+      dptr_current_input_RE = data.dptr_results_RE_;
+      dptr_current_input_IM = data.dptr_results_IM_;
+      dptr_current_results_RE = data.dptr_input_RE_;
+      dptr_current_results_IM = data.dptr_input_IM_;
     } else {
-      dptr_current_input_RE = data.dptr_input_RE;
-      dptr_current_input_IM = data.dptr_input_IM;
-      dptr_current_results_RE = data.dptr_results_RE;
-      dptr_current_results_IM = data.dptr_results_IM;
+      dptr_current_input_RE = data.dptr_input_RE_;
+      dptr_current_input_IM = data.dptr_input_IM_;
+      dptr_current_results_RE = data.dptr_results_RE_;
+      dptr_current_results_IM = data.dptr_results_IM_;
     }
 
     int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ * 16 * 16 *
@@ -165,15 +165,15 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
     //For each step the input data is the output data of the previous step
     if (((i + fft_plan.amount_of_r16_steps_) % 2) == 0) {
-      dptr_current_input_RE = data.dptr_results_RE;
-      dptr_current_input_IM = data.dptr_results_IM;
-      dptr_current_results_RE = data.dptr_input_RE;
-      dptr_current_results_IM = data.dptr_input_IM;
+      dptr_current_input_RE = data.dptr_results_RE_;
+      dptr_current_input_IM = data.dptr_results_IM_;
+      dptr_current_results_RE = data.dptr_input_RE_;
+      dptr_current_results_IM = data.dptr_input_IM_;
     } else {
-      dptr_current_input_RE = data.dptr_input_RE;
-      dptr_current_input_IM = data.dptr_input_IM;
-      dptr_current_results_RE = data.dptr_results_RE;
-      dptr_current_results_IM = data.dptr_results_IM;
+      dptr_current_input_RE = data.dptr_input_RE_;
+      dptr_current_input_IM = data.dptr_input_IM_;
+      dptr_current_results_RE = data.dptr_results_RE_;
+      dptr_current_results_IM = data.dptr_results_IM_;
     }
 
     int remaining_sub_ffts = 1;
@@ -218,18 +218,19 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     TransposeKernel<<<fft_plans[i].transposer_amount_of_blocks_,
                       fft_plans[i].transposer_blocksize_, 0, streams[i]>>>(
-        data[i].dptr_input_RE, data[i].dptr_input_IM, data[i].dptr_results_RE,
-        data[i].dptr_results_IM, fft_plans[i].fft_length_,
-        fft_plans[i].amount_of_r16_steps_, fft_plans[i].amount_of_r2_steps_);
+        data[i].dptr_input_RE_, data[i].dptr_input_IM_,
+        data[i].dptr_results_RE_, data[i].dptr_results_IM_,
+        fft_plans[i].fft_length_, fft_plans[i].amount_of_r16_steps_,
+        fft_plans[i].amount_of_r2_steps_);
   }
 
   //Launch baselayer DFT step kernel
   for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
     DFTKernel<<<fft_plans[i].dft_amount_of_blocks_,
                 32 * fft_plans[i].dft_warps_per_block_, 0, streams[i]>>>(
-        data[i].dptr_input_RE, data[i].dptr_input_IM, data[i].dptr_results_RE,
-        data[i].dptr_results_IM, data[i].dptr_dft_matrix_RE_,
-        data[i].dptr_dft_matrix_IM_);
+        data[i].dptr_input_RE_, data[i].dptr_input_IM_,
+        data[i].dptr_results_RE_, data[i].dptr_results_IM_,
+        data[i].dptr_dft_matrix_RE_, data[i].dptr_dft_matrix_IM_);
   }
 
   std::vector<__half*> dptr_current_input_RE;
@@ -249,15 +250,15 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
     for(int j=0; j<fft_plans[i].amount_of_r16_steps_; j++){
       //For each step the input data is the output data of the previous step
       if ((j % 2) == 0) {
-        dptr_current_input_RE[i] = data[i].dptr_results_RE;
-        dptr_current_input_IM[i] = data[i].dptr_results_IM;
-        dptr_current_results_RE[i] = data[i].dptr_input_RE;
-        dptr_current_results_IM[i] = data[i].dptr_input_IM;
+        dptr_current_input_RE[i] = data[i].dptr_results_RE_;
+        dptr_current_input_IM[i] = data[i].dptr_results_IM_;
+        dptr_current_results_RE[i] = data[i].dptr_input_RE_;
+        dptr_current_results_IM[i] = data[i].dptr_input_IM_;
       } else {
-        dptr_current_input_RE[i] = data[i].dptr_input_RE;
-        dptr_current_input_IM[i] = data[i].dptr_input_IM;
-        dptr_current_results_RE[i] = data[i].dptr_results_RE;
-        dptr_current_results_IM[i] = data[i].dptr_results_IM;
+        dptr_current_input_RE[i] = data[i].dptr_input_RE_;
+        dptr_current_input_IM[i] = data[i].dptr_input_IM_;
+        dptr_current_results_RE[i] = data[i].dptr_results_RE_;
+        dptr_current_results_IM[i] = data[i].dptr_results_IM_;
       }
 
       shared_mem_in_bytes.push_back(fft_plans[i].r16_warps_per_block_ *
@@ -284,15 +285,15 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
     for(int j=0; j<fft_plans[i].amount_of_r2_steps_; j++){
       //For each step the input data is the output data of the previous step
       if (((j + fft_plans[i].amount_of_r16_steps_) % 2) == 0) {
-        dptr_current_input_RE[i] = data[i].dptr_results_RE;
-        dptr_current_input_IM[i] = data[i].dptr_results_IM;
-        dptr_current_results_RE[i] = data[i].dptr_input_RE;
-        dptr_current_results_IM[i] = data[i].dptr_input_IM;
+        dptr_current_input_RE[i] = data[i].dptr_results_RE_;
+        dptr_current_input_IM[i] = data[i].dptr_results_IM_;
+        dptr_current_results_RE[i] = data[i].dptr_input_RE_;
+        dptr_current_results_IM[i] = data[i].dptr_input_IM_;
       } else {
-        dptr_current_input_RE[i] = data[i].dptr_input_RE;
-        dptr_current_input_IM[i] = data[i].dptr_input_IM;
-        dptr_current_results_RE[i] = data[i].dptr_results_RE;
-        dptr_current_results_IM[i] = data[i].dptr_results_IM;
+        dptr_current_input_RE[i] = data[i].dptr_input_RE_;
+        dptr_current_input_IM[i] = data[i].dptr_input_IM_;
+        dptr_current_results_RE[i] = data[i].dptr_results_RE_;
+        dptr_current_results_IM[i] = data[i].dptr_results_IM_;
       }
 
       int amount_of_r2_blocks = sub_fft_length / fft_plans[i].r2_blocksize_;
