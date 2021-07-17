@@ -56,7 +56,9 @@ bool full_test_16(){
   }
 
   //Copy results back to cpu
-  error_mess = my_handler.CopyResultsDeviceToHost(data.get()).value_or("");
+  error_mess = my_handler.CopyResultsDeviceToHost(
+      data.get(), my_plan.amount_of_r16_steps_,
+      my_plan.amount_of_r2_steps_).value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
