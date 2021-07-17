@@ -116,6 +116,9 @@ public:
 std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   //Launch kernel that performs the transposes to prepare the data for the
   //radix steps
+  std::cout << "Transpose" << std::endl;
+  std::cout << fft_plan.transposer_amount_of_blocks_ << " "
+            << fft_plan.transposer_blocksize_ << std::endl;
   TransposeKernel<<<fft_plan.transposer_amount_of_blocks_,
                     fft_plan.transposer_blocksize_>>>(
       data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
@@ -123,6 +126,9 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
       fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
 
   //Launch baselayer DFT step kernel
+  std::cout << "DFT " << std::endl;
+  std::cout << fft_plan.dft_amount_of_blocks_ << " "
+            << fft_plan.dft_warps_per_block_ * 32 << std::endl;
   DFTKernel<<<fft_plan.dft_amount_of_blocks_,
               32 * fft_plan.dft_warps_per_block_>>>(
       data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
@@ -151,6 +157,10 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 
     int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ * 16 * 16 *
                               2 * sizeof(__half);
+    std::cout << "R16 " << std::endl;
+    std::cout << fft_plan.r16_amount_of_blocks_ << " "
+              << fft_plan.r16_warps_per_block_ *32 << " "
+              << shared_mem_in_bytes << std::endl;
     cudaFuncSetAttribute(Radix16Kernel,
                          cudaFuncAttributeMaxDynamicSharedMemorySize,
                          shared_mem_in_bytes);
@@ -190,6 +200,9 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
     //launch multiple kernels
     for(int j=0; j<(remaining_sub_ffts/2); j++){
       int memory_offset = j * 2 * sub_fft_length;
+      std::cout << "R2 " << std::endl;
+      std::cout << amount_of_r2_blocks << ""
+                << fft_plan.r2_blocksize_ << std::endl;
       Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
           dptr_current_input_IM + memory_offset,
