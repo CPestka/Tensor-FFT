@@ -16,10 +16,9 @@ bool full_test_16(){
   int fft_length = 16*16;
 
   //Prepare input data on cpu
-  __half* data;
   std::vector<float> weights;
   weights.push_back(1.0);
-  data = CreateSineSuperpostion(fft_length, weights).get();
+  std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length, weights);
 
   //Get plan
   Plan my_plan;
@@ -41,7 +40,7 @@ bool full_test_16(){
   }
 
   //Copy data to gpu
-  error_mess = my_handler.CopyDataHostToDevice(data).value_or("");
+  error_mess = my_handler.CopyDataHostToDevice(data.get()).value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
@@ -55,7 +54,7 @@ bool full_test_16(){
   }
 
   //Copy results back to cpu
-  error_mess = my_handler.CopyResultsDeviceToHost(data).value_or("");
+  error_mess = my_handler.CopyResultsDeviceToHost(data.get()).value_or("");
   if (error_mess != "") {
     std::cout << error_mess << std::endl;
     return false;
@@ -63,7 +62,7 @@ bool full_test_16(){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFile("test_fft_16.dat", fft_length, data);
+  WriteResultsToFile("test_fft_16.dat", fft_length, data.get());
 
   return true;
 }
