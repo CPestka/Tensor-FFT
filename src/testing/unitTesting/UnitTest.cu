@@ -6,6 +6,7 @@
 #include "DFTMatrixTest.cu"
 #include "DFTTest.cu"
 #include "FFTTest.cu"
+#include "CuFFTTest.cu"
 
 int main(){
   if (!transpose16_test()){
@@ -47,8 +48,24 @@ int main(){
     std::cout << "FFT test for a length of 16*16 failed." << std::endl;
     return false;
   }
+  if (!full_test_2()){
+    std::cout << "FFT test for a length of 16^5*2^3 failed." << std::endl;
+    return false;
+  }
 
-  std::cout << "All tests passed!" <<std::endl;
+  if (!cuFFT_16()){
+    std::cout << "Generation of comparision data for FFT 16*16 test by cuFFT"
+              << " failed." << std::endl;
+    return false;
+  }
+  if (!cuFFT_2()){
+    std::cout << "Generation of comparision data for FFT 16^5*2^3 test by cuFFT"
+              << " failed." << std::endl;
+    return false;
+  }
+
+  std::cout << "All tests passed! Results of full FFT test have to be check"
+            << " manually" <<std::endl;
 
   return true;
 }

@@ -101,7 +101,7 @@ public:
       __half* data, int amount_of_r16_steps, int amount_of_r2_steps,
       cudaStream_t &stream) {
     __half* results;
-    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) != 0) {
+    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) == 1) {
       results = dptr_results_RE_;
     } else {
       results = dptr_input_RE_;
