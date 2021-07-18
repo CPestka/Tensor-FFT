@@ -192,7 +192,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   __half* buffer_IM = buffer_RE + 256;
 
   int combined_fft_length = sub_fft_length * 16;
-  int amount_of_warps_pes_substep = sub_fft_length / (16 * 16);
+  int amount_of_warps_pes_substep = sub_fft_length / 16;
   int inter_substep_id = warp_id % amount_of_warps_pes_substep;
   int substep_id = warp_id / amount_of_warps_pes_substep;
 
