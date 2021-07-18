@@ -48,11 +48,11 @@ int main(){
     std::cout << "FFT test for a length of 16*16 failed." << std::endl;
     return false;
   }
-  /*
   if (!full_test(16*16*16, "test_fft_16_3")){
     std::cout << "FFT test for a length of 16*16*16 failed." << std::endl;
     return false;
   }
+  /*
   if (!full_test(16*16*16*2*2*2, "test_fft_16_3_2_3")){
     std::cout << "FFT test for a length of 16^3*2^3 failed." << std::endl;
     return false;
