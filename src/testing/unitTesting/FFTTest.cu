@@ -14,7 +14,7 @@
 #include "../Timer.h"
 
 bool full_test(int fft_length, std::string file_name_prefix){
-  MillisecondsScopeTimer my_timer();
+  IntervallTimer my_timer();
 
   //Prepare input data on cpu
   std::vector<float> weights;
@@ -68,6 +68,8 @@ bool full_test(int fft_length, std::string file_name_prefix){
   cudaDeviceSynchronize();
 
   WriteResultsToFile(file_name_prefix + "_results.dat", fft_length, data.get());
+
+  my_timer.getTimeInMilliseconds();
 
   return true;
 }
