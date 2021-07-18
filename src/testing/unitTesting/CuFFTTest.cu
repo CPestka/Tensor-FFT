@@ -10,9 +10,12 @@
 
 #include "../FileWriter.cu"
 #include "../TestingDataCreation.cu"
+#include "../Timer.h"
 
 
 bool compute_fft_cuFFT(long long fft_length){
+  IntervallTimer my_timer;
+
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half2[]> data =
@@ -63,5 +66,8 @@ bool compute_fft_cuFFT(long long fft_length){
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
+  std::cout << "Length: " << fft_length << " time: "
+            << my_timer.getTimeInMilliseconds() << " ms" << std::endl;
+            
   return true;
 }

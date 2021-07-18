@@ -60,7 +60,6 @@ int main(){
     std::cout << "FFT test for a length of 16^5*2^3 failed." << std::endl;
     return false;
   }
-  /*
 
   if (!compute_fft_cuFFT(16*16)){
     std::cout << "Generation of comparision data for FFT 16*16 test by cuFFT"
@@ -82,7 +81,6 @@ int main(){
               << " failed." << std::endl;
     return false;
   }
-  */
 
   std::cout << "All tests passed! Results of full FFT test have to be check"
             << " manually" <<std::endl;
