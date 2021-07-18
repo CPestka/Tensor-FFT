@@ -44,25 +44,45 @@ int main(){
     return false;
   }
 
-  if (!full_test_16()){
+  if (!full_test(16*16, "test_fft_16_2")){
     std::cout << "FFT test for a length of 16*16 failed." << std::endl;
     return false;
   }
-  if (!full_test_2()){
-    std::cout << "FFT test for a length of 16^4*2^3 failed." << std::endl;
+  /*
+  if (!full_test(16*16*16, "test_fft_16_3")){
+    std::cout << "FFT test for a length of 16*16*16 failed." << std::endl;
+    return false;
+  }
+  if (!full_test(16*16*16*2*2*2, "test_fft_16_3_2_3")){
+    std::cout << "FFT test for a length of 16^3*2^3 failed." << std::endl;
+    return false;
+  }
+  if (!full_test(16*16*16*16*16*2*2*2, "test_fft_16_5_2_3")){
+    std::cout << "FFT test for a length of 16^5*2^3 failed." << std::endl;
     return false;
   }
 
-  if (!cuFFT_16()){
+  if (!compute_fft_cuFFT(16*16)){
     std::cout << "Generation of comparision data for FFT 16*16 test by cuFFT"
               << " failed." << std::endl;
     return false;
   }
-  if (!cuFFT_2()){
-    std::cout << "Generation of comparision data for FFT 16^4*2^3 test by cuFFT"
+  if (!compute_fft_cuFFT(16*16*16)){
+    std::cout << "Generation of comparision data for FFT 16^3 test by cuFFT"
               << " failed." << std::endl;
     return false;
   }
+  if (!compute_fft_cuFFT(16*16*16*2*2*2)){
+    std::cout << "Generation of comparision data for FFT 16^3*2^3 test by cuFFT"
+              << " failed." << std::endl;
+    return false;
+  }
+  if (!compute_fft_cuFFT(16*16*16*16*16*2*2*2)){
+    std::cout << "Generation of comparision data for FFT 16^5*2^3 test by cuFFT"
+              << " failed." << std::endl;
+    return false;
+  }
+  */
 
   std::cout << "All tests passed! Results of full FFT test have to be check"
             << " manually" <<std::endl;
