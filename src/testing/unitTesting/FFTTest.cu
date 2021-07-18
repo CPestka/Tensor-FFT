@@ -69,7 +69,8 @@ bool full_test(int fft_length, std::string file_name_prefix){
 
   WriteResultsToFile(file_name_prefix + "_results.dat", fft_length, data.get());
 
-  my_timer.getTimeInMilliseconds();
+  std::cout << "Length: " << fft_length << "time: "
+            << my_timer.getTimeInMilliseconds() << " ms" << std::endl;
 
   return true;
 }
