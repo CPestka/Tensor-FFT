@@ -13,7 +13,7 @@
 #include "../Timer.h"
 
 
-bool compute_fft_cuFFT(long long fft_length){
+bool compute_fft_cuFFT(long long fft_length, std::string file_name_prefix){
   IntervallTimer my_timer;
 
   std::vector<float> weights;
@@ -59,7 +59,7 @@ bool compute_fft_cuFFT(long long fft_length){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFileHalf2("test_fft_cuFFTresults.dat", fft_length,
+  WriteResultsToFileHalf2(file_name_prefix + "_cuFFTresults.dat", fft_length,
                           results.get());
 
   cufftDestroy(plan);
@@ -68,6 +68,6 @@ bool compute_fft_cuFFT(long long fft_length){
 
   std::cout << "Length: " << fft_length << " time: "
             << my_timer.getTimeInMilliseconds() << " ms" << std::endl;
-            
+
   return true;
 }
