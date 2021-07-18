@@ -14,7 +14,7 @@
 #include "../Timer.h"
 
 bool full_test(int fft_length, std::string file_name_prefix){
-  IntervallTimer my_timer();
+  IntervallTimer my_timer;
 
   //Prepare input data on cpu
   std::vector<float> weights;
