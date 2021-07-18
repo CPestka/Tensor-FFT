@@ -32,7 +32,8 @@ bool compute_fft_cuFFT(long long fft_length, std::string file_name_prefix){
   cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
              cudaMemcpyHostToDevice);
 
-  WriteResultsToFileHalf2("test_fft_cuFFTinput.dat", fft_length, data.get());
+  WriteResultsToFileHalf2(file_name_prefix + "_cuFFTinput.dat", fft_length,
+                          data.get());
 
   cufftHandle plan;
   cufftResult r;

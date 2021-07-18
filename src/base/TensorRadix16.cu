@@ -46,13 +46,13 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
 
   //Declare the fragments
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      data_RE_frag;
-  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      data_IM_frag;
-  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       dft_RE_frag;
-  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
       dft_IM_frag;
+  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+      data_RE_frag;
+  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+      data_IM_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
@@ -85,28 +85,28 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   //multiplies with the twiddle factors and stores the now prepared data in the
   //fragment.
   #pragma unroll
-  for(int j=0; j<8; j++){
-    int i = j + (8 * inter_warp_id_is_upper_16);
-    int buffer_memory_offset = i + 16 * inter_warp_id_16;
-    int total_memory_offset = warp_memory_offset + (inter_warp_id_16 + 16*j);
+  for(int k=0; k<8; k++){
+    int j = k + (8 * inter_warp_id_is_upper_16);
+    int memory_offset = (inter_warp_id_16 + 16*j);
+    int global_memory_offset = warp_memory_offset + memory_offset;
 
     //Compute RE and IM of twiddle factors
-    float phase = (2 * M_PI * i * inter_warp_id_16) / 256;
+    float phase = (2 * M_PI * inter_warp_id_16 * j) / 256;
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = __float2half(cosf(phase));
-    __half twiddle_IM = __float2half(-sinf(phase));
+    __half twiddle_RE = __float2half(cos(phase));
+    __half twiddle_IM = __float2half(-sin(phase));
 
     //Fetch current data once from global memory to use it twice
-    __half input_RE = input_data_RE[total_memory_offset];
-    __half input_IM = input_data_IM[total_memory_offset];
+    __half input_RE = input_data_RE[global_memory_offset];
+    __half input_IM = input_data_IM[global_memory_offset];
 
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
-    buffer_RE[buffer_memory_offset] =
+    buffer_RE[memory_offset] =
         __hfma(input_RE , twiddle_RE,
                __hmul(-1.0, __hmul(input_IM, twiddle_IM)));
     //mod_IM = RE*twid_IM + IM*twid_RE
-    buffer_IM[buffer_memory_offset] =
+    buffer_IM[memory_offset] =
         __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
   }
 
@@ -117,13 +117,13 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
   //RE(A)xIM(B) + IM(A)xRE(B)
-  wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
+  wmma::mma_sync(accumulator_RE_1_frag, dft_RE_frag, data_RE_frag,
                  accumulator_RE_1_frag);
-  wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
+  wmma::mma_sync(accumulator_RE_2_frag, dft_IM_frag, data_IM_frag,
                  accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
+  wmma::mma_sync(accumulator_IM_frag, dft_IM_frag, data_RE_frag,
                  accumulator_IM_frag);
-  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
+  wmma::mma_sync(accumulator_IM_frag, dft_RE_frag, data_IM_frag,
                  accumulator_IM_frag);
 
   //Store IM part of the output
@@ -204,18 +204,18 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //respect to each other by sub_fft_length=16^m.
   #pragma unroll
   for(int k=0; k<8; k++){
-    int i = k + (8 * inter_warp_id_is_upper_16);
-    int j = inter_warp_id_16 + (inter_substep_id * 16);
-    int global_memory_offset = j +
-                               sub_fft_length * i +
+    int i = inter_warp_id_16 + (inter_substep_id * 16);
+    int j = k + (8 * inter_warp_id_is_upper_16);
+    int global_memory_offset = i +
+                               sub_fft_length * j +
                                substep_id * combined_fft_length;
-    int buffer_matrix_memory_offset = i + 16 * inter_warp_id_16;
+    int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     //Compute twiddle factors
-    float phase = (2 * M_PI * inter_warp_id * i) / combined_fft_length;
+    float phase = (2 * M_PI * i * j) / combined_fft_length;
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = __float2half(cosf(phase));
-    __half twiddle_IM = __float2half(-sinf(phase));
+    __half twiddle_RE = __float2half(cos(phase));
+    __half twiddle_IM = __float2half(-sin(phase));
 
     //Fetch current data once from global memory to use it twice
     __half input_RE = input_data_RE[global_memory_offset];
@@ -262,12 +262,12 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //length 16^(m+1)
   #pragma unroll
   for(int k=0; k<8; k++){
-    int i = k + (8 * inter_warp_id_is_upper_16);
-    int j = inter_warp_id_16 + (inter_substep_id * 16);
-    int global_memory_offset = j +
-                               sub_fft_length * i +
+    int i = inter_warp_id_16 + (inter_substep_id * 16);
+    int j = k + (8 * inter_warp_id_is_upper_16);
+    int global_memory_offset = i +
+                               sub_fft_length * j +
                                substep_id * combined_fft_length;
-    int buffer_matrix_memory_offset = i + 16 * inter_warp_id_16;
+    int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     output_data_RE[global_memory_offset] =
         buffer_RE[buffer_matrix_memory_offset];
