@@ -21,11 +21,11 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
   std::string comparison_data_file_name =
       ("test_comparison_" + std::to_string(fft_length)) + ".dat";
 
-  std::string error_mess;
+  std::optional<std::string> error_mess;
 
   error_mess = CreateComparisonData(fft_length, comparison_data_file_name);
   if (error_mess) {
-    std::cout << error_mess << std::endl;
+    std::cout << error_mess.value() << std::endl;
     return false;
   }
 
