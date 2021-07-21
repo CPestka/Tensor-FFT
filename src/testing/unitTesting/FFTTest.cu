@@ -27,50 +27,50 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
 
   Plan my_plan;
   if (CreatePlan(fft_length)) {
-    my_plan = CreatePlan(fft_length);
+    my_plan = CreatePlan(fft_length).value();
   } else {
     return "Plan creation failed";
   }
 
-  std::string error_mess;
+  std::optimal<std::string> error_mess;
 
   error_mess = WriteResultsREToFile("input" + file_name, fft_length,
                                     data.get());
-  if (error_mess != "") {
+  if (error_mess) {
     return error_mess;
   }
 
   //Construct a DataHandler for data on GPU
   DataHandler my_handler(fft_length);
-  error_mess = my_handler.PeakAtLastError().value_or("");
-  if (error_mess != "") {
+  error_mess = my_handler.PeakAtLastError();
+  if (error_mess) {
     return error_mess;
   }
 
   //Copy data to gpu
-  error_mess = my_handler.CopyDataHostToDevice(data.get()).value_or("");
-  if (error_mess != "") {
+  error_mess = my_handler.CopyDataHostToDevice(data.get());
+  if (error_mess) {
     return error_mess;
   }
 
   //Compute FFT
-  error_mess = ComputeFFT(my_plan, my_handler).value_or("");
-  if (error_mess != "") {
+  error_mess = ComputeFFT(my_plan, my_handler);
+  if (error_mess) {
     return error_mess;
   }
 
   //Copy results back to cpu
   error_mess = my_handler.CopyResultsDeviceToHost(
       data.get(), my_plan.amount_of_r16_steps_,
-      my_plan.amount_of_r2_steps_).value_or("");
-  if (error_mess != "") {
+      my_plan.amount_of_r2_steps_);
+  if (error_mess) {
     return error_mess;
   }
 
   cudaDeviceSynchronize();
 
   error_mess = WriteResultsToFile(file_name, fft_length, data.get());
-  if (error_mess != "") {
+  if (error_mess) {
     return error_mess;
   }
 
