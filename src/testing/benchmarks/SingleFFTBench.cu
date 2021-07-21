@@ -9,6 +9,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
+#include "../TestingDataCreation.cu"
 #include "../FileWriter.cu"
 #include "../Timer.h"
 #include "../../base/ComputeFFT.cu"
@@ -53,7 +54,7 @@ int main(){
 
     for(int k=0; k<sample_size; k++){
       Plan my_plan;
-      if (CreatePlan(fft_length.back()) {
+      if (CreatePlan(fft_length.back())) {
         my_plan = CreatePlan(fft_length.back());
       } else {
         std::cout << "Plan creation failed" << sttd::endl;
