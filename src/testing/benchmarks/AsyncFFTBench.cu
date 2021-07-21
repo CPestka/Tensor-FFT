@@ -60,7 +60,7 @@ int main(){
     for(int k=0; k<sample_size; k++){
       std::vector<Plan> my_plan;
       for(int i=0; i<amount_of_asynch_ffts; i++){
-        if (CreatePlan(fft_length.back()) {
+        if (CreatePlan(fft_length.back())) {
           my_plan.push_back(CreatePlan(fft_length.back()));
         } else {
           std::cout << "Plan creation failed" << sttd::endl;
@@ -83,7 +83,7 @@ int main(){
       for(int i=0; i<amount_of_asynch_ffts; i++){
         if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
            std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-           return "Error while creating stream!";
+           return false;
         }
       }
 
