@@ -98,11 +98,11 @@ std::optional<std::string> FullAsyncFFTComputation(
     }
   }
 
-  std::string error_mess;
+  std::optional<std::string> error_mess;
 
   error_mess = WriteResultsToFile("input" + file_name[0], fft_length,
                                   data.get());
-  if (error_mess != "") {
+  if (error_mess) {
     return error_mess;
   }
 
@@ -111,8 +111,8 @@ std::optional<std::string> FullAsyncFFTComputation(
   for(int i=0; i<amount_of_asynch_ffts; i++){
     my_handlers.push_back(fft_length);
 
-    error_mess = my_handlers[i].PeakAtLastError().value_or("");
-    if (error_mess != "") {
+    error_mess = my_handlers[i].PeakAtLastError();
+    if (error_mess) {
       return error_mess;
     }
   }
@@ -130,16 +130,16 @@ std::optional<std::string> FullAsyncFFTComputation(
   //Copy data to gpu
   for(int i=0; i<amount_of_asynch_ffts; i++){
     error_mess = my_handlers[i].CopyDataHostToDeviceAsync(
-        data[i].get(), streams[i]).value_or("");
-    if (error_mess != "") {
+        data[i].get(), streams[i]);
+    if (error_mess) {
       return error_mess;
     }
   }
 
 
   //Compute FFT
-  error_mess = ComputeFFTs(my_plans, my_handlers, streams).value_or("");
-  if (error_mess != "") {
+  error_mess = ComputeFFTs(my_plans, my_handlers, streams);
+  if (error_mess) {
     return error_mess;
   }
 
@@ -147,8 +147,8 @@ std::optional<std::string> FullAsyncFFTComputation(
   for(int i=0; i<amount_of_asynch_ffts; i++){
     eerror_mess = my_handlers[i].CopyResultsDeviceToHostAsync(
         data[i].get(), my_plans[i].amount_of_r16_steps_,
-        my_plans[i].amount_of_r2_steps_, streams[i]).value_or("");
-    if (error_mess != "") {
+        my_plans[i].amount_of_r2_steps_, streams[i]);
+    if (error_mess) {
       return error_mess;
     }
   }
@@ -157,7 +157,7 @@ std::optional<std::string> FullAsyncFFTComputation(
 
   for(int i=0; i<amount_of_asynch_ffts; i++){
     error_mess = WriteResultsToFile(file_name[i], fft_length, data[i].get());
-    if (error_mess != "") {
+    if (error_mess) {
       return error_mess;
     }
   }
@@ -174,6 +174,7 @@ bool TestFullFFT(int fft_length,
     ("test_comparison_" + std::to_string(fft_length)) + ".dat";
   std::string data_file_name =
     ("test_" + std::to_string(fft_length)) + ".dat";
+    
   err = CreateComparisionData(fft_length, comparison_data_file_name);
   if (err) {
     std::cout << err << std::endl;
