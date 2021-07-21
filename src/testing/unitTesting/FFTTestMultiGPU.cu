@@ -13,6 +13,7 @@
 #include "../TestingDataCreation.cu"
 #include "../FileWriter.cu"
 #include "../AccuracyCalculator.h"
+#include "CuFFTTest.cu"
 
 bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
                   int amount_of_GPUs, double avg_deviation_threshold,
