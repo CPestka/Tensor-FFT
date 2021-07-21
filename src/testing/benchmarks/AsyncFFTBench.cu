@@ -9,6 +9,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
+#include "../TestingDataCreation.cu"
 #include "../FileWriter.cu"
 #include "../Timer.h"
 #include "../../base/ComputeFFT.cu"
@@ -40,6 +41,8 @@ int main(){
   std::vector<double> avg_runtime;
   std::vector<double> sigma_runtime;
 
+  std::optional<std::string> error_mess
+
   int length = 16 * 8;
   for(int i=8; i<=log_length_max; i++){
     length = length * 2;
@@ -68,9 +71,9 @@ int main(){
       std::vector<DataHandler> my_handler;
       for(int i=0; i<amount_of_asynch_ffts; i++){
         my_handler.push_back(fft_length.back());
-        error_mess = my_handler[i].PeakAtLastError().value_or("");
-        if (error_mess != "") {
-          std::cout << error_mess << std::endl;
+        error_mess = my_handler[i].PeakAtLastError();
+        if (error_mess) {
+          std::cout << error_mess.value() << std::endl;
           return false;
         }
       }
@@ -87,9 +90,9 @@ int main(){
       for(int i=0; i<amount_of_asynch_ffts; i++){
         error_mess =
             my_handler[i].CopyDataHostToDeviceAsync(
-                data[i].get(), streams[i]).value_or("");
-        if (error_mess != "") {
-          std::cout << error_mess << std::endl;
+                data[i].get(), streams[i]);
+        if (error_mess) {
+          std::cout << error_mess.value() << std::endl;
           return false;
         }
       }
@@ -97,9 +100,9 @@ int main(){
       cudaDeviceSynchronize();
       IntervallTimer computation_time;
 
-      error_mess = ComputeFFTs(my_plan, my_handler, streams).value_or("");
-      if (error_mess != "") {
-        std::cout << error_mess << std::endl;
+      error_mess = ComputeFFTs(my_plan, my_handler, streams);
+      if (error_mess) {
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
       cudaDeviceSynchronize();
@@ -108,9 +111,9 @@ int main(){
       for(int i=0; i<amount_of_asynch_ffts; i++){
         error_mess = my_handler[i].CopyResultsDeviceToHostAsync(
             data[i].get(), my_plan[i].amount_of_r16_steps_,
-            my_plan[i].amount_of_r2_steps_, streams[i]).value_or("");
-        if (error_mess != "") {
-          std::cout << error_mess << std::endl;
+            my_plan[i].amount_of_r2_steps_, streams[i]);
+        if (error_mess) {
+          std::cout << error_mess.value() << std::endl;
           return false;
         }
       }
