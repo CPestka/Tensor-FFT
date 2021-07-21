@@ -61,9 +61,9 @@ int main(){
       std::vector<Plan> my_plan;
       for(int i=0; i<amount_of_asynch_ffts; i++){
         if (CreatePlan(fft_length.back())) {
-          my_plan.push_back(CreatePlan(fft_length.back()));
+          my_plan.push_back(CreatePlan(fft_length.back()).value());
         } else {
-          std::cout << "Plan creation failed" << sttd::endl;
+          std::cout << "Plan creation failed" << std::endl;
           return false;
         }
       }
