@@ -59,20 +59,20 @@ int main(){
       if (CreatePlan(fft_length.back())) {
         my_plan = CreatePlan(fft_length.back()).value();
       } else {
-        std::cout << "Plan creation failed" << sttd::endl;
+        std::cout << "Plan creation failed" << std::endl;
         return false;
       }
 
       DataHandler my_handler(fft_length.back());
       error_mess = my_handler.PeakAtLastError();
       if (error_mess) {
-        std::cout << error_mess << std::endl;
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
 
       error_mess = my_handler.CopyDataHostToDevice(data.get());
       if (error_mess) {
-        std::cout << error_mess << std::endl;
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
 
@@ -80,7 +80,7 @@ int main(){
       IntervallTimer computation_time;
       error_mess = ComputeFFT(my_plan, my_handler);
       if (error_mess) {
-        std::cout << error_mess << std::endl;
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
 
@@ -91,7 +91,7 @@ int main(){
           data.get(), my_plan.amount_of_r16_steps_,
           my_plan.amount_of_r2_steps_);
       if (error_mess) {
-        std::cout << error_mess << std::endl;
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
       cudaDeviceSynchronize();
