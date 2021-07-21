@@ -1,4 +1,4 @@
-#pragma once
+//Used to measure
 #include <iostream>
 #include <string>
 #include <optional>
@@ -35,17 +35,19 @@ int main(){
       }
       fft_length.push_back(length_16 * length_2);
 
-      std::string cuFFT_file_name = ("accuracy_cuFFT_" + fft_length.back())
+      std::string cuFFT_file_name = ("accuracy_cuFFT_" +
+                                     std::to_string(fft_length.back()))
                                     + ".dat";
-      err = CreateComparisionData(fft_length.back(), cuFFT_file_name);
+      err = CreateComparisonData(fft_length.back(), cuFFT_file_name);
       if (err) {
         return err;
       }
 
       std::vector<std::string> fft_results_file_names;
       for(int k=0; k<sample_size; k++){
-        fft_results_file_names.push_back(("accuracy_" + fft_length.back())
-                                          + ".dat");
+        fft_results_file_names.push_back(("accuracy_" +
+                                          std::to_string(fft_length.back()))
+                                         + ".dat");
         err = FullSingleFFTComputation(fft_length.back(),
                                        fft_results_file_names.back());
         if (err) {
