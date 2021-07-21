@@ -73,7 +73,7 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
     for(int i=0; i<amount_of_asynch_ffts; i++){
       tmp.push_back(fft_length);
 
-      error_mess = tmp.PeakAtLastError();
+      error_mess = tmp[i].PeakAtLastError();
       if (error_mess) {
         std::cout << error_mess.value() << std::endl;
         return false;
@@ -87,7 +87,7 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
   std::vector<std::vector<cudaStream_t>> streams;
   for(int j=0; j<amount_of_GPUs; j++){
     cudaSetDevice(j);
-    std::vector<cudaStream_tr> tmp;
+    std::vector<cudaStream_t> tmp;
     tmp.resize(amount_of_asynch_ffts);
     for(int i=0; i<amount_of_asynch_ffts; i++){
       if (cudaStreamCreate(&(tmp[i])) != cudaSuccess){
