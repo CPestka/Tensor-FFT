@@ -175,7 +175,7 @@ bool TestFullFFT(int fft_length,
   std::string data_file_name =
     ("test_" + std::to_string(fft_length)) + ".dat";
 
-  err = CreateComparisionData(fft_length, comparison_data_file_name);
+  err = CreateComparisonData(fft_length, comparison_data_file_name);
   if (err) {
     std::cout << err.value() << std::endl;
     return false;
@@ -215,7 +215,7 @@ for(int i=0; i<amount_of_asynch_ffts; i++){
                             + std::to_string(i)) + ".dat");
 }
 
-err = CreateComparisionData(fft_length, comparison_data_file_name);
+err = CreateComparisonData(fft_length, comparison_data_file_name);
 if (err) {
   std::cout << err.value() << std::endl;
   return false;

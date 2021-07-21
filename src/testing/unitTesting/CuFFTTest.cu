@@ -15,8 +15,8 @@
 #include "../TestingDataCreation.cu"
 #include "../Timer.h"
 
-std::optional<std::string> CreateComparisionData(long long fft_length,
-                                                 std::string file_name){
+std::optional<std::string> CreateComparisonData(long long fft_length,
+                                                std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half2[]> data =
