@@ -101,7 +101,7 @@ std::optional<std::string> FullAsyncFFTComputation(
   std::optional<std::string> error_mess;
 
   error_mess = WriteResultsToFile("input" + file_name[0], fft_length,
-                                  data.get());
+                                  data[0].get());
   if (error_mess) {
     return error_mess;
   }
@@ -145,7 +145,7 @@ std::optional<std::string> FullAsyncFFTComputation(
 
   //Copy results back to cpu
   for(int i=0; i<amount_of_asynch_ffts; i++){
-    eerror_mess = my_handlers[i].CopyResultsDeviceToHostAsync(
+    error_mess = my_handlers[i].CopyResultsDeviceToHostAsync(
         data[i].get(), my_plans[i].amount_of_r16_steps_,
         my_plans[i].amount_of_r2_steps_, streams[i]);
     if (error_mess) {
@@ -168,13 +168,13 @@ std::optional<std::string> FullAsyncFFTComputation(
 bool TestFullFFT(int fft_length,
                  double avg_deviation_threshold,
                  double sigma_deviation_threshold){
-  std::optional<std::string>> err;
+  std::optional<std::string> err;
 
   std::string comparison_data_file_name =
     ("test_comparison_" + std::to_string(fft_length)) + ".dat";
   std::string data_file_name =
     ("test_" + std::to_string(fft_length)) + ".dat";
-    
+
   err = CreateComparisionData(fft_length, comparison_data_file_name);
   if (err) {
     std::cout << err << std::endl;
