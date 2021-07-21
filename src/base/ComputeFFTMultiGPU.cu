@@ -22,9 +22,9 @@ void SingleGPUWork(int device_id, std::vector<Plan> &fft_plans,
   std::optional<std::string> single_GPU_error = ComputeFFTs(fft_plans, data,
                                                             streams);
 
-  if (single_GPU_error.has_value) {
-    WriteLogToFile("Device" + to_string(device_id) + "Error.log",
-                   single_GPU_error.value);
+  if (single_GPU_error) {
+    WriteLogToFile(("Device" + std::to_string(device_id)) + "Error.log",
+                   single_GPU_error.value());
   }
 }
 
@@ -39,7 +39,7 @@ void ComputeFFTsMultiGPU(std::vector<int> device_list,
                          std::vector<std::vector<Plan>> &fft_plans,
                          std::vector<std::vector<DataHandler>> &data,
                          std::vector<std::vector<cudaStream_t>> &streams){
-  std::vector<thread> worker;
+  std::vector<std::thread> worker;
   for(int i=0; i<static_cast<int>(device_list.size()); i++){
     worker.push_back(std::thread(&SingleGPUWork, device_list[i], fft_plans[i],
                                  data[i], streams[i]));
