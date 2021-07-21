@@ -4,18 +4,23 @@
 #include <optional>
 #include <string>
 #include <thread>
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
 #include "ComputeFFT.cu"
+#include "Plan.cpp"
+#include "DataHandler.cu"
 #include "../testing/FileWriter.cu"
 
-void SingleGPUWork(int device_id, std::vector<Plan> fft_plans,
-                   std::vector<__half*> data, std::vector<std::string>* error){
+void SingleGPUWork(int device_id, std::vector<Plan> &fft_plans,
+                   std::vector<DataHandler> &data,
+                   std::vector<cudaStream_t> &streams){
   cudaSetDevice(device_id);
 
-  std::optional<std::string> single_GPU_error = ComputeFFTs(fft_plans, data);
+  std::optional<std::string> single_GPU_error = ComputeFFTs(fft_plans, data,
+                                                            streams);
 
   if (single_GPU_error.has_value) {
     WriteLogToFile("Device" + to_string(device_id) + "Error.log",
@@ -28,13 +33,16 @@ void SingleGPUWork(int device_id, std::vector<Plan> fft_plans,
 //ComputeFFTs(fft_plans[i], data[i]). The ids HAVE to be unique and correspond
 //to an existing device id of the used system.
 //Errors are writen to log files.
+//This function is not blocking in respect to the CPU i.e. it likely returns
+//before the work on the devices is finished.
 void ComputeFFTsMultiGPU(std::vector<int> device_list,
-                         std::vector<std::vector<Plan>> fft_plans,
-                         std::vector<std::vector<__half*>> data){
+                         std::vector<std::vector<Plan>> &fft_plans,
+                         std::vector<std::vector<DataHandler>> &data,
+                         std::vector<std::vector<cudaStream_t>> &streams){
   std::vector<thread> worker;
   for(int i=0; i<static_cast<int>(device_list.size()); i++){
     worker.push_back(std::thread(&SingleGPUWork, device_list[i], fft_plans[i],
-                                 data[i]));
+                                 data[i], streams[i]));
   }
 
   for(int i=0; i<static_cast<int>(device_list.size()); i++){

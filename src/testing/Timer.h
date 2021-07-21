@@ -1,6 +1,5 @@
-#pragma once
-
 //Provides some Objects that can be used time sections of code
+#pragma once
 
 #include <chrono>
 #include <cstdint>

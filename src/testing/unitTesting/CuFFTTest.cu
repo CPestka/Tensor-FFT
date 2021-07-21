@@ -1,9 +1,12 @@
 #pragma once
 //Provides comparision for the fft test via cuFFT
+
 #include <iostream>
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
-#include <assert.h>
+
 #include <cufft.h>
 #include <cufftXt.h>
 #include <cuda_fp16.h>
@@ -12,18 +15,12 @@
 #include "../TestingDataCreation.cu"
 #include "../Timer.h"
 
-
-bool compute_fft_cuFFT(long long fft_length, std::string file_name_prefix){
-  IntervallTimer my_timer;
-
+std::optional<std::string> CreateComparisionData(long long fft_length,
+                                                 std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2(fft_length,  weights);
-  weights.clear();
-  weights.push_back(0.0);
-  std::unique_ptr<__half2[]> results =
-      CreateSineSuperpostionH2(fft_length,  weights);
+      CreateSineSuperpostionH2(fft_length, weights);
 
   __half2* dptr_data;
   __half2* dptr_results;
@@ -32,43 +29,36 @@ bool compute_fft_cuFFT(long long fft_length, std::string file_name_prefix){
   cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
              cudaMemcpyHostToDevice);
 
-  WriteResultsToFileHalf2(file_name_prefix + "_cuFFTinput.dat", fft_length,
-                          data.get());
-
   cufftHandle plan;
   cufftResult r;
 
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
-    return false;
+    return "Error! Plan creation failed.";
   }
 
   size_t size = 0;
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   if (r != CUFFT_SUCCESS) {
-    return false;
+    return "Error! Plan creation failed.";
   }
 
   r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    return false;
+    return "Error! Plan execution failed.";
   }
 
-  cudaMemcpy(results.get(), dptr_results, fft_length * sizeof(__half2),
+  cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
              cudaMemcpyDeviceToHost);
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFileHalf2(file_name_prefix + "_cuFFTresults.dat", fft_length,
-                          results.get());
+  WriteResultsToFileHalf2(file_name, fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
-  std::cout << "Length: " << fft_length << " time: "
-            << my_timer.getTimeInMilliseconds() << " ms" << std::endl;
-
-  return true;
+  return std::nullopt;
 }

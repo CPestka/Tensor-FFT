@@ -5,12 +5,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
+
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
-#include <cufft.h>
-#include <cufftXt.h>
-#include <assert.h>
 
 #include "../TestingDataCreation.cu"
 #include "../FileWriter.cu"
@@ -19,7 +18,7 @@
 #include "../../base/ComputeDFTMatrix.cu"
 
 //Tests the dft kernel on zero valued data
-bool dft_0_test(){
+bool TestDFTKernel_0(){
   std::unique_ptr<__half[]> data_RE =
       std::make_unique<__half[]>(16*16*16);
   std::unique_ptr<__half[]> data_IM =
@@ -65,7 +64,9 @@ bool dft_0_test(){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFile("test_dft_0.dat", 16*16*16, data_RE.get(), data_IM.get());
+  std::cout << WriteResultsToFile(
+      "test_dft_0.dat", 16*16*16, data_RE.get(), data_IM.get()).value_or("")
+            << std::endl;
 
   cudaFree(dptr_dft_matrix_IM);
   cudaFree(dptr_dft_matrix_RE);
@@ -91,7 +92,7 @@ bool dft_0_test(){
 }
 
 //Test dft kernel on simple sine wave
-bool dft_sin_test_16(){
+bool TestDFTKernelSin_16(){
   std::unique_ptr<__half[]> data_RE =
       std::make_unique<__half[]>(16*16*16);
   std::unique_ptr<__half[]> data_IM =
@@ -138,8 +139,10 @@ bool dft_sin_test_16(){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFile("test_dft_sin_16.dat", 16*16*16, data_RE.get(),
-                     data_IM.get());
+  std::cout << WriteResultsToFile(
+      "test_dft_sin_16.dat", 16*16*16, data_RE.get(),
+      data_IM.get()).value_or("")
+            << std::endl;
 
   cudaFree(dptr_dft_matrix_IM);
   cudaFree(dptr_dft_matrix_RE);
@@ -181,7 +184,7 @@ bool dft_sin_test_16(){
 }
 
 //Test dft kernel on simple sine wave
-bool dft_sin_test_2(){
+bool TestDFTKernelSin_2(){
   std::unique_ptr<__half[]> data_RE =
       std::make_unique<__half[]>(16*16*16*16*2);
   std::unique_ptr<__half[]> data_IM =
@@ -229,8 +232,10 @@ bool dft_sin_test_2(){
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFile("test_dft_sin_2.dat", 16*16*16*16*2, data_RE.get(),
-                     data_IM.get());
+  std::cout << WriteResultsToFile(
+      "test_dft_sin_2.dat", 16*16*16*16*2, data_RE.get(),
+      data_IM.get()).value_or("")
+            << std::endl;
 
   cudaFree(dptr_dft_matrix_IM);
   cudaFree(dptr_dft_matrix_RE);

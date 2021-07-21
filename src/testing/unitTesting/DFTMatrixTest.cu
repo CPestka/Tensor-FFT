@@ -1,11 +1,9 @@
 //Used to test correctness of dft matrix computed on the gpu
-
 #pragma once
 
 #include <iostream>
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <memory>
+
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -13,7 +11,7 @@
 #include "../../base/ComputeDFTMatrix.cu"
 
 //Test of correctness of single dft matrix computed via the kernel
-bool dft_matrix16_test(){
+bool TestDFTMatrix(){
   float dft_matrix_cpu_RE[16][16];
   float dft_matrix_cpu_IM[16][16];
 
@@ -64,7 +62,7 @@ bool dft_matrix16_test(){
 }
 
 //Test of correctness of 16*16*2 dft matrices computed via the kernel
-bool dft_matrix16_2_test(){
+bool TestDFTMatrixBatch(){
   float dft_matrix_cpu_RE[16][16];
   float dft_matrix_cpu_IM[16][16];
 

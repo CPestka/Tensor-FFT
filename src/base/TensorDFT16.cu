@@ -20,7 +20,7 @@ using namespace nvcuda;
 //multiplications directly, the data is instead split into RE and IM part which
 //are then used to compute the complex multiplication. Due to this the data
 //is used in form of 2 __half arrays instead of 1 __half2 array in this
-//implementation to reduce.
+//implementation.
 //Each warp loads its corresponding 2 16x16 matrices of data into the
 //fragments, which are used by nvidias wmma api to hold the data for the tensor
 //core matrix multiplication. The multiplications are then performed and the
@@ -43,6 +43,10 @@ __global__ void DFTKernel(__half* input_data_RE, __half* input_data_IM,
   int warp_id = (blockDim.x * blockIdx.x + threadIdx.x) / 32;
 
   //Declare the fragments
+  //The needed matrix multiplication is normaly dft x data, but since the data
+  //in global memory is stored in row major but would be needed here in collum
+  //major order, we instead compute: (dft x data)^T = data^T x dft^T =
+  //data^T x dft because dft is symetrical
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
       data_RE_frag;
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>

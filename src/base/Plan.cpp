@@ -57,7 +57,7 @@ int ExactLog2(int x) {
 //The used algorithm starts allways with a dft step (size 16) followed by one or
 //more radix 16 steps and finishes with 0-3 radix 2 steps (to achieve
 //compatibility with all inputsizes that are powers of 2 that are large enough)
-//Due to this the input size has to be a power of 2 and at least of size 16^3.
+//Due to this the input size has to be a power of 2 and at least of size 16^2.
 std::optional<Plan> CreatePlan(int fft_length){
   Plan my_plan;
 

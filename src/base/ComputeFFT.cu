@@ -1,8 +1,13 @@
-//Contains Functions to compute ffts of half precission data. The data is passed
-//in form of one ptr which is 2*size of fft long and holds the RE in the first
-//and IM in the second part. The parameters of the fft are hold in the struct
-//Plan which should be produced via the function CreatePlan(). The results are
-//returned in place of the input data.
+//Contains Functions to compute ffts of half precission data. The neccesary
+//cpying operations to and from the GPU are handled by methods of the
+//DataHandler class which also holds the device ptr to the according data.
+//The parameters of the fft are hold in the struct Plan, which should be
+//produced via the function CreatePlan().
+//The computation n ffts of a one given length is typicaly performed the
+//following way: 1. Create Plan 2. Create DataHandler 3.1. Cpy data to GPU using
+//e.g. CopyDataHostToDevice() method of DataHandler 3.2. Call function
+//ComputeFFT() 3.3 Cpy results back via method CopyResultsDeviceToHost()
+//Repeating step 3. n times.
 //Due to the usage of tensor cores the minimal input size is 16^2. All
 //other powers of of two are supported as input sizes. Performance is expected
 //to be best (compared to other fft libaries) if the input size N is large and
@@ -10,129 +15,29 @@
 //due to the fact that the radix 16 part of the algorithm is accelerated by
 //tensor cores compared to the radix 2 part for which this is not the case.
 #pragma once
+
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <optional>
 #include <string>
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-#include "ComputeDFTMatrix.cu"
 #include "Transposer.cu"
 #include "TensorDFT16.cu"
 #include "TensorRadix16.cu"
 #include "Radix2.cu"
+#include "Plan.cpp"
+#include "DataHandler.cu"
 
-class DataHandler{
-public:
-  DataHandler(int fft_length) : fft_length_(fft_length) {
-    if (cudaMalloc((void**)(&dptr_input_RE_), 4 * sizeof(__half) * fft_length_)
-        != cudaSuccess){
-       std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-    }
-    dptr_input_IM_ = dptr_input_RE_ + fft_length_;
-    dptr_results_RE_ = dptr_input_IM_ + fft_length_;
-    dptr_results_IM_ = dptr_results_RE_ + fft_length_;
-
-    //Here we precompute the dft matrix batches needed for the DFTKernel() and
-    //Radix16Kernel(). Currently there is one matrix precomputed for each warp.
-    //The other options are to only precompute one (lower memory usage but read
-    //conflicts for each warp) and to compute the dft matrix each time during the
-    //kernels. (TODO: find out whats "best")
-    if (cudaMalloc((void**)(&dptr_dft_matrix_RE_),
-                   2 * sizeof(__half) * fft_length_)
-        != cudaSuccess) {
-      std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-    }
-    dptr_dft_matrix_IM_ = dptr_dft_matrix_RE_ + fft_length_;
-
-    ComputeDFTMatrix<<<fft_length / 256, 16*16>>>(dptr_dft_matrix_RE_,
-                                                  dptr_dft_matrix_IM_);
-
-    cudaDeviceSynchronize();
-  }
-
-  std::optional<std::string> PeakAtLastError() {
-    if (cudaPeekAtLastError() != cudaSuccess){
-      return "Memory allocation on device failed.";
-    }
-    return std::nullopt;
-  }
-
-  std::optional<std::string> CopyDataHostToDevice(__half* data) {
-    if (cudaMemcpy(dptr_input_RE_, data, 2 * fft_length_ * sizeof(__half),
-                   cudaMemcpyHostToDevice)
-         != cudaSuccess) {
-       return cudaGetErrorString(cudaPeekAtLastError());
-    }
-    return std::nullopt;
-  }
-
-  std::optional<std::string> CopyResultsDeviceToHost(__half* data,
-                                                     int amount_of_r16_steps,
-                                                     int amount_of_r2_steps) {
-    __half* results;
-    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) != 0) {
-      results = dptr_results_RE_;
-    } else {
-      results = dptr_input_RE_;
-    }
-    if (cudaMemcpy(data, results, 2 * fft_length_ * sizeof(__half),
-                   cudaMemcpyDeviceToHost)
-         != cudaSuccess) {
-       return cudaGetErrorString(cudaPeekAtLastError());
-    }
-    return std::nullopt;
-  }
-
-  std::optional<std::string> CopyDataHostToDeviceAsync(
-      __half* data, cudaStream_t &stream) {
-    if (cudaMemcpyAsync(dptr_input_RE_, data, 2 * fft_length_ * sizeof(__half),
-                   cudaMemcpyHostToDevice, stream)
-         != cudaSuccess) {
-       return cudaGetErrorString(cudaPeekAtLastError());
-    }
-    return std::nullopt;
-  }
-
-  std::optional<std::string> CopyResultsDeviceToHostAsync(
-      __half* data, int amount_of_r16_steps, int amount_of_r2_steps,
-      cudaStream_t &stream) {
-    __half* results;
-    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) == 1) {
-      results = dptr_results_RE_;
-    } else {
-      results = dptr_input_RE_;
-    }
-    if (cudaMemcpyAsync(data, results, 2 * fft_length_ * sizeof(__half),
-                        cudaMemcpyDeviceToHost, stream)
-         != cudaSuccess) {
-       return cudaGetErrorString(cudaPeekAtLastError());
-    }
-    return std::nullopt;
-  }
-
-  ~DataHandler(){
-    cudaFree(dptr_dft_matrix_RE_);
-    cudaFree(dptr_input_RE_);
-  }
-  int fft_length_;
-  __half* dptr_input_RE_;
-  __half* dptr_input_IM_;
-  __half* dptr_results_RE_;
-  __half* dptr_results_IM_;
-  __half* dptr_dft_matrix_RE_;
-  __half* dptr_dft_matrix_IM_;
-};
-
+//Computes a sigle FFT.
+//If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
+//using the async version below should increase performance.
 std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   //Launch kernel that performs the transposes to prepare the data for the
   //radix steps
-  //std::cout << "Transpose" << std::endl;
-  //std::cout << fft_plan.transposer_amount_of_blocks_ << " "
-  //          << fft_plan.transposer_blocksize_ << std::endl;
   TransposeKernel<<<fft_plan.transposer_amount_of_blocks_,
                     fft_plan.transposer_blocksize_>>>(
       data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
@@ -140,9 +45,6 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
       fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
 
   //Launch baselayer DFT step kernel
-  //std::cout << "DFT " << std::endl;
-  //std::cout << fft_plan.dft_amount_of_blocks_ << " "
-  //          << fft_plan.dft_warps_per_block_ * 32 << std::endl;
   DFTKernel<<<fft_plan.dft_amount_of_blocks_,
               32 * fft_plan.dft_warps_per_block_>>>(
       data.dptr_results_RE_, data.dptr_results_IM_, data.dptr_input_RE_,
@@ -171,10 +73,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 
     int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ * 16 * 16 *
                               2 * sizeof(__half);
-    //std::cout << "R16 " << std::endl;
-    //std::cout << fft_plan.r16_amount_of_blocks_ << " "
-    //          << fft_plan.r16_warps_per_block_ *32 << " "
-    //          << shared_mem_in_bytes << std::endl;
+
     if (i == 0) {
       cudaFuncSetAttribute(Radix16KernelFirstStep,
                            cudaFuncAttributeMaxDynamicSharedMemorySize,
@@ -227,9 +126,6 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
     //launch multiple kernels
     for(int j=0; j<(remaining_sub_ffts/2); j++){
       int memory_offset = j * 2 * sub_fft_length;
-      //std::cout << "R2 " << std::endl;
-      //std::cout << amount_of_r2_blocks << ""
-      //          << fft_plan.r2_blocksize_ << std::endl;
       Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
           dptr_current_input_IM + memory_offset,
@@ -380,14 +276,3 @@ std::optional<std::string> ComputeFFTs(std::vector<Plan> &fft_plans,
 
   return std::nullopt;
 }
-
-//Create a stream for each fft
-/*
-std::vector<cudaStream_t> streams;
-streams.resize(fft_plans.size());
-for(int i=0; i<static_cast<int>(fft_plans.size()); i++){
-  if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
-     return cudaGetErrorString(cudaPeekAtLastError());
-  }
-}
-*/

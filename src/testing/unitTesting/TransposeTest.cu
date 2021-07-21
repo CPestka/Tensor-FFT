@@ -5,6 +5,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
+#include <optional>
+
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -24,7 +27,9 @@ bool transpose16_test(){
   std::unique_ptr<__half[]> data_2 =
       CreateSineSuperpostion(fft_length, weights);
 
-  WriteResultsToFile("test_transpose_16_input.dat", fft_length, data_1.get());
+  std::cout << WriteResultsToFile(
+      "test_transpose_16_input.dat", fft_length, data_1.get()).value_or("")
+            << std::endl;
 
   //Perform transposes by hand on the cpu
   __half old1_RE[16*16][16];
@@ -78,7 +83,9 @@ bool transpose16_test(){
     }
   }
 
-  WriteResultsToFile("test_transpose_16_cpu.dat", fft_length, data_2.get());
+  std::cout << WriteResultsToFile(
+      "test_transpose_16_cpu.dat", fft_length, data_2.get()).value_or("")
+            << std::endl;
 
   //Perform transposes via the kernel on the gpu
   __half* dptr_input_RE;
@@ -106,7 +113,9 @@ bool transpose16_test(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  WriteResultsToFile("test_transpose_16_gpu.dat", fft_length, data_1.get());
+  std::cout << WriteResultsToFile(
+      "test_transpose_16_gpu.dat", fft_length, data_1.get()).value_or("")
+            << std::endl;
 
   //Compare results
   for(int i=0; i<fft_length; i++){
@@ -137,7 +146,9 @@ bool transpose16_2_test(){
   std::unique_ptr<__half[]> data_2 =
       CreateSineSuperpostion(fft_length, weights);
 
-  WriteResultsToFile("test_transpose_2_input.dat", fft_length, data_1.get());
+  std::cout << WriteResultsToFile(
+      "test_transpose_2_input.dat", fft_length, data_1.get()).value_or("")
+            << std::endl;
 
   //Perform transposes by hand on the cpu
   __half old1_RE[16*16*16*2][2];
@@ -255,7 +266,9 @@ bool transpose16_2_test(){
     }
   }
 
-  WriteResultsToFile("test_transpose_2_cpu.dat", fft_length, data_2.get());
+  std::cout << WriteResultsToFile(
+      "test_transpose_2_cpu.dat", fft_length, data_2.get()).value_or("")
+            << std::endl;
 
   //Perform transposes via the kernel on the gpu
   __half* dptr_input_RE;
@@ -283,7 +296,9 @@ bool transpose16_2_test(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  WriteResultsToFile("test_transpose_2_gpu.dat", fft_length, data_1.get());
+  std::cout << WriteResultsToFile(
+      "test_transpose_2_gpu.dat", fft_length, data_1.get()).value_or("")
+            << std::endl;;
 
   //Compare results
   for(int i=0; i<fft_length; i++){

@@ -28,7 +28,8 @@ using namespace nvcuda;
 //sub_fft_length=16^(m+1).
 
 //Variant of the kernel described above that is only used for the first R16
-//step.
+//step, due to tha fact that the calculation can be stated much cheaper for the
+//first step.
 __global__ void Radix16KernelFirstStep(__half* input_data_RE,
                                        __half* input_data_IM,
                                        __half* output_data_RE,
@@ -45,6 +46,10 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
   //Declare the fragments
+  //The needed matrix multiplication is normaly data x dft, but since the data
+  //in global memory is stored in row major but would be needed here in collum
+  //major order, we instead compute: (data x dft)^T = dft^T x data^T =
+  //dft x data^T because dft is symetrical.
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
       dft_RE_frag;
   wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
@@ -74,15 +79,15 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   //Due to this we utilize a shared memory buffer of size of the data
   //for this block -> amount_of_warps_per_block * size_of_fragment (16*16) *
   //2 (RE + IM) * sizeof(half); (blockdim.x / 32) = amount_of_warps_per_block
-  //For recomended amount_of_warps_per_block=4 -> 4kB -> ok on A100
+  //For recomended amount_of_warps_per_block=4 -> 4kB
   extern __shared__ __half buffer[];
   __half* buffer_RE = buffer + (512 * inter_block_warp_id);
   __half* buffer_IM = buffer_RE + 256;
 
   //In this case one warp performs a combination of 16 size 16 FFTs. This means
-  //that the resulting data does not need to be rearanged, since the .
-  //Each of the 32 threads per warp loads 8*16=128 (128*32=16*16*16) data points
-  //multiplies with the twiddle factors and stores the now prepared data in the
+  //that the resulting data does not need to be rearanged.
+  //Each of the 32 threads per warp loads 8 (8*32=16*16) data points, multiplies
+  //them with the twiddle factors and stores the now prepared data in the
   //fragment.
   #pragma unroll
   for(int k=0; k<8; k++){
@@ -139,7 +144,7 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
 }
 
 //Variant of the kernel described above that is only used for the mth step with
-//m!=0
+//m>0
 __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                               __half* output_data_RE, __half* output_data_IM,
                               __half* dft_matrix_batch_RE,
@@ -196,12 +201,16 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   int inter_substep_id = warp_id % amount_of_warps_pes_substep;
   int substep_id = warp_id / amount_of_warps_pes_substep;
 
-  //Each of the 32 threads pre warp loads 8*16=128 (128*32=16*16*16) data
+  //Each of the 32 threads pre warp loads 8 (8*32=16*16) data
   //points. However the data of the needed 16x16 matrix of input data is not
   //linaer in memory. The entire 16^mx16 matrix (which is linear in memory) is
   //divided into m 16x16 matrices. This means that the data for one 16x16
   //matrix consists of 16 length 16 linear chuncks, which are offset in
   //respect to each other by sub_fft_length=16^m.
+  //Also, by swaping the indecies when loading the storing to and from the
+  //fragment the fragment holds the transposed data, which is needed since the
+  //data is stored in row major order in memory but is needed in collum major
+  //for the matrix multiplication.
   #pragma unroll
   for(int k=0; k<8; k++){
     int i = inter_warp_id_16 + (inter_substep_id * 16);
@@ -260,6 +269,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   //The data is stored back the way it was intialy the i.e. a 16^mx16 linear=
   //row-major array and is then reinterpreted as a linear in memory FFT of
   //length 16^(m+1)
+  //The transpose operation is also reverted.
   #pragma unroll
   for(int k=0; k<8; k++){
     int i = inter_warp_id_16 + (inter_substep_id * 16);

@@ -7,10 +7,10 @@
 
 //This kernel performs the radix 2 combination steps if neccessary. Since it
 //can not utilize tensor cores it is much slower than the radix 16 kernel and
-//is only used to allow for compatibility with all input sizes that are powers
+//is only used to allow the compatibility with all input sizes that are powers
 //of 2.
-//Each thread computes two complex points of the resulting FFT and thus the toal
-//number of threads lauched has to equal sub_fft_length i.e. N/2.
+//Each thread computes two complex points of the resulting FFT and thus the
+//toatl number of threads lauched has to equal sub_fft_length i.e. N/2.
 //This kernel performs one combination of 2 N/2 sized ffts and thus if there are
 //multiple of those needed for one radix step, multiple kernels have to be
 //launched and the ptrs to the in/out data have to point to the beginnning of
