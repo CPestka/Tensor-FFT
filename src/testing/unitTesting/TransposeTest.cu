@@ -20,6 +20,8 @@
 bool TestTranspose16(){
   int fft_length = 16*16*16;
 
+  std::optional<std::string> error_mess;
+
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data_1 =
@@ -27,9 +29,12 @@ bool TestTranspose16(){
   std::unique_ptr<__half[]> data_2 =
       CreateSineSuperpostion(fft_length, weights);
 
-  std::cout << WriteResultsToFile(
-      "test_transpose_16_input.dat", fft_length, data_1.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_transpose_16_input.dat",
+                                  fft_length, data_1.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Perform transposes by hand on the cpu
   __half old1_RE[16*16][16];
@@ -83,9 +88,12 @@ bool TestTranspose16(){
     }
   }
 
-  std::cout << WriteResultsToFile(
-      "test_transpose_16_cpu.dat", fft_length, data_2.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_transpose_16_cpu.dat", fft_length,
+                                  data_2.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Perform transposes via the kernel on the gpu
   __half* dptr_input_RE;
@@ -113,9 +121,12 @@ bool TestTranspose16(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  std::cout << WriteResultsToFile(
-      "test_transpose_16_gpu.dat", fft_length, data_1.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_transpose_16_gpu.dat", fft_length,
+                                  data_1.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Compare results
   for(int i=0; i<fft_length; i++){
@@ -139,6 +150,8 @@ bool TestTranspose16(){
 bool TestTranspose16_2(){
   int fft_length = 16*16*16*2*2;
 
+  std::optional<std::string> error_mess;
+
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data_1 =
@@ -146,9 +159,12 @@ bool TestTranspose16_2(){
   std::unique_ptr<__half[]> data_2 =
       CreateSineSuperpostion(fft_length, weights);
 
-  std::cout << WriteResultsToFile(
-      "test_transpose_2_input.dat", fft_length, data_1.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_transpose_2_input.dat", fft_length,
+                                  data_1.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Perform transposes by hand on the cpu
   __half old1_RE[16*16*16*2][2];
@@ -266,9 +282,12 @@ bool TestTranspose16_2(){
     }
   }
 
-  std::cout << WriteResultsToFile(
-      "test_transpose_2_cpu.dat", fft_length, data_2.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_transpose_2_cpu.dat", fft_length,
+                                  data_2.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Perform transposes via the kernel on the gpu
   __half* dptr_input_RE;
@@ -296,9 +315,12 @@ bool TestTranspose16_2(){
   cudaMemcpy(data_1.get(), dptr_results_RE, 2 * fft_length * sizeof(__half),
                  cudaMemcpyDeviceToHost);
 
-  std::cout << WriteResultsToFile(
-      "test_transpose_2_gpu.dat", fft_length, data_1.get()).value_or("")
-            << std::endl;;
+  error_mess = WriteResultsToFile("test_transpose_2_gpu.dat", fft_length,
+                                  data_1.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Compare results
   for(int i=0; i<fft_length; i++){
