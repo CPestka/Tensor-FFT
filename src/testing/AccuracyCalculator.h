@@ -34,7 +34,7 @@ double ComputeAverageDeviation(std::string file_name_1,
       ss1 << line_1;
 
       ss1 >> tmp_string;
-      tmp = "";
+      tmp_string = "";
       ss1 >> tmp_string;
       tmp1_RE = static_cast<double>(std::stof(tmp_string));
       tmp_string = "";
@@ -222,7 +222,7 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
 
         double tmp = fabs(fabs(tmp1_RE - tmp2_RE) - average);
         tmp_dev += (tmp * tmp);
-        tmp = fabs(fabs(tmp1_IM - tmp2_IM) - average)
+        tmp = fabs(fabs(tmp1_IM - tmp2_IM) - average);
         tmp_dev += (tmp * tmp);
       }
     }
@@ -339,7 +339,7 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
 
         double tmp = fabs(fabs(tmp1_RE - tmp2_RE) - average);
         tmp_dev += (tmp * tmp);
-        tmp = fabs(fabs(tmp1_IM - tmp2_IM) - average)
+        tmp = fabs(fabs(tmp1_IM - tmp2_IM) - average);
         tmp_dev += (tmp * tmp);
       }
     }

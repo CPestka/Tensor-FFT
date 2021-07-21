@@ -26,7 +26,7 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
   std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length,  weights);
 
   Plan my_plan;
-  if (CreatePlan(fft_length) {
+  if (CreatePlan(fft_length)) {
     my_plan = CreatePlan(fft_length);
   } else {
     return "Plan creation failed";
