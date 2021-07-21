@@ -10,12 +10,13 @@
 
 #include "../AccuracyCalculator.h"
 #include "../unitTesting/CuFFTTest.cu"
+#include "../unitTesting/FFTTest.cu"
 #include "../../base/ComputeFFT.cu"
 #include "../FileWriter.cu"
 
 int main(){
   int sample_size = 4;
-  int fft_length_boundry = 5;
+  int log_fft_length_boundry = 20;
 
   std::vector<int> fft_length;
   std::vector<double> avg_dev;
@@ -23,50 +24,45 @@ int main(){
 
   std::optional<std::string> err;
 
-  int length_16 = 16;
-  for(int i=2; i<6; i++){
-    length_16 = length_16 * 16;
-    int length_2;
-    for(int j=0; j<3; j++){
-      if (j == 0) {
-        length_2 = 1;
-      } else {
-        length_2 = length_2 * 2;
-      }
-      fft_length.push_back(length_16 * length_2);
+  int tmp_length = 16*8;
+  for(int i=8; i<log_fft_length_boundry; i++){
+    tmp_length = tmp_length * 2;
+    fft_length.push_back(tmp_length);
 
-      std::string cuFFT_file_name = ("accuracy_cuFFT_" +
-                                     std::to_string(fft_length.back()))
-                                    + ".dat";
-      err = CreateComparisonData(fft_length.back(), cuFFT_file_name);
-      if (err) {
-        return err;
-      }
-
-      std::vector<std::string> fft_results_file_names;
-      for(int k=0; k<sample_size; k++){
-        fft_results_file_names.push_back(("accuracy_" +
-                                          std::to_string(fft_length.back()))
-                                         + ".dat");
-        err = FullSingleFFTComputation(fft_length.back(),
-                                       fft_results_file_names.back());
-        if (err) {
-          return err;
-        }
-      }
-
-      avg_dev.push_back(ComputeAverageDeviation(fft_results_file_names,
-                                                cuFFT_file_name));
-      sigma_of_dev.push_back(ComputeSigmaOfDeviation(fft_results_file_names,
-                                                     cuFFT_file_name,
-                                                     avg_dev.back()));
+    std::string cuFFT_file_name = ("accuracy_cuFFT_" +
+                                   std::to_string(fft_length.back()))
+                                  + ".dat";
+    err = CreateComparisonData(fft_length.back(), cuFFT_file_name);
+    if (err) {
+      std::cout << err.value() << std::endl;
+      return false;
     }
+
+    std::vector<std::string> fft_results_file_names;
+    for(int k=0; k<sample_size; k++){
+      fft_results_file_names.push_back(("accuracy_" +
+                                        std::to_string(fft_length.back()))
+                                       + ".dat");
+      err = FullSingleFFTComputation(fft_length.back(),
+                                     fft_results_file_names.back());
+      if (err) {
+        std::cout << err.value() << std::endl;
+        return false;
+      }
+    }
+
+    avg_dev.push_back(ComputeAverageDeviation(fft_results_file_names,
+                                              cuFFT_file_name));
+    sigma_of_dev.push_back(ComputeSigmaOfDeviation(fft_results_file_names,
+                                                   cuFFT_file_name,
+                                                   avg_dev.back()));
   }
 
   err = WriteAccuracyTestResultsToFile(avg_dev, sigma_of_dev, sample_size,
                                        fft_length);
   if (err) {
-    return err;
+    std::cout << err.value() << std::endl;
+    return false;
   }
 
   return true;
