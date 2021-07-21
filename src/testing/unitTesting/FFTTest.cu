@@ -32,7 +32,7 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
     return "Plan creation failed";
   }
 
-  std::optimal<std::string> error_mess;
+  std::optional<std::string> error_mess;
 
   error_mess = WriteResultsREToFile("input" + file_name, fft_length,
                                     data.get());
