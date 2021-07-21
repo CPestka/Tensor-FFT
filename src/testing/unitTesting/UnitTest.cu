@@ -43,10 +43,14 @@ int main(){
     return false;
   }
 
+  //Currently not active since comparission data cant be generated via cuFFT
+  //since the length is to short for it
+  /*
   if (!TestFullFFT(16*16, 0.1, 0.1)){
     std::cout << "FFT test for a length of 16*16 failed." << std::endl;
     return false;
   }
+  */
   if (!TestFullFFT(16*16*16, 0.1, 0.1)){
     std::cout << "FFT test for a length of 16*16*16 failed." << std::endl;
     return false;
