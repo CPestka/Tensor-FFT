@@ -8,10 +8,6 @@
 double ComputeAverageDeviation(std::string file_name_1,
                                std::string file_name_2){
   long long length = 0;
-  double tmp1_RE = 0;
-  double tmp1_IM = 0;
-  double tmp2_RE = 0;
-  double tmp2_IM = 0;
   double tmp_dev = 0;
 
   std::string line_1;
@@ -30,25 +26,30 @@ double ComputeAverageDeviation(std::string file_name_1,
       std::stringstream ss2;
       std::string tmp_string;
 
+      double tmp1_RE = 0;
+      double tmp1_IM = 0;
+      double tmp2_RE = 0;
+      double tmp2_IM = 0;
+
       ss1 << line_1;
 
-      ss1 >> tmp;
+      ss1 >> tmp_string;
       tmp = "";
-      ss1 >> tmp;
-      tmp1_RE = static_cast<double>(std::stof(tmp));
-      tmp = "";
-      ss1 >> tmp;
-      tmp1_IM = static_cast<double>(std::stof(tmp));
+      ss1 >> tmp_string;
+      tmp1_RE = static_cast<double>(std::stof(tmp_string));
+      tmp_string = "";
+      ss1 >> tmp_string;
+      tmp1_IM = static_cast<double>(std::stof(tmp_string));
 
       ss2 << line_2;
 
-      ss2 >> tmp;
-      tmp = "";
-      ss2 >> tmp;
-      tmp2_RE = static_cast<double>(std::stof(tmp));
-      tmp = "";
-      ss2 >> tmp;
-      tmp2_IM = static_cast<double>(std::stof(tmp));
+      ss2 >> tmp_string;
+      tmp_string = "";
+      ss2 >> tmp_string;
+      tmp2_RE = static_cast<double>(std::stof(tmp_string));
+      tmp_string = "";
+      ss2 >> tmp_string;
+      tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
       tmp_dev += fabs(tmp1_RE - tmp2_RE);
       tmp_dev += fabs(tmp1_IM - tmp2_IM);
@@ -61,10 +62,6 @@ double ComputeSigmaOfDeviation(std::string file_name_1,
                                std::string file_name_2,
                                double average){
   long long length = 0;
-  double tmp1_RE = 0;
-  double tmp1_IM = 0;
-  double tmp2_RE = 0;
-  double tmp2_IM = 0;
   double tmp_dev = 0;
 
   std::string line_1;
@@ -83,29 +80,34 @@ double ComputeSigmaOfDeviation(std::string file_name_1,
       std::stringstream ss2;
       std::string tmp_string;
 
+      double tmp1_RE = 0;
+      double tmp1_IM = 0;
+      double tmp2_RE = 0;
+      double tmp2_IM = 0;
+
       ss1 << line_1;
 
-      ss1 >> tmp;
-      tmp = "";
-      ss1 >> tmp;
-      tmp1_RE = static_cast<double>(std::stof(tmp));
-      tmp = "";
-      ss1 >> tmp;
-      tmp1_IM = static_cast<double>(std::stof(tmp));
+      ss1 >> tmp_string;
+      tmp_string = "";
+      ss1 >> tmp_string;
+      tmp1_RE = static_cast<double>(std::stof(tmp_string));
+      tmp_string = "";
+      ss1 >> tmp_string;
+      tmp1_IM = static_cast<double>(std::stof(tmp_string));
 
       ss2 << line_2;
 
-      ss2 >> tmp;
-      tmp = "";
-      ss2 >> tmp;
-      tmp2_RE = static_cast<double>(std::stof(tmp));
-      tmp = "";
-      ss2 >> tmp;
-      tmp2_IM = static_cast<double>(std::stof(tmp));
+      ss2 >> tmp_string;
+      tmp_string = "";
+      ss2 >> tmp_string;
+      tmp2_RE = static_cast<double>(std::stof(tmp_string));
+      tmp_string = "";
+      ss2 >> tmp_string;
+      tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
       double tmp = fabs(fabs(tmp1_RE - tmp2_RE) - average);
       tmp_dev += (tmp * tmp);
-      tmp = fabs(fabs(tmp1_IM - tmp2_IM) - average)
+      tmp = fabs(fabs(tmp1_IM - tmp2_IM) - average);
       tmp_dev += (tmp * tmp);
     }
   }
@@ -115,10 +117,6 @@ double ComputeSigmaOfDeviation(std::string file_name_1,
 double ComputeAverageDeviation(std::vector<std::string> file_name_1,
                                std::vector<std::string> file_name_2){
   long long length = 0;
-  double tmp1_RE = 0;
-  double tmp1_IM = 0;
-  double tmp2_RE = 0;
-  double tmp2_IM = 0;
   double tmp_dev = 0;
 
   std::string line_1;
@@ -139,25 +137,30 @@ double ComputeAverageDeviation(std::vector<std::string> file_name_1,
         std::stringstream ss2;
         std::string tmp_string;
 
+        double tmp1_RE = 0;
+        double tmp1_IM = 0;
+        double tmp2_RE = 0;
+        double tmp2_IM = 0;
+
         ss1 << line_1;
 
-        ss1 >> tmp;
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_IM = static_cast<double>(std::stof(tmp));
+        ss1 >> tmp_string;
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_IM = static_cast<double>(std::stof(tmp_string));
 
         ss2 << line_2;
 
-        ss2 >> tmp;
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_IM = static_cast<double>(std::stof(tmp));
+        ss2 >> tmp_string;
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
         tmp_dev += fabs(tmp1_RE - tmp2_RE);
         tmp_dev += fabs(tmp1_IM - tmp2_IM);
@@ -172,10 +175,6 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
                                std::vector<std::string> file_name_2,
                                double average){
   long long length = 0;
-  double tmp1_RE = 0;
-  double tmp1_IM = 0;
-  double tmp2_RE = 0;
-  double tmp2_IM = 0;
   double tmp_dev = 0;
 
   std::string line_1;
@@ -196,25 +195,30 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
         std::stringstream ss2;
         std::string tmp_string;
 
+        double tmp1_RE = 0;
+        double tmp1_IM = 0;
+        double tmp2_RE = 0;
+        double tmp2_IM = 0;
+
         ss1 << line_1;
 
-        ss1 >> tmp;
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_IM = static_cast<double>(std::stof(tmp));
+        ss1 >> tmp_string;
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_IM = static_cast<double>(std::stof(tmp_string));
 
         ss2 << line_2;
 
-        ss2 >> tmp;
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_IM = static_cast<double>(std::stof(tmp));
+        ss2 >> tmp_string;
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
         double tmp = fabs(fabs(tmp1_RE - tmp2_RE) - average);
         tmp_dev += (tmp * tmp);
@@ -230,10 +234,6 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
 double ComputeAverageDeviation(std::vector<std::string> file_name_1,
                                std::string file_name_2){
   long long length = 0;
-  double tmp1_RE = 0;
-  double tmp1_IM = 0;
-  double tmp2_RE = 0;
-  double tmp2_IM = 0;
   double tmp_dev = 0;
 
   std::string line_1;
@@ -254,25 +254,30 @@ double ComputeAverageDeviation(std::vector<std::string> file_name_1,
         std::stringstream ss2;
         std::string tmp_string;
 
+        double tmp1_RE = 0;
+        double tmp1_IM = 0;
+        double tmp2_RE = 0;
+        double tmp2_IM = 0;
+
         ss1 << line_1;
 
-        ss1 >> tmp;
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_IM = static_cast<double>(std::stof(tmp));
+        ss1 >> tmp_string;
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_IM = static_cast<double>(std::stof(tmp_string));
 
         ss2 << line_2;
 
-        ss2 >> tmp;
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_IM = static_cast<double>(std::stof(tmp));
+        ss2 >> tmp_string;
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
         tmp_dev += fabs(tmp1_RE - tmp2_RE);
         tmp_dev += fabs(tmp1_IM - tmp2_IM);
@@ -287,10 +292,6 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
                                std::string file_name_2,
                                double average){
   long long length = 0;
-  double tmp1_RE = 0;
-  double tmp1_IM = 0;
-  double tmp2_RE = 0;
-  double tmp2_IM = 0;
   double tmp_dev = 0;
 
   std::string line_1;
@@ -311,25 +312,30 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
         std::stringstream ss2;
         std::string tmp_string;
 
+        double tmp1_RE = 0;
+        double tmp1_IM = 0;
+        double tmp2_RE = 0;
+        double tmp2_IM = 0;
+
         ss1 << line_1;
 
-        ss1 >> tmp;
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss1 >> tmp;
-        tmp1_IM = static_cast<double>(std::stof(tmp));
+        ss1 >> tmp_string;
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss1 >> tmp_string;
+        tmp1_IM = static_cast<double>(std::stof(tmp_string));
 
         ss2 << line_2;
 
-        ss2 >> tmp;
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_RE = static_cast<double>(std::stof(tmp));
-        tmp = "";
-        ss2 >> tmp;
-        tmp2_IM = static_cast<double>(std::stof(tmp));
+        ss2 >> tmp_string;
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_RE = static_cast<double>(std::stof(tmp_string));
+        tmp_string = "";
+        ss2 >> tmp_string;
+        tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
         double tmp = fabs(fabs(tmp1_RE - tmp2_RE) - average);
         tmp_dev += (tmp * tmp);
