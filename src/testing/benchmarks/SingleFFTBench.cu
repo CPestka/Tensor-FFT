@@ -40,6 +40,8 @@ int main(){
   std::vector<double> avg_runtime;
   std::vector<double> sigma_runtime;
 
+  std::optional<std::string> error_mess;
+
   int length = 16 * 8;
   for(int i=8; i<=log_length_max; i++){
     length = length * 2;
@@ -55,29 +57,29 @@ int main(){
     for(int k=0; k<sample_size; k++){
       Plan my_plan;
       if (CreatePlan(fft_length.back())) {
-        my_plan = CreatePlan(fft_length.back());
+        my_plan = CreatePlan(fft_length.back()).value();
       } else {
         std::cout << "Plan creation failed" << sttd::endl;
         return false;
       }
 
       DataHandler my_handler(fft_length.back());
-      error_mess = my_handler.PeakAtLastError().value_or("");
-      if (error_mess != "") {
+      error_mess = my_handler.PeakAtLastError();
+      if (error_mess) {
         std::cout << error_mess << std::endl;
         return false;
       }
 
-      error_mess = my_handler.CopyDataHostToDevice(data.get()).value_or("");
-      if (error_mess != "") {
+      error_mess = my_handler.CopyDataHostToDevice(data.get());
+      if (error_mess) {
         std::cout << error_mess << std::endl;
         return false;
       }
 
       cudaDeviceSynchronize();
       IntervallTimer computation_time;
-      error_mess = ComputeFFT(my_plan, my_handler).value_or("");
-      if (error_mess != "") {
+      error_mess = ComputeFFT(my_plan, my_handler);
+      if (error_mess) {
         std::cout << error_mess << std::endl;
         return false;
       }
@@ -87,8 +89,8 @@ int main(){
 
       error_mess = my_handler.CopyResultsDeviceToHost(
           data.get(), my_plan.amount_of_r16_steps_,
-          my_plan.amount_of_r2_steps_).value_or("");
-      if (error_mess != "") {
+          my_plan.amount_of_r2_steps_);
+      if (error_mess) {
         std::cout << error_mess << std::endl;
         return false;
       }
