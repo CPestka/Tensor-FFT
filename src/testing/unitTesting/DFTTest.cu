@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
@@ -19,6 +20,8 @@
 
 //Tests the dft kernel on zero valued data
 bool TestDFTKernel_0(){
+  std::optional<std::string> error_mess;
+
   std::unique_ptr<__half[]> data_RE =
       std::make_unique<__half[]>(16*16*16);
   std::unique_ptr<__half[]> data_IM =
@@ -64,9 +67,12 @@ bool TestDFTKernel_0(){
 
   cudaDeviceSynchronize();
 
-  std::cout << WriteResultsToFile(
-      "test_dft_0.dat", 16*16*16, data_RE.get(), data_IM.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_dft_0.dat", 16*16*16, data_RE.get(),
+                                  data_IM.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   cudaFree(dptr_dft_matrix_IM);
   cudaFree(dptr_dft_matrix_RE);
@@ -93,6 +99,8 @@ bool TestDFTKernel_0(){
 
 //Test dft kernel on simple sine wave
 bool TestDFTKernelSin_16(){
+  std::optional<std::string> error_mess;
+
   std::unique_ptr<__half[]> data_RE =
       std::make_unique<__half[]>(16*16*16);
   std::unique_ptr<__half[]> data_IM =
@@ -139,10 +147,12 @@ bool TestDFTKernelSin_16(){
 
   cudaDeviceSynchronize();
 
-  std::cout << WriteResultsToFile(
-      "test_dft_sin_16.dat", 16*16*16, data_RE.get(),
-      data_IM.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_dft_sin_16.dat", 16*16*16,
+                                  data_RE.get(), data_IM.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   cudaFree(dptr_dft_matrix_IM);
   cudaFree(dptr_dft_matrix_RE);
@@ -185,6 +195,8 @@ bool TestDFTKernelSin_16(){
 
 //Test dft kernel on simple sine wave
 bool TestDFTKernelSin_2(){
+  std::optional<std::string> error_mess;
+
   std::unique_ptr<__half[]> data_RE =
       std::make_unique<__half[]>(16*16*16*16*2);
   std::unique_ptr<__half[]> data_IM =
@@ -232,10 +244,12 @@ bool TestDFTKernelSin_2(){
 
   cudaDeviceSynchronize();
 
-  std::cout << WriteResultsToFile(
-      "test_dft_sin_2.dat", 16*16*16*16*2, data_RE.get(),
-      data_IM.get()).value_or("")
-            << std::endl;
+  error_mess = WriteResultsToFile("test_dft_sin_2.dat", 16*16*16*16*2,
+                                  data_RE.get(), data_IM.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   cudaFree(dptr_dft_matrix_IM);
   cudaFree(dptr_dft_matrix_RE);
