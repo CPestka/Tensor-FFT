@@ -41,7 +41,7 @@ int main(){
   std::vector<double> avg_runtime;
   std::vector<double> sigma_runtime;
 
-  std::optional<std::string> error_mess
+  std::optional<std::string> error_mess;
 
   int length = 16 * 8;
   for(int i=8; i<=log_length_max; i++){
