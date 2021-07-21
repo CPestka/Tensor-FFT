@@ -17,7 +17,7 @@
 #include "../../base/Transposer.cu"
 
 //Tests functionality of transposer kernel on example data of size 16^3
-bool transpose16_test(){
+bool TestTranspose16(){
   int fft_length = 16*16*16;
 
   std::vector<float> weights;
@@ -136,7 +136,7 @@ bool transpose16_test(){
 }
 
 //Tests functionality of transposer kernel on example data of size 16^3*2^2
-bool transpose16_2_test(){
+bool TestTranspose16_2(){
   int fft_length = 16*16*16*2*2;
 
   std::vector<float> weights;

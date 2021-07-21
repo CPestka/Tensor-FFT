@@ -177,13 +177,13 @@ bool TestFullFFT(int fft_length,
 
   err = CreateComparisionData(fft_length, comparison_data_file_name);
   if (err) {
-    std::cout << err << std::endl;
+    std::cout << err.value() << std::endl;
     return false;
   }
 
   err = FullSingleFFTComputation(fft_length, data_file_name);
   if (err) {
-    std::cout << err << std::endl;
+    std::cout << err.value() << std::endl;
     return false;
   }
 
@@ -205,7 +205,7 @@ bool TestFullFFT(int fft_length,
 bool TestFullFFTAsynch(int fft_length, int amount_of_asynch_ffts,
                        double avg_deviation_threshold,
                        double sigma_deviation_threshold){
-std::optional<std::string>> err;
+std::optional<std::string> err;
 
 std::string comparison_data_file_name =
   ("test_comparison_" + std::to_string(fft_length)) + ".dat";
