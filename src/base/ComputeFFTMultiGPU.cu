@@ -41,7 +41,7 @@ void ComputeFFTsMultiGPU(std::vector<int> device_list,
                          std::vector<std::vector<cudaStream_t>> &streams){
   std::vector<std::thread> worker;
   for(int i=0; i<static_cast<int>(device_list.size()); i++){
-    worker.push_back(std::thread(&SingleGPUWork, device_list[i], fft_plans[i],
+    worker.push_back(std::thread(SingleGPUWork, device_list[i], fft_plans[i],
                                  data[i], streams[i]));
   }
 
