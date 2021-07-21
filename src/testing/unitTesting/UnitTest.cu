@@ -50,11 +50,11 @@ int main(){
     std::cout << "FFT test for a length of 16*16 failed." << std::endl;
     return false;
   }
-  */
   if (!TestFullFFT(16*16*16, 0.1, 0.1)){
     std::cout << "FFT test for a length of 16*16*16 failed." << std::endl;
     return false;
   }
+  */
   if (!TestFullFFT(16*16*16*16*16, 0.1, 0.1)){
     std::cout << "FFT test for a length of 16^5 failed." << std::endl;
     return false;
