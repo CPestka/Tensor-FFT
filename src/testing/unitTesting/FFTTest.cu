@@ -217,14 +217,14 @@ for(int i=0; i<amount_of_asynch_ffts; i++){
 
 err = CreateComparisionData(fft_length, comparison_data_file_name);
 if (err) {
-  std::cout << err << std::endl;
+  std::cout << err.value() << std::endl;
   return false;
 }
 
 err = FullAsyncFFTComputation(fft_length, amount_of_asynch_ffts,
                               data_file_name);
 if (err) {
-  std::cout << err << std::endl;
+  std::cout << err.value() << std::endl;
   return false;
 }
 
