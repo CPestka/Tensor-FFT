@@ -58,12 +58,12 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
     my_plans.push_back(std::move(tmp));
   }
 
-  std::cout << WriteResultsREToFile(
-      file_name_prefix + "_input.dat", fft_length,
-      data[0][0].get()).value_or("")
-            << std::endl;
-
-
+  error_mess = WriteResultsREToFile(file_name_prefix + "_input.dat", fft_length,
+                                    data[0][0].get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return false;
+  }
 
   //Construct a DataHandler for data on GPU
   std::vector<std::vector<DataHandler>> my_handlers;
@@ -73,9 +73,9 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
     for(int i=0; i<amount_of_asynch_ffts; i++){
       tmp.push_back(fft_length);
 
-      error_mess = tmp.PeakAtLastError().value_or("");
-      if (error_mess != "") {
-        std::cout << error_mess << std::endl;
+      error_mess = tmp.PeakAtLastError();
+      if (error_mess) {
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
     }
@@ -106,10 +106,10 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
     cudaSetDevice(j);
 
     for(int i=0; i<amount_of_asynch_ffts; i++){
-      error_mess = my_handlers[j][i].CopyDataHostToDeviceAsync(
-          data[j][i].get(), streams[j][i]).value_or("");
-      if (error_mess != "") {
-        std::cout << error_mess << std::endl;
+      error_mess = my_handlers[j][i].CopyDataHostToDeviceAsync(data[j][i].get(),
+                                                               streams[j][i]);
+      if (error_mess) {
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
     }
@@ -125,9 +125,9 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
     for(int i=0; i<amount_of_asynch_ffts; i++){
       error_mess = my_handlers[j][i].CopyResultsDeviceToHostAsync(
           data[j][i].get(), my_plans[j][i].amount_of_r16_steps_,
-          my_plans[j][i].amount_of_r2_steps_,streams[j][i]).value_or("");
-      if (error_mess != "") {
-        std::cout << error_mess << std::endl;
+          my_plans[j][i].amount_of_r2_steps_,streams[j][i]);
+      if (error_mess) {
+        std::cout << error_mess.value() << std::endl;
         return false;
       }
     }
@@ -143,9 +143,12 @@ bool TestMultiGPU(int fft_length, int amount_of_asynch_ffts,
     for(int i=0; i<amount_of_asynch_ffts; i++){
       file_names.push_back(((((file_name_prefix + "_") + std::to_string(j))
                              + "_") + std::to_string(i)) + "_results.dat");
-      std::cout << WriteResultsToFile(file_names.back(), fft_length,
-                                      data[j][i].get()).value_or("")
-                << std::endl;
+      error_mess = WriteResultsToFile(file_names.back(), fft_length,
+                                      data[j][i].get());
+      if (error_mess) {
+        std::cout << error_mess.value() << std::endl;
+        return false;
+      }
     }
   }
 
