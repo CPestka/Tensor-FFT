@@ -117,6 +117,7 @@ std::optional<std::string> FullAsyncFFTComputation(
     }
   }
 
+  /*
   //Create a stream for each fft
   std::vector<cudaStream_t> streams;
   streams.resize(amount_of_asynch_ffts);
@@ -161,6 +162,7 @@ std::optional<std::string> FullAsyncFFTComputation(
       return error_mess;
     }
   }
+  */
 
   return std::nullopt;
 }
