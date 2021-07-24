@@ -105,6 +105,7 @@ public:
   ~DataHandler(){
     cudaFree(dptr_data_);
   }
+
   int fft_length_;
   __half* dptr_data_;
   __half* dptr_input_RE_;
@@ -115,7 +116,7 @@ public:
   __half* dptr_dft_matrix_IM_;
 };
 
-class DataHandler{
+class DataBatchHandler{
 public:
   DataBatchHandler(int fft_length, int amount_of_ffts) :
       fft_length_(fft_length), amount_of_ffts_(amount_of_ffts) {
@@ -201,7 +202,7 @@ public:
     return std::nullopt;
   }
 
-  ~DataHandler(){
+  ~DataBatchHandler(){
     cudaFree(dptr_input_RE_);
   }
   int fft_length_;
