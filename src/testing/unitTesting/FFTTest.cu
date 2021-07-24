@@ -109,7 +109,8 @@ std::optional<std::string> FullAsyncFFTComputation(
   //Construct a DataHandler for data on GPU
   std::vector<DataHandler> my_handlers;
   for(int i=0; i<amount_of_asynch_ffts; i++){
-    my_handlers.emplace_back(fft_length);
+    DataHandler tmp(fft_length);
+    my_handlers.push_back(std::move(tmp));
 
     error_mess = my_handlers[i].PeakAtLastError();
     if (error_mess) {
