@@ -206,7 +206,7 @@ public:
     cudaFree(dptr_input_RE_);
   }
   int fft_length_;
-  int amount_of_ffts;
+  int amount_of_ffts_;
   __half* dptr_input_RE_;
   __half* dptr_input_IM_;
   __half* dptr_results_RE_;
