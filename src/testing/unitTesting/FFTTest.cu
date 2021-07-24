@@ -92,7 +92,7 @@ std::optional<std::string> FullAsyncFFTComputation(
   std::vector<Plan> my_plans;
   for(int i=0; i<amount_of_asynch_ffts; i++){
     if (CreatePlan(fft_length)) {
-      my_plans.push_back(CreatePlan(fft_length).value());
+      my_plans.emplace_back(CreatePlan(fft_length).value());
     } else {
       return "Plan creation failed";
     }
@@ -109,7 +109,7 @@ std::optional<std::string> FullAsyncFFTComputation(
   //Construct a DataHandler for data on GPU
   std::vector<DataHandler> my_handlers;
   for(int i=0; i<amount_of_asynch_ffts; i++){
-    my_handlers.push_back(fft_length);
+    my_handlers.emplace_back(fft_length);
 
     error_mess = my_handlers[i].PeakAtLastError();
     if (error_mess) {
