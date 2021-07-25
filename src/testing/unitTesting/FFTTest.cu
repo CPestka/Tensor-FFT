@@ -84,7 +84,7 @@ std::optional<std::string> FullAsyncFFTComputation(
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data = CreateSineSuperpostionBatch(
-      fft_length, weights, amount_of_asynch_ffts);
+      fft_length, amount_of_asynch_ffts, weights);
 
   //Get plan
   Plan my_plan;
@@ -96,8 +96,9 @@ std::optional<std::string> FullAsyncFFTComputation(
 
   std::optional<std::string> error_mess;
 
-  error_mess = WriteResultsToFile("input" + file_name[0], fft_length,
-                                  data[0].get());
+  error_mess = WriteResultsToFile(("test_async_input_" +
+                                   std::to_string(fft_length)) + ".dat",
+                                   fft_length, data.get());
   if (error_mess) {
     return error_mess;
   }

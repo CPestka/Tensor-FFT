@@ -125,8 +125,8 @@ public:
     //kernels. (TODO: find out whats "best")
     //Create a stream for each fft
     std::vector<cudaStream_t> streams;
-    streams.resize(amount_of_asynch_ffts);
-    for(int i=0; i<amount_of_asynch_ffts; i++){
+    streams.resize(amount_of_ffts_);
+    for(int i=0; i<amount_of_ffts_; i++){
       cudaStreamCreate(&(streams[i]));
     }
     for(int i=0; i<amount_of_ffts_; i++){

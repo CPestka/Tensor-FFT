@@ -151,8 +151,8 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
                                        DataBatchHandler &data){
   //Create a stream for each fft
   std::vector<cudaStream_t> streams;
-  streams.resize(amount_of_asynch_ffts);
-  for(int i=0; i<amount_of_asynch_ffts; i++){
+  streams.resize(data.amount_of_ffts_);
+  for(int i=0; i<data.amount_of_ffts_; i++){
     if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
        return cudaGetErrorString(cudaPeekAtLastError());
     }
