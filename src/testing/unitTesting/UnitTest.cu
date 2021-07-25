@@ -108,7 +108,6 @@ int main(){
     std::cout << "Async FFT test for a length of 16*16 completed successfully."
               << std::endl;
   }
-  /*
   if (!TestFullFFTAsynch(16*16*16, 4, 0.1, 0.1)){
     std::cout << "Async FFT test for a length of 16*16*16 failed." << std::endl;
     return false;
@@ -137,7 +136,6 @@ int main(){
     std::cout << "Async FFT test for a length of 16^5*2^3 completed"
               << " successfully." << std::endl;
   }
-  */
 
   std::cout << "All tests passed!" <<std::endl;
 
