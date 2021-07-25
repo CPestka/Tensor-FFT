@@ -95,7 +95,8 @@ public:
 //thus holds the data of the entire batch of ffts to be computed.
 class DataBatchHandler{
 public:
-  DataBatchHandler(int fft_length, int amount_of_ffts) :
+  DataBatchHandler(int fft_length, int amount_of_ffts,
+                   std::vector<cudaStream_t> streams&) :
       fft_length_(fft_length), amount_of_ffts_(amount_of_ffts) {
     if (cudaMalloc((void**)(&dptr_data_),
                    amount_of_ffts_ * 6 * sizeof(__half) * fft_length_)
@@ -110,12 +111,6 @@ public:
       dptr_results_IM_[i] = dptr_results_RE_[i] + fft_length_;
       dptr_dft_matrix_RE_[i] = dptr_results_IM_[i] + fft_length_;
       dptr_dft_matrix_IM_[i] = dptr_dft_matrix_RE_[i] + fft_length_;
-    }
-
-    std::vector<cudaStream_t> streams;
-    streams.resize(amount_of_ffts_);
-    for(int i=0; i<amount_of_ffts_; i++){
-      cudaStreamCreate(&(streams[i]));
     }
 
     //Here we precompute the dft matrix batches needed for the DFTKernel() and
