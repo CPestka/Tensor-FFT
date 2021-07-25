@@ -96,11 +96,15 @@ std::optional<std::string> FullAsyncFFTComputation(
 
   std::optional<std::string> error_mess;
 
-  error_mess = WriteResultsToFile(("test_async_input_" +
-                                   std::to_string(fft_length)) + ".dat",
-                                   fft_length, data.get());
-  if (error_mess) {
-    return error_mess;
+  for(int i=0; i<amount_of_asynch_ffts; i++){
+    error_mess = WriteResultsToFile(((("test_async_input_" +
+                                       std::to_string(fft_length))
+                                       + "_") + std::to_string(i)) + ".dat",
+                                       fft_length,
+                                       data.get() + (i * 2 * fft_length));
+    if (error_mess) {
+      return error_mess;
+    }
   }
 
   //Construct a DataHandler for data on GPU
