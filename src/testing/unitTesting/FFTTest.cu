@@ -123,6 +123,7 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
+  /*
   //Copy data to gpu
   error_mess = my_handler.CopyDataHostToDeviceAsync(raw_data, streams);
   if (error_mess) {
@@ -151,7 +152,8 @@ std::optional<std::string> FullAsyncFFTComputation(
       return error_mess;
     }
   }
-
+  */
+  
   return std::nullopt;
 }
 
