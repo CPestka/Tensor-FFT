@@ -34,8 +34,8 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
 
   std::optional<std::string> error_mess;
 
-  error_mess = WriteResultsREToFile("input" + file_name, fft_length,
-                                    data.get());
+  error_mess = WriteResultsREToFile(("test_input_" + std::to_string(fft_length))
+                                    + ".dat", fft_length, data.get());
   if (error_mess) {
     return error_mess;
   }
@@ -139,12 +139,12 @@ std::optional<std::string> FullAsyncFFTComputation(
 
   cudaDeviceSynchronize();
 
-  for(int i=0; i<amount_of_asynch_ffts; i++){
-    error_mess = WriteResultBatchToFile(file_name, fft_length, data.get());
-    if (error_mess) {
-      return error_mess;
-    }
+
+  error_mess = WriteResultBatchToFile(file_name, fft_length, data.get());
+  if (error_mess) {
+    return error_mess;
   }
+  
 
   return std::nullopt;
 }
