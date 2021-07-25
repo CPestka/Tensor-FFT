@@ -96,7 +96,7 @@ public:
 class DataBatchHandler{
 public:
   DataBatchHandler(int fft_length, int amount_of_ffts,
-                   std::vector<cudaStream_t> streams&) :
+                   std::vector<cudaStream_t> &streams) :
       fft_length_(fft_length), amount_of_ffts_(amount_of_ffts) {
     if (cudaMalloc((void**)(&dptr_data_),
                    amount_of_ffts_ * 6 * sizeof(__half) * fft_length_)

@@ -141,8 +141,6 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   return std::nullopt;
 }
 
-
-
 //Similar to ComputeFFT() but accepts multiple ffts at a time. For each fft
 //respectively the corresponding memcpys and kernels are issued into one stream
 //respectively, which allows work for multiple ffts to be executed concurrently
