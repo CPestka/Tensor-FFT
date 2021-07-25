@@ -238,9 +238,9 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
 
   for(int i=0; i<data.amount_of_ffts_; i++){
     //Radix 2 kernels
-    for(int j=0; j<fft_plans.amount_of_r2_steps_; j++){
+    for(int j=0; j<fft_plan.amount_of_r2_steps_; j++){
       //For each step the input data is the output data of the previous step
-      if (((j + fft_plans.amount_of_r16_steps_) % 2) == 0) {
+      if (((j + fft_plan.amount_of_r16_steps_) % 2) == 0) {
         dptr_current_input_RE[i] = data.dptr_input_RE_[i];
         dptr_current_input_IM[i] = data.dptr_input_IM_[i];
         dptr_current_results_RE[i] = data.dptr_results_RE_[i];
@@ -252,10 +252,10 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
         dptr_current_results_IM[i] = data.dptr_input_IM_[i];
       }
 
-      int amount_of_r2_blocks = sub_fft_length[i] / fft_plans.r2_blocksize_;
+      int amount_of_r2_blocks = sub_fft_length[i] / fft_plan.r2_blocksize_;
 
       int remaining_sub_ffts = 1;
-      for(int k=0; k<fft_plans.amount_of_r2_steps_ - j; k++){
+      for(int k=0; k<fft_plan.amount_of_r2_steps_ - j; k++){
         remaining_sub_ffts = remaining_sub_ffts * 2;
       }
 
@@ -263,7 +263,7 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
       //launch multiple kernels
       for(int k=0; k<(remaining_sub_ffts/2); k++){
         int memory_offset = k * sub_fft_length[i];
-        Radix2Kernel<<<amount_of_r2_blocks, fft_plans.r2_blocksize_,
+        Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_,
                        0, streams[i]>>>(
             dptr_current_input_RE[i] + memory_offset,
             dptr_current_input_IM[i] + memory_offset,
