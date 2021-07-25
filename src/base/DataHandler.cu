@@ -124,13 +124,15 @@ public:
     //conflicts for each warp) and to compute the dft matrix each time during the
     //kernels. (TODO: find out whats "best")
     //Create a stream for each fft
+    /*
     std::vector<cudaStream_t> streams;
     streams.resize(amount_of_ffts_);
     for(int i=0; i<amount_of_ffts_; i++){
       cudaStreamCreate(&(streams[i]));
     }
+    */
     for(int i=0; i<amount_of_ffts_; i++){
-      ComputeDFTMatrix<<<fft_length / 256, 16*16, 0, streams[i]>>>(
+      ComputeDFTMatrix<<<fft_length / 256, 16*16>>>(
           dptr_dft_matrix_RE_[i], dptr_dft_matrix_IM_[i]);
     }
 

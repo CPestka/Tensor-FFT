@@ -103,7 +103,6 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
-  /*
   //Construct a DataHandler for data on GPU
   DataBatchHandler my_handler(fft_length, amount_of_asynch_ffts);
   error_mess = my_handler.PeakAtLastError();
@@ -111,6 +110,7 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
+  /*
   //Copy data to gpu
   error_mess = my_handler.CopyDataHostToDevice(data.get());
   if (error_mess) {
