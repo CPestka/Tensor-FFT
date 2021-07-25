@@ -148,8 +148,16 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 //The memory requiredments are the same as for ComputeFFT() but added together
 //for each fft.
 std::optional<std::string> ComputeFFTs(Plan &fft_plans,
-                                       DataBatchHandler &data,
-                                       std::vector<cudaStream_t> &streams){
+                                       DataBatchHandler &data){
+  //Create a stream for each fft
+  std::vector<cudaStream_t> streams;
+  streams.resize(amount_of_asynch_ffts);
+  for(int i=0; i<amount_of_asynch_ffts; i++){
+    if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
+       return cudaGetErrorString(cudaPeekAtLastError());
+    }
+  }
+
   //Launch kernel that performs the transposes to prepare the data for the
   //radix steps
   for(int i=0; i<data.amount_of_ffts_; i++){

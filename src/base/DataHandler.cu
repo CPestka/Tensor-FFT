@@ -95,8 +95,7 @@ public:
 //thus holds the data of the entire batch of ffts to be computed.
 class DataBatchHandler{
 public:
-  DataBatchHandler(int fft_length, int amount_of_ffts,
-                   std::vector<cudaStream_t> &streams) :
+  DataBatchHandler(int fft_length, int amount_of_ffts) :
       fft_length_(fft_length), amount_of_ffts_(amount_of_ffts) {
     if (cudaMalloc((void**)(&dptr_data_),
                    amount_of_ffts_ * 6 * sizeof(__half) * fft_length_)
@@ -105,11 +104,17 @@ public:
     }
 
     for(int i=0; i<amount_of_ffts_; i++){
-      dptr_input_RE_[i] = dptr_data_ + (i * 6 * fft_length_);
-      dptr_input_IM_[i] = dptr_results_RE_[i] + fft_length_;
-      dptr_results_RE_[i] = dptr_input_IM_[i] + fft_length_;
+      dptr_input_RE_[i] = dptr_data_ + (2 * i * fft_length_);
+      dptr_input_IM_[i] = dptr_input_RE_[i] + fft_length_;
+    }
+    for(int i=0; i<amount_of_ffts_; i++){
+      dptr_results_RE_[i] = dptr_input_IM_[amount_of_ffts_ - 1] +
+                            (2 * i * fft_length_);
       dptr_results_IM_[i] = dptr_results_RE_[i] + fft_length_;
-      dptr_dft_matrix_RE_[i] = dptr_results_IM_[i] + fft_length_;
+    }
+    for(int i=0; i<amount_of_ffts_; i++){
+      dptr_dft_matrix_RE_[i] = dptr_results_IM_[amount_of_ffts_ - 1] +
+                               (2 * i * fft_length_);
       dptr_dft_matrix_IM_[i] = dptr_dft_matrix_RE_[i] + fft_length_;
     }
 
@@ -118,6 +123,12 @@ public:
     //The other options are to only precompute one (lower memory usage but read
     //conflicts for each warp) and to compute the dft matrix each time during the
     //kernels. (TODO: find out whats "best")
+    //Create a stream for each fft
+    std::vector<cudaStream_t> streams;
+    streams.resize(amount_of_asynch_ffts);
+    for(int i=0; i<amount_of_asynch_ffts; i++){
+      cudaStreamCreate(&(streams[i]));
+    }
     for(int i=0; i<amount_of_ffts_; i++){
       ComputeDFTMatrix<<<fft_length / 256, 16*16, 0, streams[i]>>>(
           dptr_dft_matrix_RE_[i], dptr_dft_matrix_IM_[i]);
@@ -133,35 +144,31 @@ public:
     return std::nullopt;
   }
 
-  std::optional<std::string> CopyDataHostToDeviceAsync(
-      std::vector<__half*> data, std::vector<cudaStream_t> &streams) {
-    for(int i=0; i<static_cast<int>(data.size()); i++){
-      if (cudaMemcpyAsync(dptr_input_RE_[i], data[i],
-                          2 * fft_length_ * sizeof(__half),
-                          cudaMemcpyHostToDevice, streams[i])
-           != cudaSuccess) {
-         return cudaGetErrorString(cudaPeekAtLastError());
-      }
+  std::optional<std::string> CopyDataHostToDevice(__half* data) {
+    if (cudaMemcpy(dptr_input_RE_[0], data,
+                   amount_of_ffts_ * 2 * fft_length_ * sizeof(__half),
+                   cudaMemcpyHostToDevice)
+         != cudaSuccess) {
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
 
     return std::nullopt;
   }
 
-  std::optional<std::string> CopyResultsDeviceToHostAsync(
-      std::vector<__half*> data, int amount_of_r16_steps,
-      int amount_of_r2_steps, std::vector<cudaStream_t> &streams) {
+  std::optional<std::string> CopyResultsDeviceToHost(__half* data,
+                                                     int amount_of_r16_steps,
+                                                     int amount_of_r2_steps) {
     __half* results;
-    for(int i=0; i<static_cast<int>(data.size()); i++){
-      if (((amount_of_r16_steps + amount_of_r2_steps) % 2) == 1) {
-        results = dptr_results_RE_[i];
-      } else {
-        results = dptr_input_RE_[i];
-      }
-      if (cudaMemcpyAsync(data[i], results, 2 * fft_length_ * sizeof(__half),
-                          cudaMemcpyDeviceToHost, streams[i])
-           != cudaSuccess) {
-         return cudaGetErrorString(cudaPeekAtLastError());
-      }
+    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) == 1) {
+      results = dptr_results_RE_[0];
+    } else {
+      results = dptr_input_RE_[0];
+    }
+    if (cudaMemcpy(data, results,
+                   amount_of_ffts_ * 2 * fft_length_ * sizeof(__half),
+                   cudaMemcpyDeviceToHost)
+         != cudaSuccess) {
+       return cudaGetErrorString(cudaPeekAtLastError());
     }
 
     return std::nullopt;

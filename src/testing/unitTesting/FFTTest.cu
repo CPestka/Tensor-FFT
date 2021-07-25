@@ -83,12 +83,8 @@ std::optional<std::string> FullAsyncFFTComputation(
   //Prepare input data on cpu
   std::vector<float> weights;
   weights.push_back(1.0);
-  std::vector<std::unique_ptr<__half[]>> data;
-  std::vector<__half*> raw_data;
-  for(int i=0; i<amount_of_asynch_ffts; i++){
-    data.push_back(CreateSineSuperpostion(fft_length, weights));
-    raw_data.push_back(data.back().get());
-  }
+  std::unique_ptr<__half[]> data = CreateSineSuperpostionBatch(
+      fft_length, weights, amount_of_asynch_ffts);
 
   //Get plan
   Plan my_plan;
@@ -106,18 +102,8 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
-  //Create a stream for each fft
-  std::vector<cudaStream_t> streams;
-  streams.resize(amount_of_asynch_ffts);
-  for(int i=0; i<amount_of_asynch_ffts; i++){
-    if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
-       std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-       return "Error while creating stream!";
-    }
-  }
-
   //Construct a DataHandler for data on GPU
-  DataBatchHandler my_handler(fft_length, amount_of_asynch_ffts, streams);
+  DataBatchHandler my_handler(fft_length, amount_of_asynch_ffts);
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     return error_mess;
@@ -125,21 +111,20 @@ std::optional<std::string> FullAsyncFFTComputation(
 
   /*
   //Copy data to gpu
-  error_mess = my_handler.CopyDataHostToDeviceAsync(raw_data, streams);
+  error_mess = my_handler.CopyDataHostToDevice(data.get());
   if (error_mess) {
     return error_mess;
   }
 
   //Compute FFT
-  error_mess = ComputeFFTs(my_plan, my_handler, streams);
+  error_mess = ComputeFFTs(my_plan, my_handler);
   if (error_mess) {
     return error_mess;
   }
 
   //Copy results back to cpu
-  error_mess = my_handler.CopyResultsDeviceToHostAsync(
-      raw_data, my_plan.amount_of_r16_steps_,
-      my_plan.amount_of_r2_steps_, streams);
+  error_mess = my_handler.CopyResultsDeviceToHost(
+      data.get(), my_plan.amount_of_r16_steps_, my_plan.amount_of_r2_steps_);
   if (error_mess) {
     return error_mess;
   }
@@ -147,13 +132,13 @@ std::optional<std::string> FullAsyncFFTComputation(
   cudaDeviceSynchronize();
 
   for(int i=0; i<amount_of_asynch_ffts; i++){
-    error_mess = WriteResultsToFile(file_name[i], fft_length, raw_data[i]);
+    error_mess = WriteResultBatchToFile(file_name, fft_length, data.get());
     if (error_mess) {
       return error_mess;
     }
   }
   */
-  
+
   return std::nullopt;
 }
 

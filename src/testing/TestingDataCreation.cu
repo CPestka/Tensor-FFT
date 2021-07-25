@@ -57,3 +57,24 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(int amount_of_timesamples,
   }
   return data;
 }
+
+std::unique_ptr<__half[]> CreateSineSuperpostionBatch(
+    int amount_of_timesamples, int amount_of_batches,
+    std::vector<float> weights){
+  std::unique_ptr<__half[]> data = std::make_unique<__half[]>(
+      2 * amount_of_timesamples * amount_of_batches);
+
+  for(int k=0; k<amount_of_batches; k++){
+    for(int i=0; i<amount_of_timesamples; i++){
+      float tmp = 0;
+      for(int j=0; j<static_cast<int>(weights.size()); j++){
+        tmp += (weights[j] * sin(2 * M_PI * ((j * 2) + 1) *
+               (static_cast<double>(i) / amount_of_timesamples)));
+      }
+      data[i + (k * 2 * amount_of_timesamples)] = __float2half(tmp);
+      data[i + amount_of_timesamples + (k * 2 * amount_of_timesamples)] = 0;
+    }
+  }
+
+  return data;
+}
