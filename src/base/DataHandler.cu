@@ -104,6 +104,14 @@ public:
     }
 
     for(int i=0; i<amount_of_ffts_; i++){
+      dptr_input_RE_.resize(amount_of_ffts_, nullptr);
+      dptr_input_IM_.resize(amount_of_ffts_, nullptr);
+      dptr_results_RE_.resize(amount_of_ffts_, nullptr);
+      dptr_results_IM_.resize(amount_of_ffts_, nullptr);
+      dptr_dft_matrix_RE_.resize(amount_of_ffts_, nullptr);
+      dptr_dft_matrix_IM_.resize(amount_of_ffts_, nullptr);
+    }
+    for(int i=0; i<amount_of_ffts_; i++){
       dptr_input_RE_[i] = dptr_data_ + (2 * i * fft_length_);
       dptr_input_IM_[i] = dptr_input_RE_[i] + fft_length_;
     }
@@ -177,7 +185,7 @@ public:
   }
 
   ~DataBatchHandler(){
-    cudaFree(dptr_data_);
+    cudaFree((void*)dptr_data_);
   }
   int fft_length_;
   int amount_of_ffts_;
