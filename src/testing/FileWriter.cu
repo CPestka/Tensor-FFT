@@ -67,11 +67,11 @@ std::optional<std::string> WriteResultsToFile(std::string file_name,
 std::optional<std::string> WriteResultBatchToFile(
     std::vector<std::string> file_names, int fft_length, __half* data){
   for(int j=0; j<static_cast<int>(file_names.size()); j++){
-    std::ofstream myfile (file_name[j]);
+    std::ofstream myfile (file_names[j]);
     if (myfile.is_open()) {
       for(int i=0; i<fft_length; i++){
         float re = data[i + (2 * fft_length * j)];
-        float im = data_IM[i + fft_length + (2 * fft_length * j)];
+        float im = data[i + fft_length + (2 * fft_length * j)];
         float x = static_cast<double>(i)/static_cast<double>(fft_length);
         myfile << x << " " << re << " " << im << "\n";
       }
