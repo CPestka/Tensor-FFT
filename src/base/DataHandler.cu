@@ -57,6 +57,7 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+
     return std::nullopt;
   }
 
@@ -74,6 +75,9 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+
+    cudaDeviceSynchronize();
+
     return std::nullopt;
   }
 
@@ -160,6 +164,8 @@ public:
        return cudaGetErrorString(cudaPeekAtLastError());
     }
 
+    cudaDeviceSynchronize();
+
     return std::nullopt;
   }
 
@@ -178,6 +184,8 @@ public:
          != cudaSuccess) {
        return cudaGetErrorString(cudaPeekAtLastError());
     }
+
+    cudaDeviceSynchronize();
 
     return std::nullopt;
   }

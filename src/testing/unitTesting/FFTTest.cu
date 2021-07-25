@@ -67,8 +67,6 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
     return error_mess;
   }
 
-  cudaDeviceSynchronize();
-
   error_mess = WriteResultsToFile(file_name, fft_length, data.get());
   if (error_mess) {
     return error_mess;
@@ -120,15 +118,11 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
-  cudaDeviceSynchronize();
-
   //Compute FFT
   error_mess = ComputeFFTs(my_plan, my_handler);
   if (error_mess) {
     return error_mess;
   }
-
-  cudaDeviceSynchronize();
 
   //Copy results back to cpu
   error_mess = my_handler.CopyResultsDeviceToHost(
@@ -137,14 +131,11 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
-  cudaDeviceSynchronize();
-
-
   error_mess = WriteResultBatchToFile(file_name, fft_length, data.get());
   if (error_mess) {
     return error_mess;
   }
-  
+
 
   return std::nullopt;
 }

@@ -277,5 +277,7 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
     }
   }
 
+  cudaDeviceSynchronize();
+  
   return std::nullopt;
 }
