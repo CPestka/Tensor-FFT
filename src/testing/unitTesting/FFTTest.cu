@@ -122,7 +122,6 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
-  /*
   //Copy results back to cpu
   error_mess = my_handler.CopyResultsDeviceToHost(
       data.get(), my_plan.amount_of_r16_steps_, my_plan.amount_of_r2_steps_);
@@ -138,7 +137,6 @@ std::optional<std::string> FullAsyncFFTComputation(
       return error_mess;
     }
   }
-  */
 
   return std::nullopt;
 }

@@ -63,6 +63,27 @@ std::optional<std::string> WriteResultsToFile(std::string file_name,
   return std::nullopt;
 }
 
+//Writes results of a fft that uses 2 __half to file
+std::optional<std::string> WriteResultBatchToFile(
+    std::vector<std::string> file_names, int fft_length, __half* data){
+  for(int j=0; j<static_cast<int>(file_names.size()); j++){
+    std::ofstream myfile (file_name[j]);
+    if (myfile.is_open()) {
+      for(int i=0; i<fft_length; i++){
+        float re = data[i + (2 * fft_length * j)];
+        float im = data_IM[i + fft_length + (2 * fft_length * j)];
+        float x = static_cast<double>(i)/static_cast<double>(fft_length);
+        myfile << x << " " << re << " " << im << "\n";
+      }
+      myfile.close();
+    } else {
+      return "Error! Unable to open file.";
+    }
+  }
+
+  return std::nullopt;
+}
+
 
 //Writes results of a fft that uses __half2 to file
 std::optional<std::string> WriteResultsToFileHalf2(std::string file_name,
