@@ -116,11 +116,15 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
+  cudaDeviceSynchronize();
+
   //Compute FFT
   error_mess = ComputeFFTs(my_plan, my_handler);
   if (error_mess) {
     return error_mess;
   }
+
+  cudaDeviceSynchronize();
 
   //Copy results back to cpu
   error_mess = my_handler.CopyResultsDeviceToHost(
