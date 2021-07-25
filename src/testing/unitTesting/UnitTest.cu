@@ -8,7 +8,6 @@
 #include "FFTTest.cu"
 
 int main(){
-  /*
   if (!TestTranspose16()){
     std::cout << "Transpose 16*16*16 test failed!" << std::endl;
     return false;
@@ -100,7 +99,7 @@ int main(){
     std::cout << "FFT test for a length of 16^5*2^3 completed successfully."
               << std::endl;
   }
-  */
+
   if (!TestFullFFTAsynch(16*16, 4, 0.1, 0.1)){
     std::cout << "Async FFT test for a length of 16*16 failed." << std::endl;
     return false;
