@@ -147,7 +147,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 //if the recources on the device are avaiable.
 //The memory requiredments are the same as for ComputeFFT() but added together
 //for each fft.
-std::optional<std::string> ComputeFFTs(Plan &fft_plans,
+std::optional<std::string> ComputeFFTs(Plan &fft_plan,
                                        DataBatchHandler &data){
   //Create a stream for each fft
   std::vector<cudaStream_t> streams;
@@ -161,18 +161,18 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
   //Launch kernel that performs the transposes to prepare the data for the
   //radix steps
   for(int i=0; i<data.amount_of_ffts_; i++){
-    TransposeKernel<<<fft_plans.transposer_amount_of_blocks_,
-                      fft_plans.transposer_blocksize_, 0, streams[i]>>>(
+    TransposeKernel<<<fft_plan.transposer_amount_of_blocks_,
+                      fft_plan.transposer_blocksize_, 0, streams[i]>>>(
         data.dptr_input_RE_[i], data.dptr_input_IM_[i],
         data.dptr_results_RE_[i], data.dptr_results_IM_[i],
-        fft_plans.fft_length_, fft_plans.amount_of_r16_steps_,
-        fft_plans.amount_of_r2_steps_);
+        fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
+        fft_plan.amount_of_r2_steps_);
   }
 
   //Launch baselayer DFT step kernel
   for(int i=0; i<data.amount_of_ffts_; i++){
-    DFTKernel<<<fft_plans.dft_amount_of_blocks_,
-                32 * fft_plans.dft_warps_per_block_, 0, streams[i]>>>(
+    DFTKernel<<<fft_plan.dft_amount_of_blocks_,
+                32 * fft_plan.dft_warps_per_block_, 0, streams[i]>>>(
         data.dptr_results_RE_[i], data.dptr_results_IM_[i],
         data.dptr_input_RE_[i], data.dptr_input_IM_[i],
         data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i]);
@@ -187,9 +187,10 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
   dptr_current_results_RE.resize(data.amount_of_ffts_, nullptr);
   dptr_current_results_IM.resize(data.amount_of_ffts_, nullptr);
 
-  int sub_fft_length = 16;
+  std::vector<int> sub_fft_length;
+  sub_fft_length.resize(data.amount_of_ffts_, 16);
 
-  int shared_mem_in_bytes = fft_plans.r16_warps_per_block_ *
+  int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ *
                             16 * 16 * 2 * sizeof(__half);
   cudaFuncSetAttribute(Radix16KernelFirstStep,
                        cudaFuncAttributeMaxDynamicSharedMemorySize,
@@ -199,7 +200,7 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
                        shared_mem_in_bytes);
 
   for(int i=0; i<data.amount_of_ffts_; i++){
-    for(int j=0; j<fft_plans.amount_of_r16_steps_; j++){
+    for(int j=0; j<fft_plan.amount_of_r16_steps_; j++){
       //For each step the input data is the output data of the previous step
       if ((j % 2) == 0) {
         dptr_current_input_RE[i] = data.dptr_input_RE_[i];
@@ -214,24 +215,24 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
       }
 
       if (j == 0) {
-        Radix16KernelFirstStep<<<fft_plans.r16_amount_of_blocks_,
-                                 32 * fft_plans.r16_warps_per_block_,
+        Radix16KernelFirstStep<<<fft_plan.r16_amount_of_blocks_,
+                                 32 * fft_plan.r16_warps_per_block_,
                                  shared_mem_in_bytes, streams[i]>>>(
             dptr_current_input_RE[i], dptr_current_input_IM[i],
             dptr_current_results_RE[i], dptr_current_results_IM[i],
             data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i]);
       } else {
-        Radix16Kernel<<<fft_plans.r16_amount_of_blocks_,
-                       32 * fft_plans.r16_warps_per_block_,
+        Radix16Kernel<<<fft_plan.r16_amount_of_blocks_,
+                       32 * fft_plan.r16_warps_per_block_,
                        shared_mem_in_bytes, streams[i]>>>(
             dptr_current_input_RE[i], dptr_current_input_IM[i],
             dptr_current_results_RE[i], dptr_current_results_IM[i],
             data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i],
-            fft_plans.fft_length_, sub_fft_length, j);
+            fft_plan.fft_length_, sub_fft_length[i], j);
       }
 
       //Update sub_fft_length
-      sub_fft_length = sub_fft_length * 16;
+      sub_fft_length[i] = sub_fft_length[i] * 16;
     }
   }
 
@@ -251,7 +252,7 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
         dptr_current_results_IM[i] = data.dptr_input_IM_[i];
       }
 
-      int amount_of_r2_blocks = sub_fft_length / fft_plans.r2_blocksize_;
+      int amount_of_r2_blocks = sub_fft_length[i] / fft_plans.r2_blocksize_;
 
       int remaining_sub_ffts = 1;
       for(int k=0; k<fft_plans.amount_of_r2_steps_ - j; k++){
@@ -261,18 +262,18 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plans,
       //One radix2 kernel combines 2 subffts -> if there are still more than 2
       //launch multiple kernels
       for(int k=0; k<(remaining_sub_ffts/2); k++){
-        int memory_offset = k * sub_fft_length;
+        int memory_offset = k * sub_fft_length[i];
         Radix2Kernel<<<amount_of_r2_blocks, fft_plans.r2_blocksize_,
                        0, streams[i]>>>(
             dptr_current_input_RE[i] + memory_offset,
             dptr_current_input_IM[i] + memory_offset,
             dptr_current_results_RE[i] + memory_offset,
             dptr_current_results_IM [i]+ memory_offset,
-            sub_fft_length);
+            sub_fft_length[i]);
       }
 
       //Update sub_fft_length
-      sub_fft_length = sub_fft_length * 2;
+      sub_fft_length[i] = sub_fft_length[i] * 2;
     }
   }
 
