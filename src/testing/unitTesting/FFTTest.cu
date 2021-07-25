@@ -110,13 +110,13 @@ std::optional<std::string> FullAsyncFFTComputation(
     return error_mess;
   }
 
-  /*
   //Copy data to gpu
   error_mess = my_handler.CopyDataHostToDevice(data.get());
   if (error_mess) {
     return error_mess;
   }
 
+  /*
   //Compute FFT
   error_mess = ComputeFFTs(my_plan, my_handler);
   if (error_mess) {
