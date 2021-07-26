@@ -30,7 +30,6 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
              cudaMemcpyHostToDevice);
 
-  /*
   cufftHandle plan;
   cufftResult r;
 
@@ -39,6 +38,7 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
     return "Error! Plan creation failed.";
   }
 
+  /*
   size_t size = 0;
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
@@ -58,8 +58,8 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
 
   WriteResultsToFileHalf2(file_name, fft_length, data.get());
 
-  cufftDestroy(plan);
   */
+  cufftDestroy(plan);
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
