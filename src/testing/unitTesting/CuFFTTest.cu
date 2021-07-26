@@ -22,11 +22,12 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2(fft_length, weights);
 
-  /*
+
   __half2* dptr_data;
   __half2* dptr_results;
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
   cudaMalloc(&dptr_results, sizeof(__half2) * fft_length);
+  /*
   cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
              cudaMemcpyHostToDevice);
 
@@ -58,9 +59,9 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   WriteResultsToFileHalf2(file_name, fft_length, data.get());
 
   cufftDestroy(plan);
+  */
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
-  */
   return std::nullopt;
 }
