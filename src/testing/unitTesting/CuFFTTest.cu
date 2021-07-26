@@ -50,7 +50,6 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
     return "Error! Plan execution failed.";
   }
 
-  /*
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
              cudaMemcpyDeviceToHost);
 
@@ -58,7 +57,6 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
 
   WriteResultsToFileHalf2(file_name, fft_length, data.get());
 
-  */
   cufftDestroy(plan);
   cudaFree(dptr_results);
   cudaFree(dptr_data);
