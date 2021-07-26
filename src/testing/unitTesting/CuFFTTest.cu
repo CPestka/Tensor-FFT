@@ -27,10 +27,10 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   __half2* dptr_results;
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
   cudaMalloc(&dptr_results, sizeof(__half2) * fft_length);
-  /*
   cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
              cudaMemcpyHostToDevice);
 
+  /*
   cufftHandle plan;
   cufftResult r;
 
