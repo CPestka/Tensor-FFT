@@ -104,7 +104,7 @@ int main(){
   }
   */
 
-  if (!TestFullFFTAsynch(16*16, 4, 0.1, 0.1)){
+  if (!TestFullFFTAsynch(16*16, 6, 0.1, 0.1)){
     std::cout << "Async FFT test for a length of 16*16 failed." << std::endl;
     return false;
   } else {

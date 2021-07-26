@@ -142,7 +142,7 @@ public:
       cudaStreamCreate(&(streams[i]));
     }
     for(int i=0; i<amount_of_ffts_; i++){
-      ComputeDFTMatrix<<<fft_length / 256, 16*16>>>(
+      ComputeDFTMatrix<<<fft_length / 256, 16*16, 0, streams[i]>>>(
           dptr_dft_matrix_RE_[i], dptr_dft_matrix_IM_[i]);
     }
 
