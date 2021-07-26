@@ -22,6 +22,7 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2(fft_length, weights);
 
+  /*
   __half2* dptr_data;
   __half2* dptr_results;
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
@@ -60,5 +61,6 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
+  */
   return std::nullopt;
 }
