@@ -38,7 +38,6 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
     return "Error! Plan creation failed.";
   }
 
-  /*
   size_t size = 0;
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
@@ -46,6 +45,7 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
     return "Error! Plan creation failed.";
   }
 
+  /*
   r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
     return "Error! Plan execution failed.";
