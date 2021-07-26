@@ -121,11 +121,13 @@ public:
     }
     for(int i=0; i<amount_of_ffts_; i++){
       dptr_results_RE_[i] = dptr_input_IM_[amount_of_ffts_ - 1] +
+                            fft_length_ +
                             (2 * i * fft_length_);
       dptr_results_IM_[i] = dptr_results_RE_[i] + fft_length_;
     }
     for(int i=0; i<amount_of_ffts_; i++){
       dptr_dft_matrix_RE_[i] = dptr_results_IM_[amount_of_ffts_ - 1] +
+                               fft_length_ +
                                (2 * i * fft_length_);
       dptr_dft_matrix_IM_[i] = dptr_dft_matrix_RE_[i] + fft_length_;
     }
