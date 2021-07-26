@@ -7,5 +7,5 @@
 #include "CuFFTTest.cu"
 
 int main(){
-  CreateComparisonData();
+  CreateComparisonData(4096, "tmp_test.dat");
 }
