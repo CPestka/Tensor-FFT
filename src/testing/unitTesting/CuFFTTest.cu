@@ -45,12 +45,12 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
     return "Error! Plan creation failed.";
   }
 
-  /*
   r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
     return "Error! Plan execution failed.";
   }
 
+  /*
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
              cudaMemcpyDeviceToHost);
 
