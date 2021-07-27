@@ -129,7 +129,7 @@ std::optional<std::string> WriteBenchResultsToFile(std::vector<double> run_avg,
                                                    std::vector<double> run_sig,
                                                    std::vector<int> fft_length,
                                                    std::string sample_size){
-  std::ofstream myfile ("BenchResults" + sample_size + ".dat");
+  std::ofstream myfile ("BenchResults_samples_" + sample_size + ".dat");
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(fft_length.size()); i++){
       myfile << fft_length[i] << " "
