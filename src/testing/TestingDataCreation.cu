@@ -7,6 +7,8 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <cuda_fp16.h>
+#include <cufft.h>
+#include <cufftXt.h>
 #include <cuComplex.h>
 
 //Creates half precission data which is a superpostion of the a_i * sin(2*i * x)
