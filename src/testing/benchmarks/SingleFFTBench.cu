@@ -33,8 +33,9 @@ double ComputeSigma(std::vector<double> data, double average){
 }
 
 int main(){
-  int log_length_max = 20;
-  int sample_size = 10;
+  int log_length_max = 16;
+  int sample_size = 25;
+  int warmup_samples = 5;
 
   std::vector<int> fft_length;
   std::vector<double> avg_runtime;
@@ -54,22 +55,22 @@ int main(){
 
     std::vector<double> runtime;
 
-    for(int k=0; k<sample_size; k++){
-      Plan my_plan;
-      if (CreatePlan(fft_length.back())) {
-        my_plan = CreatePlan(fft_length.back()).value();
-      } else {
-        std::cout << "Plan creation failed" << std::endl;
-        return false;
-      }
+    Plan my_plan;
+    if (CreatePlan(fft_length.back())) {
+      my_plan = CreatePlan(fft_length.back()).value();
+    } else {
+      std::cout << "Plan creation failed" << std::endl;
+      return false;
+    }
 
-      DataHandler my_handler(fft_length.back());
-      error_mess = my_handler.PeakAtLastError();
-      if (error_mess) {
-        std::cout << error_mess.value() << std::endl;
-        return false;
-      }
+    DataHandler my_handler(fft_length.back());
+    error_mess = my_handler.PeakAtLastError();
+    if (error_mess) {
+      std::cout << error_mess.value() << std::endl;
+      return false;
+    }
 
+    for(int k=0; k<sample_size + warmup_samples; k++){
       error_mess = my_handler.CopyDataHostToDevice(data.get());
       if (error_mess) {
         std::cout << error_mess.value() << std::endl;
@@ -77,6 +78,7 @@ int main(){
       }
 
       cudaDeviceSynchronize();
+
       IntervallTimer computation_time;
       error_mess = ComputeFFT(my_plan, my_handler);
       if (error_mess) {
@@ -85,16 +87,10 @@ int main(){
       }
 
       cudaDeviceSynchronize();
-      runtime.push_back(computation_time.getTimeInNanoseconds());
 
-      error_mess = my_handler.CopyResultsDeviceToHost(
-          data.get(), my_plan.amount_of_r16_steps_,
-          my_plan.amount_of_r2_steps_);
-      if (error_mess) {
-        std::cout << error_mess.value() << std::endl;
-        return false;
+      if (k >= warmup_samples) {
+        runtime.push_back(computation_time.getTimeInNanoseconds());
       }
-      cudaDeviceSynchronize();
     }
 
     avg_runtime.push_back(ComputeAverage(runtime));

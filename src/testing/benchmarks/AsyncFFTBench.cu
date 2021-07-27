@@ -33,9 +33,10 @@ double ComputeSigma(std::vector<double> data, double average){
 }
 
 int main(){
-  int log_length_max = 20;
-  int sample_size = 10;
-  int amount_of_asynch_ffts = 4;
+  int log_length_max = 16;
+  int sample_size = 25;
+  int warmup_samples = 5;
+  int amount_of_asynch_ffts = 20;
 
   std::vector<int> fft_length;
   std::vector<double> avg_runtime;
@@ -52,72 +53,43 @@ int main(){
 
     std::vector<float> weights;
     weights.push_back(1.0);
-    std::vector<std::unique_ptr<__half[]>> data;
-    for(int i=0; i<amount_of_asynch_ffts; i++){
-      data.push_back(CreateSineSuperpostion(fft_length.back(),  weights));
+    std::unique_ptr<__half[]> data;
+    data = CreateSineSuperpostionBatch(fft_length.back(),
+                                       amount_of_asynch_ffts, weights));
+
+    Plan my_plan;
+    if (CreatePlan(fft_length.back())) {
+      my_plan = CreatePlan(fft_length.back()).value();
+    } else {
+      std::cout << "Plan creation failed" << std::endl;
+      return false;
     }
 
-    for(int k=0; k<sample_size; k++){
-      std::vector<Plan> my_plan;
-      for(int i=0; i<amount_of_asynch_ffts; i++){
-        if (CreatePlan(fft_length.back())) {
-          my_plan.push_back(CreatePlan(fft_length.back()).value());
-        } else {
-          std::cout << "Plan creation failed" << std::endl;
-          return false;
-        }
-      }
+    DataBatchHandler my_handler(fft_length.back(), amount_of_asynch_ffts);
+    error_mess = my_handler.PeakAtLastError();
+    if (error_mess) {
+      std::cout << error_mess.value() << std::endl;
+      return false;
+    }
 
-      std::vector<DataHandler> my_handler;
-      for(int i=0; i<amount_of_asynch_ffts; i++){
-        my_handler.push_back(fft_length.back());
-        error_mess = my_handler[i].PeakAtLastError();
-        if (error_mess) {
-          std::cout << error_mess.value() << std::endl;
-          return false;
-        }
-      }
-
-      std::vector<cudaStream_t> streams;
-      streams.resize(amount_of_asynch_ffts);
-      for(int i=0; i<amount_of_asynch_ffts; i++){
-        if (cudaStreamCreate(&(streams[i])) != cudaSuccess){
-           std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-           return false;
-        }
-      }
-
-      for(int i=0; i<amount_of_asynch_ffts; i++){
-        error_mess =
-            my_handler[i].CopyDataHostToDeviceAsync(
-                data[i].get(), streams[i]);
-        if (error_mess) {
-          std::cout << error_mess.value() << std::endl;
-          return false;
-        }
-      }
+    for(int k=0; k<sample_size + warmup_samples; k++){
+      my_handler.CopyDataHostToDevice(data.get());
 
       cudaDeviceSynchronize();
+
       IntervallTimer computation_time;
 
-      error_mess = ComputeFFTs(my_plan, my_handler, streams);
+      error_mess = ComputeFFTs(my_plan, my_handler);
       if (error_mess) {
         std::cout << error_mess.value() << std::endl;
         return false;
       }
-      cudaDeviceSynchronize();
-      runtime.push_back(computation_time.getTimeInNanoseconds());
 
-      for(int i=0; i<amount_of_asynch_ffts; i++){
-        error_mess = my_handler[i].CopyResultsDeviceToHostAsync(
-            data[i].get(), my_plan[i].amount_of_r16_steps_,
-            my_plan[i].amount_of_r2_steps_, streams[i]);
-        if (error_mess) {
-          std::cout << error_mess.value() << std::endl;
-          return false;
-        }
-      }
       cudaDeviceSynchronize();
+
+      if (k >= warmup_samples) {
+        runtime.push_back(computation_time.getTimeInNanoseconds());
+      }
     }
 
     avg_runtime.push_back(ComputeAverage(runtime));
