@@ -108,13 +108,13 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
     buffer_RE[memory_offset] =
-        __hmul(0.00390625,
-               __hfma(input_RE , twiddle_RE,
-                      __hmul(-1.0, __hmul(input_IM, twiddle_IM))));
+        __hdiv(__hsub(__hmul(input_RE, twiddle_RE),
+                      __hmul(input_IM, twiddle_IM)), 256.0);
+
     //mod_IM = RE*twid_IM + IM*twid_RE
     buffer_IM[memory_offset] =
-        __hmul(0.00390625,
-               __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE)));
+        __hdiv(__hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE)),
+               256.0);
   }
 
   //Load the modified data from shared mem buffer
@@ -235,13 +235,12 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
     buffer_RE[buffer_matrix_memory_offset] =
-        __hmul(0.0625,
-               __hfma(input_RE , twiddle_RE,
-                      __hmul(-1.0, __hmul(input_IM, twiddle_IM))));
+    __hdiv(__hsub(__hmul(input_RE, twiddle_RE),
+                  __hmul(input_IM, twiddle_IM)), 16.0);
     //mod_IM = RE*twid_IM + IM*twid_RE
     buffer_IM[buffer_matrix_memory_offset] =
-        __hmul(0.0625,
-               __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE)));
+    __hdiv(__hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE)),
+           16.0);
   }
 
   //Load the modified data from shared mem buffer
