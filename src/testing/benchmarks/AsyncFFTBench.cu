@@ -97,6 +97,6 @@ int main(){
   }
 
   WriteBenchResultsToFile(avg_runtime, sigma_runtime, fft_length,
-                          std::to_string(sample_size));
+                          "_async_" + std::to_string(sample_size));
   return true;
 }
