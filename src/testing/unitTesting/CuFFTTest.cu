@@ -10,13 +10,14 @@
 #include <cufft.h>
 #include <cufftXt.h>
 #include <cuda_fp16.h>
+#include <cuComplex.h>
 
 #include "../FileWriter.cu"
 #include "../TestingDataCreation.cu"
 #include "../Timer.h"
 
-std::optional<std::string> CreateComparisonData(long long fft_length,
-                                                std::string file_name){
+std::optional<std::string> CreateComparisonDataHalf(long long fft_length,
+                                                    std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half2[]> data =
@@ -51,6 +52,49 @@ std::optional<std::string> CreateComparisonData(long long fft_length,
   }
 
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
+             cudaMemcpyDeviceToHost);
+
+  cudaDeviceSynchronize();
+
+  WriteResultsToFileHalf2(file_name, fft_length, data.get());
+
+  cufftDestroy(plan);
+  cudaFree(dptr_results);
+  cudaFree(dptr_data);
+
+  return std::nullopt;
+}
+
+std::optional<std::string> CreateComparisonDataDouble(long long fft_length,
+                                                      std::string file_name){
+  std::vector<float> weights;
+  weights.push_back(1.0);
+  std::unique_ptr<cufftDoubleComplex[]> data =
+      CreateSineSuperpostionDouble(fft_length, weights);
+
+
+  cufftDoubleComplex* dptr_data;
+  cufftDoubleComplex* dptr_results;
+  cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
+  cudaMalloc(&dptr_results, sizeof(cufftDoubleComplex) * fft_length);
+  cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(cufftDoubleComplex),
+             cudaMemcpyHostToDevice);
+
+  cufftHandle plan;
+  cufftResult r;
+
+  size_t size = 0;
+  r = cufftPlan1d(&plan, fft_length, CUFFT_Z2Z, 1);
+  if (r != CUFFT_SUCCESS) {
+    return "Error! Plan creation failed.";
+  }
+
+  r = cufftExecZ2Z(plan, dptr_data, dptr_results, CUFFT_FORWARD);
+  if (r != CUFFT_SUCCESS) {
+    return "Error! Plan execution failed.";
+  }
+
+  cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(cufftDoubleComplex),
              cudaMemcpyDeviceToHost);
 
   cudaDeviceSynchronize();

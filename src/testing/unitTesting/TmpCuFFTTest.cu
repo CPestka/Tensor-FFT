@@ -7,5 +7,6 @@
 #include "CuFFTTest.cu"
 
 int main(){
-  std::optional<std::string> tmp = CreateComparisonData(4096, "tmp_test.dat");
+  std::optional<std::string> tmp = CreateComparisonData(4096, "tmp_test_1.dat");
+  tmp = CreateComparisonDataDouble(4096, "tmp_test_2.dat");
 }

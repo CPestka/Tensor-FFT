@@ -7,6 +7,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <cuda_fp16.h>
+#include <cuComplex.h>
 
 //Creates half precission data which is a superpostion of the a_i * sin(2*i * x)
 //with x [0:1] and a_i provided by weights
@@ -54,6 +55,26 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(int amount_of_timesamples,
              (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i] = __floats2half2_rn(tmp, 0);
+  }
+  return data;
+}
+
+//Creates double precission data which is a superpostion of the a_i *
+//sin(2*i * x) with x [0:1] and a_i provided by weights
+//Has amount_of_timesamples cufftComplex elements holding one complex value each
+std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
+    int amount_of_timesamples, std::vector<float> weights){
+  std::unique_ptr<cufftDoubleComplex[]> data =
+      std::make_unique<cufftDoubleComplex[]>(amount_of_timesamples);
+
+  for(int i=0; i<amount_of_timesamples; i++){
+    float tmp = 0;
+    for(int j=0; j<static_cast<int>(weights.size()); j++){
+      tmp += (weights[j] * sin(2 * M_PI * ((j * 2) + 1) *
+             (static_cast<double>(i) / amount_of_timesamples)));
+    }
+    data[i].x = tmp;
+    data[i].y = 0;
   }
   return data;
 }
