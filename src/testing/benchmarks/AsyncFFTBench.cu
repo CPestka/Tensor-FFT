@@ -55,7 +55,7 @@ int main(){
     weights.push_back(1.0);
     std::unique_ptr<__half[]> data;
     data = CreateSineSuperpostionBatch(fft_length.back(),
-                                       amount_of_asynch_ffts, weights));
+                                       amount_of_asynch_ffts, weights);
 
     Plan my_plan;
     if (CreatePlan(fft_length.back())) {
