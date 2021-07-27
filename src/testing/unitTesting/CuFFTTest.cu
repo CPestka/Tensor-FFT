@@ -83,7 +83,6 @@ std::optional<std::string> CreateComparisonDataDouble(long long fft_length,
   cufftHandle plan;
   cufftResult r;
 
-  size_t size = 0;
   r = cufftPlan1d(&plan, fft_length, CUFFT_Z2Z, 1);
   if (r != CUFFT_SUCCESS) {
     return "Error! Plan creation failed.";
@@ -99,7 +98,7 @@ std::optional<std::string> CreateComparisonDataDouble(long long fft_length,
 
   cudaDeviceSynchronize();
 
-  WriteResultsToFileHalf2(file_name, fft_length, data.get());
+  WriteResultsToFileDouble2(file_name, fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_results);

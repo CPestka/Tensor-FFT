@@ -103,6 +103,24 @@ std::optional<std::string> WriteResultsToFileHalf2(std::string file_name,
   return std::nullopt;
 }
 
+//Writes results of a fft that uses cufftDoubleComplex to file
+std::optional<std::string> WriteResultsToFileDouble2(std::string file_name,
+                                                     int fft_length,
+                                                     cufftDoubleComplex* data){
+  std::ofstream myfile (file_name);
+  if (myfile.is_open()) {
+    for(int i=0; i<fft_length; i++){
+      float x = static_cast<double>(i)/static_cast<double>(fft_length);
+      myfile << x << " " << data[i].x << " " << data[i].y
+             << "\n";
+    }
+    myfile.close();
+  } else {
+    return "Error! Unable to open file.";
+  }
+  return std::nullopt;
+}
+
 //Writes Benchmark results to file
 std::optional<std::string> WriteBenchResultsToFile(std::vector<double> run_avg,
                                                    std::vector<double> run_sig,
