@@ -85,7 +85,8 @@ std::optional<std::string> WriteResultBatchToFile(
 }
 
 
-//Writes results of a fft that uses __half2 to file
+//Writes results of a fft that uses __half2 to file and scales the results by
+//1/fft_length
 std::optional<std::string> WriteResultsToFileHalf2(std::string file_name,
                                                    int fft_length,
                                                    __half2* data){
@@ -93,7 +94,9 @@ std::optional<std::string> WriteResultsToFileHalf2(std::string file_name,
   if (myfile.is_open()) {
     for(int i=0; i<fft_length; i++){
       float x = static_cast<double>(i)/static_cast<double>(fft_length);
-      myfile << x << " " << __low2float(data[i]) << " " << __high2float(data[i])
+      myfile << x << " "
+             << __low2float(data[i]) / static_cast<double>(fft_length) << " "
+             << __high2float(data[i]) / static_cast<double>(fft_length)
              << "\n";
     }
     myfile.close();
@@ -103,7 +106,8 @@ std::optional<std::string> WriteResultsToFileHalf2(std::string file_name,
   return std::nullopt;
 }
 
-//Writes results of a fft that uses cufftDoubleComplex to file
+//Writes results of a fft that uses cufftDoubleComplex to file and scales the
+//results by 1/fft_length
 std::optional<std::string> WriteResultsToFileDouble2(std::string file_name,
                                                      int fft_length,
                                                      cufftDoubleComplex* data){
@@ -111,7 +115,8 @@ std::optional<std::string> WriteResultsToFileDouble2(std::string file_name,
   if (myfile.is_open()) {
     for(int i=0; i<fft_length; i++){
       float x = static_cast<double>(i)/static_cast<double>(fft_length);
-      myfile << x << " " << data[i].x << " " << data[i].y
+      myfile << x << " " << data[i].x  / static_cast<double>(fft_length)
+             << " " << data[i].y  / static_cast<double>(fft_length)
              << "\n";
     }
     myfile.close();
