@@ -15,7 +15,7 @@
 #include "../FileWriter.cu"
 
 int main(){
-  int sample_size = 4;
+  int sample_size = 10;
   int log_fft_length_boundry = 20;
 
   std::vector<int> fft_length;
@@ -25,14 +25,14 @@ int main(){
   std::optional<std::string> err;
 
   int tmp_length = 16*8;
-  for(int i=8; i<log_fft_length_boundry; i++){
+  for(int i=8; i<=log_fft_length_boundry; i++){
     tmp_length = tmp_length * 2;
     fft_length.push_back(tmp_length);
 
     std::string cuFFT_file_name = ("accuracy_cuFFT_" +
                                    std::to_string(fft_length.back()))
                                   + ".dat";
-    err = CreateComparisonData(fft_length.back(), cuFFT_file_name);
+    err = CreateComparisonDataDouble(fft_length.back(), cuFFT_file_name);
     if (err) {
       std::cout << err.value() << std::endl;
       return false;
@@ -40,9 +40,9 @@ int main(){
 
     std::vector<std::string> fft_results_file_names;
     for(int k=0; k<sample_size; k++){
-      fft_results_file_names.push_back(("accuracy_" +
-                                        std::to_string(fft_length.back()))
-                                       + ".dat");
+      fft_results_file_names.push_back(((("accuracy_" +
+                                        std::to_string(fft_length.back())) +
+                                        "_") + std::to_string(k)) + ".dat");
       err = FullSingleFFTComputation(fft_length.back(),
                                      fft_results_file_names.back());
       if (err) {

@@ -51,9 +51,6 @@ double ComputeAverageDeviation(std::string file_name_1,
       ss2 >> tmp_string;
       tmp2_IM = static_cast<double>(std::stof(tmp_string));
 
-      std::cout << length << " " << tmp1_RE << " " << tmp1_IM << " " << tmp2_RE
-                << " " << tmp2_IM << std::endl;
-                
       tmp_dev += fabs(tmp1_RE - tmp2_RE);
       tmp_dev += fabs(tmp1_IM - tmp2_IM);
     }
