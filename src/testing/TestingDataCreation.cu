@@ -61,6 +61,28 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(int amount_of_timesamples,
   return data;
 }
 
+//Like CreateSineSuperpostionH2, but produces batch_size times the same data
+//sequential in memory
+std::unique_ptr<__half2[]> CreateSineSuperpostionH2Batch(
+    int amount_of_timesamples, std::vector<float> weights, int batch_size){
+      
+  std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(
+      amount_of_timesamples * batch_size);
+
+  for(int k=0; k<batch_size; k++){
+    for(int i=0; i<amount_of_timesamples; i++){
+      float tmp = 0;
+      for(int j=0; j<static_cast<int>(weights.size()); j++){
+        tmp += (weights[j] * sin(2 * M_PI * ((j * 2) + 1) *
+               (static_cast<double>(i) / amount_of_timesamples)));
+      }
+      data[i + (k * amount_of_timesamples)] = __floats2half2_rn(tmp, 0);
+    }
+  }
+
+  return data;
+}
+
 //Creates double precission data which is a superpostion of the a_i *
 //sin(2*i * x) with x [0:1] and a_i provided by weights
 //Has amount_of_timesamples cufftComplex elements holding one complex value each
