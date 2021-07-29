@@ -26,15 +26,15 @@ int main(){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length.back(),  weights);
+      CreateSineSuperpostion(fft_length, weights);
 
   std::optional<std::string> error_mess;
 
   //The plan holds parameters needed for the execution of the kernels which are
   //mostly derived from the fft length.
   Plan my_plan;
-  if (CreatePlan(fft_length.back())) {
-    my_plan = CreatePlan(fft_length.back()).value();
+  if (CreatePlan(fft_length)) {
+    my_plan = CreatePlan(fft_length).value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
     return false;
@@ -43,7 +43,7 @@ int main(){
   //The DataHandler class allocates and holds the ptrs to the data on the device
   //Instantiation and destruction handle the allocation and freeing of the
   //needed memory on the device.
-  DataHandler my_handler(fft_length.back());
+  DataHandler my_handler(fft_length);
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
