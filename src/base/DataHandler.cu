@@ -323,7 +323,7 @@ public:
     for(int j=0; j<static_cast<int>(device_ids_.size()); j++){
       cudaSetDevice(device_ids_[j]);
 
-      if (cudaMalloc((void**)(&dptr_data_[i]),
+      if (cudaMalloc((void**)(&dptr_data_[j]),
                      amount_of_ffts_ * 6 * sizeof(__half) * fft_length_)
           != cudaSuccess){
          std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;

@@ -24,20 +24,20 @@ int main(){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length.back(), batch_size, weights);
+      CreateSineSuperpostionBatch(fft_length, batch_size, weights);
 
   std::optional<std::string> error_mess;
 
   Plan my_plan;
-  if (CreatePlan(fft_length.back())) {
-    my_plan = CreatePlan(fft_length.back()).value();
+  if (CreatePlan(fft_length)) {
+    my_plan = CreatePlan(fft_length).value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
     return false;
   }
 
   //Instead of the DataHandler class
-  DataBatchHandler my_handler(fft_length.back(), batch size);
+  DataBatchHandler my_handler(fft_length, batch size);
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
