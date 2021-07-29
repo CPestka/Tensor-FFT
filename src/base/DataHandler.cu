@@ -219,11 +219,11 @@ public:
          std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
       }
       dptr_input_RE_[i] = dptr_data_[i];
-      dptr_input_IM_[i] = dptr_input_RE_[i] + fft_length_[i];
-      dptr_results_RE_[i] = dptr_input_IM_[i] + fft_length_[i];
-      dptr_results_IM_[i] = dptr_results_RE_[i] + fft_length_[i];
-      dptr_dft_matrix_RE_[i] = dptr_results_IM_[i] + fft_length_[i];
-      dptr_dft_matrix_IM_[i] = dptr_dft_matrix_RE_[i] + fft_length_[i];
+      dptr_input_IM_[i] = dptr_input_RE_[i] + fft_length_;
+      dptr_results_RE_[i] = dptr_input_IM_[i] + fft_length_;
+      dptr_results_IM_[i] = dptr_results_RE_[i] + fft_length_;
+      dptr_dft_matrix_RE_[i] = dptr_results_IM_[i] + fft_length_;
+      dptr_dft_matrix_IM_[i] = dptr_dft_matrix_RE_[i] + fft_length_;
 
       //Here we precompute the dft matrix batches needed for the DFTKernel() and
       //Radix16Kernel(). Currently there is one matrix precomputed for each warp.
