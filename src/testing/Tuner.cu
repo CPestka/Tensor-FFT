@@ -104,10 +104,10 @@ int main(){
     std::cout << fft_length << std::endl;
     std::cout << "Determining fastest 1" << std::endl;
     //Determine fastest r16 warp count
-    for(int j=1; j<=warp_amount_cap; j++){
+    for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
         runtime = GetAverageExecutionTime(
-          fft_length, warmup_samples,sample_size, j,
+          fft_length, warmup_samples,sample_size , j,
           warp_amount_cap < 4 ? warp_amount_cap : 4, 256,
           fft_length < 1024 ? fft_length : 1024);
         fastest_warp_count = j;
