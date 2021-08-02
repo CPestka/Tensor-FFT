@@ -102,7 +102,6 @@ int main(){
     int fastest_warp_count = 0;
 
     std::cout << fft_length << std::endl;
-    std::cout << "Determining fastest 1" << std::endl;
     //Determine fastest r16 warp count
     for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
@@ -125,7 +124,6 @@ int main(){
 
     fastest_r16_warp_counts.push_back(fastest_warp_count);
 
-    std::cout << "Determining fastest 2" << std::endl;
     //Determine fastest dft warp count
     for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
@@ -148,7 +146,6 @@ int main(){
 
     fastest_dft_warp_counts.push_back(fastest_warp_count);
 
-    std::cout << "Determining fastest 3" << std::endl;
     //Determine fastest R2 blocksize
     for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
@@ -171,7 +168,6 @@ int main(){
 
     fastest_R2_blocksizes.push_back(fastest_warp_count * 32);
 
-    std::cout << "Determining fastest 4" << std::endl;
     //Determine fastest transpose blocksize
     for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
@@ -195,6 +191,7 @@ int main(){
     fastest_R2_blocksizes.push_back(fastest_warp_count * 32);
   }
 
+  std::cout << "write to file " << std::endl;
   std::cout << WriteTunerResultsToFile(
       fastest_transpose_blocksize, fastest_dft_warp_counts,
       fastest_r16_warp_counts,
