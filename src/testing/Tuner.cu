@@ -79,7 +79,7 @@ double GetAverageExecutionTime(int fft_length, int warmup_samples,
 }
 
 int main(){
-  int log_length_max = 30;
+  int log_length_max = 29;
   int sample_size = 20;
   int warmup_samples = 4;
   int warp_max_cap = 32;

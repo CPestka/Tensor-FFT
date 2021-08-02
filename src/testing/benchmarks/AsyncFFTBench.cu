@@ -33,7 +33,7 @@ double ComputeSigma(std::vector<double> data, double average){
 }
 
 int main(){
-  int log_length_max = 16;
+  int log_length_max = 20;
   int sample_size = 25;
   int warmup_samples = 5;
   int amount_of_asynch_ffts = 20;
@@ -48,6 +48,7 @@ int main(){
   for(int i=8; i<=log_length_max; i++){
     length = length * 2;
     fft_length.push_back(length);
+    std::cout << "Starting fft length: " << length << std::endl;
 
     std::vector<double> runtime;
 
@@ -64,6 +65,14 @@ int main(){
       std::cout << "Plan creation failed" << std::endl;
       return false;
     }
+    /*
+    if (CreatePlan(fft_length.back(), "../TunerResults.dat")) {
+      my_plan = CreatePlan(fft_length.back(), "../TunerResults.dat").value();
+    } else {
+      std::cout << "Plan creation failed" << std::endl;
+      return false;
+    }
+    */
 
     DataBatchHandler my_handler(fft_length.back(), amount_of_asynch_ffts);
     error_mess = my_handler.PeakAtLastError();

@@ -33,7 +33,7 @@ double ComputeSigma(std::vector<double> data, double average){
 }
 
 int main(){
-  int log_length_max = 16;
+  int log_length_max = 30;
   int sample_size = 25;
   int warmup_samples = 5;
   long long batch_size = 20;
@@ -48,6 +48,7 @@ int main(){
   for(int i=8; i<=log_length_max; i++){
     length = length * 2;
     fft_length.push_back(length);
+    std::cout << "Starting fft length: " << length << std::endl;
 
     std::vector<float> weights;
     weights.push_back(1.0);
