@@ -38,13 +38,13 @@ int main(){
   int warmup_samples = 5;
   int amount_of_asynch_ffts = 20;
 
-  std::vector<int> fft_length;
+  std::vector<long long> fft_length;
   std::vector<double> avg_runtime;
   std::vector<double> sigma_runtime;
 
   std::optional<std::string> error_mess;
 
-  int length = 16 * 8;
+  long long length = 16 * 8;
   for(int i=8; i<=log_length_max; i++){
     length = length * 2;
     fft_length.push_back(length);
