@@ -131,6 +131,11 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   wmma::mma_sync(accumulator_IM_frag, dft_RE_frag, data_IM_frag,
                  accumulator_IM_frag);
 
+  #pragma unroll
+  for(int i=0; i<accumulator_IM_frag.num_elements; i++){
+    accumulator_IM_frag.x[i] = __hdiv(accumulator_IM_frag.x[i], 256);
+  }
+
   //Store IM part of the output
   wmma::store_matrix_sync(output_data_IM + warp_memory_offset,
                           accumulator_IM_frag, 16, wmma::mem_row_major);
@@ -138,8 +143,8 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   #pragma unroll
   for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
     output_data_RE[warp_memory_offset + i] =
-        __hsub(accumulator_RE_1_frag.x[i],
-               accumulator_RE_2_frag.x[i]);
+        __hdiv(__hsub(accumulator_RE_1_frag.x[i],
+               accumulator_RE_2_frag.x[i]), 256);
   }
 }
 
@@ -279,8 +284,8 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     output_data_RE[global_memory_offset] =
-        __hdiv(buffer_RE[buffer_matrix_memory_offset], 4096);
+        __hdiv(buffer_RE[buffer_matrix_memory_offset], 16);
     output_data_IM[global_memory_offset] =
-        __hdiv(buffer_IM[buffer_matrix_memory_offset], 4096);
+        __hdiv(buffer_IM[buffer_matrix_memory_offset], 16);
   }
 }
