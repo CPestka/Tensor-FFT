@@ -70,7 +70,7 @@ std::optional<Plan> CreatePlan(int fft_length){
 
   int log2_of_fft_lenght = ExactLog2(fft_length);
 
-  if (log2_of_fft_lenght < 8) {
+  if (log2_of_fft_lenght <= 8) {
     std::cout << "Error! Input size has to be larger than 256 i.e. 16^2"
               << std::endl;
     return std::nullopt;
@@ -113,7 +113,7 @@ std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
 
   int log2_of_fft_lenght = ExactLog2(fft_length);
 
-  if (log2_of_fft_lenght < 12) {
+  if (log2_of_fft_lenght <= 12) {
     std::cout << "Error! Input size has to be larger than 256 i.e. 16^2"
               << std::endl;
     return std::nullopt;
