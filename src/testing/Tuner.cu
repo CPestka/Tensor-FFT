@@ -188,7 +188,7 @@ int main(){
       }
     }
 
-    fastest_R2_blocksizes.push_back(fastest_warp_count * 32);
+    fastest_transpose_blocksizes.push_back(fastest_warp_count * 32);
   }
 
   std::cout << "write to file " << std::endl;
