@@ -179,7 +179,7 @@ std::optional<std::string> WriteAccuracyTestResultsToFile(
 std::optional<std::string> WriteTunerResultsToFile(
       std::vector<int> transpose_blocksize, std::vector<int> dft_warp_amount,
       std::vector<int> r16_warp_amount, std::vector<int> r2_blocksize){
-  std::ofstream myfile ("TunerResults.cu");
+  std::ofstream myfile ("TunerResults.dat");
   if (myfile.is_open()) {
     long long fft_length = 16 * 8;
     for(int i=0; i<static_cast<int>(dft_warp_amount.size()); i++){
