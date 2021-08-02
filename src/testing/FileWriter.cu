@@ -174,3 +174,25 @@ std::optional<std::string> WriteAccuracyTestResultsToFile(
   }
   return std::nullopt;
 }
+
+//Writes result of Accuracy test to file
+std::optional<std::string> WriteTunerResultsToFile(
+      std::vector<int> transpose_blocksize, std::vector<int> dft_warp_amount,
+      std::vector<int> r16_warp_amount, std::vector<int> r2_blocksize){
+  std::ofstream myfile ("TunerResults.cu");
+  if (myfile.is_open()) {
+    long long fft_length = 16 * 8;
+    for(int i=0; i<static_cast<int>(warp_amount.size()); i++){
+      fft_length = fft_length * 2;
+      myfile << fft_length << " "
+             << transpose_blocksize[i] << " "
+             << dft_warp_amount[i] << " "
+             << r16_warp_amount[i] << " "
+             << r2_blocksize[i] << "\n";
+    }
+    myfile.close();
+  } else {
+    return "Error! Unable to open file.";
+  }
+  return std::nullopt;
+}

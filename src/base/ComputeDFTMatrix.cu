@@ -16,7 +16,8 @@ __global__ void ComputeDFTMatrix(__half* dft_matrix_batch_RE,
   int row_id = inter_matrix_id % 16;
   int collum_id = inter_matrix_id / 16;
 
-  float phase = (static_cast<float>(2 * row_id * collum_id) * M_PI) / 16.0;
+  //phi=2Pi*k*l/16
+  float phase = (static_cast<float>(row_id * collum_id) * M_PI) / 8.0;
   dft_matrix_batch_RE[thread_id] = __float2half(cos(phase));
   dft_matrix_batch_IM[thread_id] = __float2half(-sin(phase));
 }

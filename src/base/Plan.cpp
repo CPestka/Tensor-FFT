@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 #include <optional>
+#include <fstream>
+#include <sstream>
 
 //Holds the neccesary info for the computation of a fft of a given length.
 //Use CreatePlan() to obtain a plan.
@@ -170,3 +172,59 @@ std::optional<Plan> CreatePlan(int fft_length, int transposer_blocksize,
 }
 
 //TODO: overload that reads optimized parameters from file
+std::optional<Plan> CreatePlan(int fft_length, std::string tuner_results_file){
+  int transpose_blocksize;
+  int dft_warp_amount;
+  int r16_warp_amount;
+  int r2_blocksize;
+
+  std::string line;
+  std::ifstream file(tuner_results_file);
+
+  if (file.is_open()) {
+    while (std::getline(file, line)){
+      bool found_correct_fft_length = false;
+
+      std::stringstream ss;
+      std::string tmp;
+
+      ss << line;
+      ss >> tmp;
+
+      if (std::stoi(tmp) == fft_length) {
+        found_correct_fft_length = true;
+
+        tmp = "";
+        ss >> tmp;
+        transpose_blocksize = std::stoi(tmp);
+
+        tmp = "";
+        ss >> tmp;
+        dft_warp_amount = std::stoi(tmp);
+
+        tmp = "";
+        ss >> tmp;
+        r16_warp_amount = std::stoi(tmp);
+
+        tmp = "";
+        ss >> tmp;
+        r2_blocksize = std::stoi(tmp);
+      }
+
+      if (found_correct_fft_length) {
+        break;
+      }
+    }
+
+    if (!found_correct_fft_length) {
+      std::cout << "Error! Tuner file didnt contain requested fft length."
+                << std::endl;
+      return std::nullopt;
+    }
+  } else {
+    return "Error! Failed to open tuner file.";
+  }
+
+  return CreatePlan(fft_length, transpose_blocksize, dft_warp_amount,
+                    r16_warp_amount, r2_blocksize);
+}
