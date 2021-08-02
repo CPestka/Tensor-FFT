@@ -51,7 +51,7 @@ int main(){
 
     std::vector<float> weights;
     weights.push_back(1.0);
-    std::unique_ptr<__half[]> data =
+    std::unique_ptr<__half2[]> data =
         CreateSineSuperpostionH2(fft_length.back(),  weights);
 
     std::vector<double> runtime;
@@ -66,7 +66,8 @@ int main(){
 
     r = cufftCreate(&plan);
     if (r != CUFFT_SUCCESS) {
-      return "Error! Plan creation failed.";
+      std::cout << "Error! Plan creation failed." << std::endl;
+      return false;
     }
 
     size_t size = 0;
@@ -74,11 +75,12 @@ int main(){
                             CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F, 1, &size,
                             CUDA_C_16F);
     if (r != CUFFT_SUCCESS) {
-      return "Error! Plan creation failed.";
+      std::cout << "Error! Plan creation failed." << std::endl;
+      return false;
     }
 
     for(int k=0; k<sample_size + warmup_samples; k++){
-      cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
+      cudaMemcpy(dptr_data, data.get(), fft_length.back() * sizeof(__half2),
                  cudaMemcpyHostToDevice);
 
       cudaDeviceSynchronize();
@@ -87,7 +89,8 @@ int main(){
 
       r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
       if (r != CUFFT_SUCCESS) {
-        return "Error! Plan execution failed.";
+        std::cout << "Error! Plan execution failed." << std::endl;
+        return false;
       }
 
       cudaDeviceSynchronize();
