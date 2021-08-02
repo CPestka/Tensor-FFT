@@ -37,12 +37,12 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
 
   //Combine FFTs
   output_data_RE[memory_point1_offset] =
-      input_data_RE[memory_point1_offset] + modified_point2_RE;
+      __hmul(input_data_RE[memory_point1_offset] + modified_point2_RE, 0.5);
   output_data_IM[memory_point1_offset] =
-      input_data_IM[memory_point1_offset] + modified_point2_IM;
+      __hmul(input_data_IM[memory_point1_offset] + modified_point2_IM, 0.5);
 
   output_data_RE[memory_point2_offset] =
-      input_data_RE[memory_point1_offset] - modified_point2_RE;
+      __hmul(input_data_RE[memory_point1_offset] - modified_point2_RE, 0.5);
   output_data_IM[memory_point2_offset] =
-      input_data_IM[memory_point1_offset] - modified_point2_IM;
+      __hmul(input_data_IM[memory_point1_offset] - modified_point2_IM, 0.5);
 }

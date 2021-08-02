@@ -279,8 +279,8 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     output_data_RE[global_memory_offset] =
-        buffer_RE[buffer_matrix_memory_offset];
+        __hdiv(buffer_RE[buffer_matrix_memory_offset], 4096);
     output_data_IM[global_memory_offset] =
-        buffer_IM[buffer_matrix_memory_offset];
+        __hdiv(buffer_IM[buffer_matrix_memory_offset], 4096);
   }
 }
