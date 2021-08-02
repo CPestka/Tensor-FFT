@@ -181,10 +181,10 @@ std::optional<Plan> CreatePlan(int fft_length, std::string tuner_results_file){
   std::string line;
   std::ifstream file(tuner_results_file);
 
+  bool found_correct_fft_length = false;
+
   if (file.is_open()) {
     while (std::getline(file, line)){
-      bool found_correct_fft_length = false;
-
       std::stringstream ss;
       std::string tmp;
 
