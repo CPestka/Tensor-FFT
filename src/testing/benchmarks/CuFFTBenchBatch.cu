@@ -33,7 +33,7 @@ double ComputeSigma(std::vector<double> data, double average){
 }
 
 int main(){
-  int log_length_max = 29;
+  int log_length_max = 25;
   int sample_size = 200;
   int warmup_samples = 5;
   long long batch_size = 20;
