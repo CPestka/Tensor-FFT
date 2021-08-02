@@ -94,8 +94,8 @@ int main(){
   for(int i=8; i<=log_length_max; i++){
     fft_length = fft_length * 2;
 
-    int warp_amount_cap = (warp_max_cap * 32) > fft_length ?
-                          (fft_length / 32) : warp_max_cap;
+    int warp_amount_cap = (warp_max_cap * 256) > fft_length ?
+                          (fft_length / 256) : warp_max_cap;
 
     double runtime = 0;
     double tmp = 0;
