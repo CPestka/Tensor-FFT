@@ -65,13 +65,13 @@ int main(){
       return false;
     }
     */
-    if (CreatePlan(fft_length.back(), "../TunerResults.dat")) {
-      my_plan = CreatePlan(fft_length.back(), "../TunerResults.dat").value();
+    if (CreatePlan(fft_length.back(), "TunerResults.dat")) {
+      my_plan = CreatePlan(fft_length.back(), "TunerResults.dat").value();
     } else {
       std::cout << "Plan creation failed" << std::endl;
       return false;
     }
-    
+
     DataHandler my_handler(fft_length.back());
     error_mess = my_handler.PeakAtLastError();
     if (error_mess) {
