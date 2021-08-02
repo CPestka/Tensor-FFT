@@ -226,6 +226,6 @@ std::optional<Plan> CreatePlan(int fft_length, std::string tuner_results_file){
     return std::nullopt;
   }
 
-  return CreatePlan(fft_length, transpose_blocksize, dft_warp_amount,
-                    r16_warp_amount, r2_blocksize);
+  return std::move(CreatePlan(fft_length, transpose_blocksize, dft_warp_amount,
+                              r16_warp_amount, r2_blocksize));
 }
