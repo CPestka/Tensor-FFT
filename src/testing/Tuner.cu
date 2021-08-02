@@ -178,13 +178,13 @@ int main(){
         runtime = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
             fastest_r16_warp_counts.back(), fastest_dft_warp_counts.back(),
-            fastest_transpose_blocksize.back(), j * 32);
+            fastest_R2_blocksizes.back(), j * 32);
         fastest_warp_count = j;
       } else {
         tmp = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
             fastest_r16_warp_counts.back(), fastest_dft_warp_counts.back(),
-            fastest_transpose_blocksize.back(), j * 32);
+            fastest_R2_blocksizes.back(), j * 32);
         if (tmp < runtime) {
           runtime = tmp;
           fastest_warp_count = j;
