@@ -35,13 +35,15 @@ double GetAverageExecutionTime(int fft_length, int warmup_samples,
   std::vector<double> runtime;
 
   Plan my_plan;
-  if (CreatePlan(fft_length, transpose_blocksize, r16_warp_amount,
-                 r2_warp_amount, r2_blocksize)) {
+  if (CreatePlan(fft_length, transpose_blocksize, dft_warp_amount,
+                 r16_warp_amount, r2_blocksize)) {
     my_plan = CreatePlan(fft_length).value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
     return false;
   }
+
+  std::optional<std::string> error_mess;
 
   DataHandler my_handler(fft_length);
   error_mess = my_handler.PeakAtLastError();
@@ -183,8 +185,9 @@ int main(){
   }
 
   std::cout << WriteTunerResultsToFile(
-      fastest_warp_counts, fastest_R2_blocksizes,
-      fastest_transpose_blocksize).value_or("Tuner finished successfully")
+      fastest_transpose_blocksize, fastest_dft_warp_counts,
+      fastest_r16_warp_counts,
+      fastest_R2_blocksizes).value_or("Tuner finished successfully")
             << std::endl;
 
   return true;
