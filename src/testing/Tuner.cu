@@ -9,11 +9,11 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "../TestingDataCreation.cu"
-#include "../FileWriter.cu"
-#include "../Timer.h"
-#include "../../base/ComputeFFT.cu"
-#include "../../base/Plan.cpp"
+#include "TestingDataCreation.cu"
+#include "FileWriter.cu"
+#include "Timer.h"
+#include "../base/ComputeFFT.cu"
+#include "../base/Plan.cpp"
 
 double ComputeAverage(std::vector<double> data){
   double tmp = 0;
