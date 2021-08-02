@@ -86,13 +86,14 @@ int main(){
 
   long long fft_length = 16 * 8;
 
-  std::vector<int> fastest_transpose_blocksize;
+  std::vector<int> fastest_transpose_blocksizes;
   std::vector<int> fastest_dft_warp_counts;
   std::vector<int> fastest_r16_warp_counts;
   std::vector<int> fastest_R2_blocksizes;
 
   for(int i=8; i<=log_length_max; i++){
     fft_length = fft_length * 2;
+    std::cout << "Starting fft length: " << fft_length << std::endl;
 
     int warp_amount_cap = (warp_max_cap * 256) > fft_length ?
                           (fft_length / 256) : warp_max_cap;
@@ -101,7 +102,6 @@ int main(){
     double tmp = 0;
     int fastest_warp_count = 0;
 
-    std::cout << fft_length << std::endl;
     //Determine fastest r16 warp count
     for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
@@ -191,9 +191,8 @@ int main(){
     fastest_transpose_blocksizes.push_back(fastest_warp_count * 32);
   }
 
-  std::cout << "write to file " << std::endl;
   std::cout << WriteTunerResultsToFile(
-      fastest_transpose_blocksize, fastest_dft_warp_counts,
+      fastest_transpose_blocksizes, fastest_dft_warp_counts,
       fastest_r16_warp_counts,
       fastest_R2_blocksizes).value_or("Tuner finished successfully")
             << std::endl;
