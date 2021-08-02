@@ -222,7 +222,8 @@ std::optional<Plan> CreatePlan(int fft_length, std::string tuner_results_file){
       return std::nullopt;
     }
   } else {
-    return "Error! Failed to open tuner file.";
+    std::cout << "Error! Failed to open tuner file." << std::endl;
+    return std::nullopt;
   }
 
   return CreatePlan(fft_length, transpose_blocksize, dft_warp_amount,

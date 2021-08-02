@@ -37,7 +37,7 @@ int main(){
   }
 
   //Instead of the DataHandler class
-  DataBatchHandler my_handler(fft_length, batch size);
+  DataBatchHandler my_handler(fft_length, batch_size);
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
