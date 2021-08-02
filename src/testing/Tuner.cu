@@ -104,12 +104,16 @@ int main(){
     //Determine fastest r16 warp count
     for(int j=1; j<=warp_amount_cap; j++){
       if (j == 1) {
-        runtime = GetAverageExecutionTime(fft_length, warmup_samples,
-                                          sample_size, j, 4, 256, 256);
+        runtime = GetAverageExecutionTime(
+          fft_length, warmup_samples,sample_size, j,
+          warp_amount_cap < 4 ? warp_amount_cap : 4, 256,
+          fft_length < 1024 ? fft_length : 1024);
         fastest_warp_count = j;
       } else {
-        tmp = GetAverageExecutionTime(fft_length, warmup_samples, sample_size,
-                                      j, 4, 256, 256);
+        tmp = GetAverageExecutionTime(
+          fft_length, warmup_samples, sample_size, j,
+          warp_amount_cap < 4 ? warp_amount_cap : 4, 256,
+          fft_length < 1024 ? fft_length : 1024);
         if (tmp < runtime) {
           runtime = tmp;
           fastest_warp_count = j;
@@ -124,12 +128,14 @@ int main(){
       if (j == 1) {
         runtime = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
-            fastest_r16_warp_counts.back(), j, 256, 256);
+            fastest_r16_warp_counts.back(), j, 256,
+            fft_length < 1024 ? fft_length : 1024);
         fastest_warp_count = j;
       } else {
         tmp = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
-            fastest_r16_warp_counts.back(), j, 256, 256);
+            fastest_r16_warp_counts.back(), j, 256,
+            fft_length < 1024 ? fft_length : 1024);
         if (tmp < runtime) {
           runtime = tmp;
           fastest_warp_count = j;
@@ -145,13 +151,13 @@ int main(){
         runtime = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
             fastest_r16_warp_counts.back(), fastest_dft_warp_counts.back(),
-            j * 32, 256);
+            j * 32, fft_length < 1024 ? fft_length : 1024);
         fastest_warp_count = j;
       } else {
         tmp = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
             fastest_r16_warp_counts.back(), fastest_dft_warp_counts.back(),
-            j * 32, 256);
+            j * 32, fft_length < 1024 ? fft_length : 1024);
         if (tmp < runtime) {
           runtime = tmp;
           fastest_warp_count = j;
