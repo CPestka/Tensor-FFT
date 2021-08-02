@@ -182,7 +182,7 @@ std::optional<std::string> WriteTunerResultsToFile(
   std::ofstream myfile ("TunerResults.cu");
   if (myfile.is_open()) {
     long long fft_length = 16 * 8;
-    for(int i=0; i<static_cast<int>(warp_amount.size()); i++){
+    for(int i=0; i<static_cast<int>(dft_warp_amount.size()); i++){
       fft_length = fft_length * 2;
       myfile << fft_length << " "
              << transpose_blocksize[i] << " "
