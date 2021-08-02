@@ -127,7 +127,7 @@ int main(){
 
     std::cout << "Determining fastest 2" << std::endl;
     //Determine fastest dft warp count
-    for(int j=1; j<=warp_amount_cap; j++){
+    for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
         runtime = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
@@ -150,7 +150,7 @@ int main(){
 
     std::cout << "Determining fastest 3" << std::endl;
     //Determine fastest R2 blocksize
-    for(int j=1; j<=warp_amount_cap; j++){
+    for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
         runtime = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
@@ -173,7 +173,7 @@ int main(){
 
     std::cout << "Determining fastest 4" << std::endl;
     //Determine fastest transpose blocksize
-    for(int j=1; j<=warp_amount_cap; j++){
+    for(int j=1; j<=warp_amount_cap; j=j*2){
       if (j == 1) {
         runtime = GetAverageExecutionTime(
             fft_length, warmup_samples, sample_size,
