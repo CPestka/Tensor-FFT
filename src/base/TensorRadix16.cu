@@ -92,7 +92,7 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
   #pragma unroll
   for(int k=0; k<8; k++){
     int j = k + (8 * inter_warp_id_is_upper_16);
-    int memory_offset = (inter_warp_id_16 + 16*j);
+    int memory_offset = (inter_warp_id_16 + 16 * j);
     int global_memory_offset = warp_memory_offset + memory_offset;
 
     //Compute RE and IM of twiddle factors
@@ -149,8 +149,7 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                               __half* output_data_RE, __half* output_data_IM,
                               __half* dft_matrix_batch_RE,
                               __half* dft_matrix_batch_IM,
-                              int fft_length, int sub_fft_length,
-                              int current_radix16_step) {
+                              int fft_length, int sub_fft_length) {
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
