@@ -18,8 +18,8 @@
 
 
 int main(){
-  int fft_length = 16*16*16*16*16*16*2*2*2;
-  int batch_size = 25;
+  int fft_length = 16*16*16;
+  int batch_size = 20;
 
   std::vector<float> weights;
   weights.push_back(1.0);
@@ -57,6 +57,7 @@ int main(){
     return false;
   }
 
+  /*
   error_mess =
     my_handler.CopyResultsDeviceToHost(data.get(), my_plan.amount_of_r16_steps_,
                                        my_plan.amount_of_r2_steps_);
@@ -68,7 +69,8 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  //WriteResultBatchToFile( , fft_length, data.get());
+  WriteResultBatchToFile( , fft_length, data.get());
+  */
 
   return true;
 }

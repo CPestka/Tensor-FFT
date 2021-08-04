@@ -17,7 +17,7 @@
 
 
 int main(){
-  int fft_length = 16*16*16*16*16*16*2*2*2;
+  int fft_length = 16*16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
@@ -64,6 +64,7 @@ int main(){
     return false;
   }
 
+  /*
   //Copy results back
   error_mess =
     my_handler.CopyResultsDeviceToHost(data.get(), my_plan.amount_of_r16_steps_,
@@ -77,7 +78,8 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  //WriteResultsToFile("example_results.dat", fft_length, data.get());
+  WriteResultsToFile("example_results.dat", fft_length, data.get());
+  */
 
   return true;
 }
