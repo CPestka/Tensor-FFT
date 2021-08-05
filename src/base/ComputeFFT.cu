@@ -97,7 +97,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
                       shared_mem_in_bytes>>>(
           dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
           dptr_current_results_IM, data.dptr_dft_matrix_RE_,
-          data.dptr_dft_matrix_IM_, fft_plan.fft_length_, sub_fft_length, i);
+          data.dptr_dft_matrix_IM_, fft_plan.fft_length_, sub_fft_length);
     }
 
     //Update sub_fft_length
@@ -234,7 +234,7 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
             dptr_current_input_RE[i], dptr_current_input_IM[i],
             dptr_current_results_RE[i], dptr_current_results_IM[i],
             data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i],
-            fft_plan.fft_length_, sub_fft_length[i], j);
+            fft_plan.fft_length_, sub_fft_length[i]);
       }
 
       //Update sub_fft_length
@@ -358,7 +358,7 @@ std::optional<std::string> ComputeFFTMultiGPU(Plan &fft_plan,
             dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
             dptr_current_results_IM, data.dptr_dft_matrix_RE_[n],
             data.dptr_dft_matrix_IM_[n], fft_plan.fft_length_,
-            sub_fft_length, i);
+            sub_fft_length);
       }
 
       //Update sub_fft_length
@@ -495,7 +495,7 @@ std::optional<std::string> ComputeFFTsMultiGPU(Plan &fft_plan,
               dptr_current_input_RE[i], dptr_current_input_IM[i],
               dptr_current_results_RE[i], dptr_current_results_IM[i],
               data.dptr_dft_matrix_RE_[n][i], data.dptr_dft_matrix_IM_[n][i],
-              fft_plan.fft_length_, sub_fft_length[i], j);
+              fft_plan.fft_length_, sub_fft_length[i]);
         }
 
         //Update sub_fft_length
