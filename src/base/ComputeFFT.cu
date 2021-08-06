@@ -153,6 +153,9 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   int fft_shared_mem_amount =
       1024 * sizeof(__half) * fft_plan.amount_of_fft_warps_per_block_;
 
+  std::cout << fft_plan.fft_gridsize_ << " " << fft_plan.fft_blocksize_ << " "
+            << fft_shared_mem_amount << std::endl;
+
   TensorFFT<<<fft_plan.fft_gridsize_, fft_plan.fft_blocksize_,
               fft_shared_mem_amount>>>(
       data.dptr_input_RE_, data.dptr_input_IM_,
@@ -161,7 +164,6 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
       fft_plan.amount_of_r2_steps_);
 
   /*
-
   int sub_fft_length = 16;
   for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
     sub_fft_length = sub_fft_length * 16;
