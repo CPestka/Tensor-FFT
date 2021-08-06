@@ -168,7 +168,7 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
 
   cudaLaunchCooperativeKernel(TensorFFT, fft_plan.fft_gridsize_,
                               fft_plan.fft_blocksize_, args,
-                              fft_shared_mem_amount, 0);
+                              fft_shared_mem_amount);
 
   /*
   int sub_fft_length = 16;
