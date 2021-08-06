@@ -56,7 +56,10 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   for(int k=0; k<8; k++){
     int j = k + 8 * inter_warp_id_is_upper_16;
     int buffer_array_id = inter_warp_id_16 + 16 * j;
-    __half* phase = __hdiv(__hmul(j * inter_warp_id_16, M_PI), 8.0);
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(8.0));
     buffer_RE[buffer_array_id] = hcos(phase);
     buffer_IM[buffer_array_id] = -hsin(phase);
   }
