@@ -57,6 +57,8 @@ int main(){
     return false;
   }
 
+  cudaDeviceSynchronize();
+
   //Compute the FFT on the device
   error_mess = ComputeFFTAlt(my_plan, my_handler);
   if (error_mess) {
