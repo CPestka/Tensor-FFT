@@ -145,6 +145,69 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
   return std::nullopt;
 }
 
+//Computes a sigle FFT.
+//If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
+//using the async version below should increase performance.
+std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data){
+  int fft_shared_mem_amount =
+      1024 * sizeof(__half) * fft_plan.amount_of_fft_warps_per_block;
+
+  TensorFFT<<<fft_plan.fft_gridsize_, fft_plan.fft_blocksize_>>>(
+      data.dptr_input_RE, data.dptr_input_IM,
+      data.dptr_results_RE, data.dptr_results_IM,
+      fft_plan.fft_length_, fft_plan.amount_of_r16_steps_);
+
+  int sub_fft_length = 16;
+  for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
+    sub_fft_length = sub_fft_length * 16;
+  }
+
+  __half* dptr_current_input_RE;
+  __half* dptr_current_input_IM;
+  __half* dptr_current_results_RE;
+  __half* dptr_current_results_IM;
+
+  //Radix 2 kernels
+  for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
+    //For each step the input data is the output data of the previous step
+    if (((i + fft_plan.amount_of_r16_steps_) % 2) == 1) {
+      dptr_current_input_RE = data.dptr_results_RE_;
+      dptr_current_input_IM = data.dptr_results_IM_;
+      dptr_current_results_RE = data.dptr_input_RE_;
+      dptr_current_results_IM = data.dptr_input_IM_;
+    } else {
+      dptr_current_input_RE = data.dptr_input_RE_;
+      dptr_current_input_IM = data.dptr_input_IM_;
+      dptr_current_results_RE = data.dptr_results_RE_;
+      dptr_current_results_IM = data.dptr_results_IM_;
+    }
+
+    int remaining_sub_ffts = 1;
+    for(int k=0; k<fft_plan.amount_of_r2_steps_ - i; k++){
+      remaining_sub_ffts = remaining_sub_ffts * 2;
+    }
+
+    int r2_gridsize = sub_fft_length / fft_plan.r2_blocksize_;
+
+    //One radix2 kernel combines 2 subffts -> if there are still more than 2
+    //launch multiple kernels
+    for(int j=0; j<(remaining_sub_ffts/2); j++){
+      int memory_offset = j * 2 * sub_fft_length;
+      Radix2Kernel<<<r2_gridsize, fft_plan.r2_blocksize_>>>(
+          dptr_current_input_RE + memory_offset,
+          dptr_current_input_IM + memory_offset,
+          dptr_current_results_RE + memory_offset,
+          dptr_current_results_IM + memory_offset,
+          sub_fft_length);
+    }
+
+    //Update sub_fft_length
+    sub_fft_length = sub_fft_length * 2;
+  }
+
+  return std::nullopt;
+}
+
 //Similar to ComputeFFT() but accepts multiple ffts at a time. For each fft
 //respectively the corresponding memcpys and kernels are issued into one stream
 //respectively, which allows work for multiple ffts to be executed concurrently

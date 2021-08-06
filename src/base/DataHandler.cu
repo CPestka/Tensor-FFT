@@ -91,6 +91,75 @@ public:
   __half* dptr_dft_matrix_IM_;
 };
 
+//This calss is used to manage the memory on the device needed for the compution
+//of one FFT.
+//It is intended to be reused if multiple FFTs are to be performed sequentialy.
+//Instantiation results in the allocation of the needed memory and the
+//precomputation of the DFT matrices that are needed during the computaion.
+//The neccesary memcpys to and from the device before and after the computation
+//should be performed via the according methods of this class.
+//It is recommended to call PeakAtLastError() method after calling the
+//constructor to check if the construction was successfull.
+class AltDataHandler{
+public:
+  AltDataHandler(int fft_length) : fft_length_(fft_length) {
+    if (cudaMalloc((void**)(&dptr_data_), 4 * sizeof(__half) * fft_length_)
+        != cudaSuccess){
+       std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+    }
+    dptr_input_RE_ = dptr_data_;
+    dptr_input_IM_ = dptr_input_RE_ + fft_length_;
+    dptr_results_RE_ = dptr_input_IM_ + fft_length_;
+    dptr_results_IM_ = dptr_results_RE_ + fft_length_;
+  }
+
+  std::optional<std::string> PeakAtLastError() {
+    if (cudaPeekAtLastError() != cudaSuccess){
+      return cudaGetErrorString(cudaPeekAtLastError());
+    }
+    return std::nullopt;
+  }
+
+  std::optional<std::string> CopyDataHostToDevice(__half* data) {
+    if (cudaMemcpy(dptr_input_RE_, data, 2 * fft_length_ * sizeof(__half),
+                   cudaMemcpyHostToDevice)
+         != cudaSuccess) {
+       return cudaGetErrorString(cudaPeekAtLastError());
+    }
+
+    return std::nullopt;
+  }
+
+  std::optional<std::string> CopyResultsDeviceToHost(__half* data,
+                                                     int amount_of_r16_steps,
+                                                     int amount_of_r2_steps) {
+    __half* results;
+    if (((amount_of_r16_steps + amount_of_r2_steps) % 2) == 1) {
+      results = dptr_results_RE_;
+    } else {
+      results = dptr_input_RE_;
+    }
+    if (cudaMemcpy(data, results, 2 * fft_length_ * sizeof(__half),
+                   cudaMemcpyDeviceToHost)
+         != cudaSuccess) {
+       return cudaGetErrorString(cudaPeekAtLastError());
+    }
+
+    return std::nullopt;
+  }
+
+  ~AltDataHandler(){
+    cudaFree(dptr_data_);
+  }
+
+  int fft_length_;
+  __half* dptr_data_;
+  __half* dptr_input_RE_;
+  __half* dptr_input_IM_;
+  __half* dptr_results_RE_;
+  __half* dptr_results_IM_;
+};
+
 //Similar to the DataHandler class but is used for the async fft compution and
 //thus holds the data of the entire batch of ffts to be computed.
 class DataBatchHandler{

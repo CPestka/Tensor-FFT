@@ -25,6 +25,18 @@ struct Plan{
   int r2_blocksize_;
 };
 
+struct AltPlan{
+  int fft_length_;
+  int amount_of_r16_steps_;
+  int amount_of_r2_steps_;
+
+  int amount_of_fft_warps_per_block;
+  int fft_blocksize_;
+  int fft_gridsize_;
+
+  int r2_blocksize_;
+};
+
 bool IsPowerOf2(int x) {
   if (x==0){
     return false;
@@ -50,6 +62,37 @@ int ExactLog2(int x) {
     }
   }
 }
+
+std::optional<AltPlan> CreateAltPlan(int fft_length){
+  AltPlan my_plan;
+
+  if (!IsPowerOf2(fft_length)) {
+    std::cout << "Error! Input size has to be a power of 2!" << std::endl;
+    return std::nullopt;
+  }
+
+  int log2_of_fft_lenght = ExactLog2(fft_length);
+
+  if (log2_of_fft_lenght < 8) {
+    std::cout << "Error! Input size has to be larger than 256 i.e. 16^2"
+              << std::endl;
+    return std::nullopt;
+  }
+  my_plan.fft_length_ = fft_length;
+  my_plan.amount_of_r16_steps_ = (log2_of_fft_lenght / 4) - 1;
+  my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
+
+  int amount_of_fft_warps_ = fft_length / 256;
+  my_plan.amount_of_fft_warps_per_block = 8;
+
+  my_plan.fft_blocksize_ = 32 * amount_of_warps_per_block;
+  my_plan.fft_gridsize_ = fft_length / (amount_of_warps_per_block * 256);
+
+  my_plan.r2_blocksize_ = fft_length < 1024 : fft_length, 1024;
+
+  return std::move(my_plan);
+}
+
 
 //Prefered way to create a Plan for a fft of size fft_length. The other
 //parameters are performance parameters whos optimal value depends on the fft
