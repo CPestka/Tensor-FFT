@@ -177,7 +177,7 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   cudaStreamCreate(&stream);
 
 
-  cudaLaunchCooperativeKernel(TensorFFT, gridDim, blockDim, &(args[0]),
+  cudaLaunchCooperativeKernel(&TensorFFT, gridDim, blockDim, &(args[0]),
                               static_cast<size_t>(fft_shared_mem_amount), stream);
 
   /*
