@@ -33,6 +33,7 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   int inter_warp_id_16 = inter_warp_id % 16;
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
+  //4 dynamic shared memory buffers
   extern __shared__ __half buffer[];
   int warp_shared_memory_offset = 1024 * inter_block_warp_id;
   int warp_global_memory_offset = 256 * warp_id;
@@ -83,9 +84,9 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
 
   //Initialize the output to zero
-  wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
-  wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0f);
+  wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
+  wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0);
 
   //Compute x of input_data[x] for a given output_data[thread_id]
   //"Reverse process" of what is done in TransposeKernel(), in the sense that
@@ -120,8 +121,8 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   }
 
   //Load the inputs
-  wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
-  wmma::load_matrix_sync(dft_IM_frag, buffer_IM, 16);
+  wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
+  wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
 
   //
   //Perform DFT of length 16
@@ -191,9 +192,9 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
 
   //Initialize the output to zero
-  wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
-  wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0f);
+  wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
+  wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -235,6 +236,14 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
 
   int sub_fft_length = 256;
 
+  //As the algorithm from the first r16 step on stores the result in global
+  //memory, the input the next step is in place of the output of the previous
+  //one.
+  __half* current_input_data_RE = output_data_RE;
+  __half* current_input_data_IM = output_data_IM;
+  __half* current_output_data_RE = input_data_RE;
+  __half* current_output_data_IM = input_data_IM;
+
   for(int n=1; n<amount_of_r16_steps; n++){
     int combined_fft_length = sub_fft_length * 16;
     int amount_of_warps_pes_substep = sub_fft_length / 16;
@@ -269,13 +278,13 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
           __hdiv(__hmul(static_cast<__half>(2 * i * j),
                         static_cast<__half>(M_PI)),
                  static_cast<__half>(combined_fft_length));
-      //TO-SELF: test __cosf vs cos accuracy and speed
+      //TO-SELF: test cosf vs cos vs cosh etc. accuracy and speed
       __half twiddle_RE = hcos(phase);
       __half twiddle_IM = -hsin(phase);
 
       //Fetch current data once from global memory to use it twice
-      __half input_RE = input_data_RE[global_memory_offset];
-      __half input_IM = input_data_IM[global_memory_offset];
+      __half input_RE = current_input_data_RE[global_memory_offset];
+      __half input_IM = current_input_data_IM[global_memory_offset];
 
       //Store modified data to buffer arrays
       //mod_RE = RE*twid_RE - IM*twid_IM
@@ -291,9 +300,10 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
     wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
 
     //Initialize the output to zero
-    wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
-    wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
-    wmma::fill_fragment(accumulator_IM_frag, 0.0f);
+    wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
+    wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
+    wmma::fill_fragment(accumulator_IM_frag, 0.0);
+
 
     //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
     //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -330,12 +340,21 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
                                  substep_id * combined_fft_length;
       int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
-      output_data_RE[global_memory_offset] =
+      current_output_data_RE[global_memory_offset] =
           buffer_RE[buffer_matrix_memory_offset];
-      output_data_IM[global_memory_offset] =
+      current_output_data_IM[global_memory_offset] =
           buffer_IM[buffer_matrix_memory_offset];
     }
 
     sub_fft_length = combined_fft_length;
+
+    //Swap ptrs to in and output after computation finished
+    __half* tmp = current_input_data_RE;
+    current_input_data_RE = current_output_data_RE;
+    current_output_data_RE = tmp;
+
+    tmp = current_input_data_IM;
+    current_input_data_IM = current_output_data_IM;
+    current_output_data_IM = tmp;
   }
 }
