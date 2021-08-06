@@ -158,7 +158,7 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
 
   cudaFuncSetAttribute(TensorFFT,
                        cudaFuncAttributeMaxDynamicSharedMemorySize,
-                       shared_mem_in_bytes);
+                       fft_shared_mem_amount);
 
   TensorFFT<<<fft_plan.fft_gridsize_, fft_plan.fft_blocksize_,
               fft_shared_mem_amount>>>(
