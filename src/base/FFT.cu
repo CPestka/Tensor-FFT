@@ -190,6 +190,11 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
   wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
 
+  //Initialize the output to zero
+  wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
+  wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0f);
+
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
   //RE(A)xIM(B) + IM(A)xRE(B)
@@ -284,6 +289,11 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
     //Load the modified data from shared mem buffer
     wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
     wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
+
+    //Initialize the output to zero
+    wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
+    wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
+    wmma::fill_fragment(accumulator_IM_frag, 0.0f);
 
     //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
     //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
