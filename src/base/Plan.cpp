@@ -30,7 +30,7 @@ struct AltPlan{
   int amount_of_r16_steps_;
   int amount_of_r2_steps_;
 
-  int amount_of_fft_warps_per_block;
+  int amount_of_fft_warps_per_block_;
   int fft_blocksize_;
   int fft_gridsize_;
 
@@ -83,12 +83,12 @@ std::optional<AltPlan> CreateAltPlan(int fft_length){
   my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
 
   int amount_of_fft_warps_ = fft_length / 256;
-  my_plan.amount_of_fft_warps_per_block = 8;
+  my_plan.amount_of_fft_warps_per_block_ = 8;
 
-  my_plan.fft_blocksize_ = 32 * amount_of_warps_per_block;
+  my_plan.fft_blocksize_ = 32 * amount_of_fft_warps_per_block_;
   my_plan.fft_gridsize_ = fft_length / (amount_of_warps_per_block * 256);
 
-  my_plan.r2_blocksize_ = fft_length < 1024 : fft_length, 1024;
+  my_plan.r2_blocksize_ = fft_length < 1024 ? fft_length : 1024;
 
   return std::move(my_plan);
 }

@@ -31,6 +31,7 @@
 #include "Radix2.cu"
 #include "Plan.cpp"
 #include "DataHandler.cu"
+#include "FFT.cu"
 
 //Computes a sigle FFT.
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
@@ -152,9 +153,10 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   int fft_shared_mem_amount =
       1024 * sizeof(__half) * fft_plan.amount_of_fft_warps_per_block;
 
-  TensorFFT<<<fft_plan.fft_gridsize_, fft_plan.fft_blocksize_>>>(
-      data.dptr_input_RE, data.dptr_input_IM,
-      data.dptr_results_RE, data.dptr_results_IM,
+  TensorFFT<<<fft_plan.fft_gridsize_, fft_plan.fft_blocksize_,
+              fft_shared_mem_amount>>>(
+      data.dptr_input_RE_, data.dptr_input_IM_,
+      data.dptr_results_RE_, data.dptr_results_IM_,
       fft_plan.fft_length_, fft_plan.amount_of_r16_steps_);
 
   int sub_fft_length = 16;
