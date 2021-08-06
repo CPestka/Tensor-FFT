@@ -17,7 +17,7 @@
 
 
 int main(){
-  int fft_length = 16*16*16*16*2*2;
+  int fft_length = 16*16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
