@@ -85,8 +85,9 @@ std::optional<AltPlan> CreateAltPlan(int fft_length){
   int amount_of_fft_warps_ = fft_length / 256;
   my_plan.amount_of_fft_warps_per_block_ = 8;
 
-  my_plan.fft_blocksize_ = 32 * amount_of_fft_warps_per_block_;
-  my_plan.fft_gridsize_ = fft_length / (amount_of_warps_per_block * 256);
+  my_plan.fft_blocksize_ = 32 * my_plan.amount_of_fft_warps_per_block_;
+  my_plan.fft_gridsize_ =
+      fft_length / (my_plan.amount_of_fft_warps_per_block_ * 256);
 
   my_plan.r2_blocksize_ = fft_length < 1024 ? fft_length : 1024;
 
