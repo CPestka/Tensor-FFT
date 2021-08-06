@@ -157,24 +157,17 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   std::cout << fft_plan.fft_gridsize_ << " " << fft_plan.fft_blocksize_ << " "
             << fft_shared_mem_amount << std::endl;
 
-  void* args[7];
-  args[0] = (void*)&(data.dptr_input_RE_);
-  args[1] = (void*)&(data.dptr_input_IM_);
-  args[2] = (void*)&(data.dptr_results_RE_);
-  args[3] = (void*)&(data.dptr_results_IM_);
-  args[4] = (void*)&(fft_plan.fft_length_);
-  args[5] = (void*)&(fft_plan.amount_of_r16_steps_);
-  args[6] = (void*)&(fft_plan.amount_of_r2_steps_);
-  dim3 gridDim;
-  gridDim.x = fft_plan.fft_gridsize_;
-  gridDim.y = 0;
-  gridDim.z = 0;
-  dim3 blockDim;
-  blockDim.x = fft_plan.fft_blocksize_;
-  blockDim.y = 0;
-  blockDim.z = 0;
+  void* args[] = {
+    (void*)&(data.dptr_input_RE_), (void*)&(data.dptr_input_IM_),
+    (void*)&(data.dptr_results_RE_), (void*)&(data.dptr_results_IM_),
+    (void*)&(fft_plan.fft_length_), (void*)&(fft_plan.amount_of_r16_steps_),
+    (void*)&(fft_plan.amount_of_r2_steps_)
+  };
 
-  cudaLaunchCooperativeKernel((void*)TensorFFT, gridDim, blockDim, &(args[0]),
+  dim3 gridDim(fft_plan.fft_gridsize_, 1, 1);
+  dim3 blockDim(fft_plan.fft_blocksize_, 1, 1);
+  
+  cudaLaunchCooperativeKernel((void*)TensorFFT, gridDim, blockDim, args,
                               static_cast<size_t>(fft_shared_mem_amount), NULL);
 
   int sub_fft_length = 16;
@@ -224,7 +217,7 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 2;
   }
-  
+
   return std::nullopt;
 }
 
