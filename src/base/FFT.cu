@@ -25,7 +25,7 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
                           int fft_length, int amount_of_r16_steps,
                           int amount_of_r2_steps){
   cooperative_groups::grid_group group = cooperative_groups::this_grid();
-  
+
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -118,8 +118,10 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
       input_array_id = (2 * input_array_id) + (tmp_id % 2);
     }
 
-    buffer_RE[buffer_array_id] = input_data_RE[input_array_id];
-    buffer_IM[buffer_array_id] = input_data_IM[input_array_id];
+    buffer_RE[buffer_array_id] = __hdiv(input_data_RE[input_array_id],
+                                        static_cast<__half>(fft_length));
+    buffer_IM[buffer_array_id] = __hdiv(input_data_IM[input_array_id],
+                                        static_cast<__half>(fft_length));
   }
 
   //Load the inputs
