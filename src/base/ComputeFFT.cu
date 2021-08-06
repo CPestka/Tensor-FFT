@@ -160,6 +160,8 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
       fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
       fft_plan.amount_of_r2_steps_);
 
+  /*
+
   int sub_fft_length = 16;
   for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
     sub_fft_length = sub_fft_length * 16;
@@ -207,7 +209,7 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 2;
   }
-
+  */
   return std::nullopt;
 }
 
