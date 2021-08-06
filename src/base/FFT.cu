@@ -22,7 +22,8 @@ using namespace nvcuda;
 
 __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
                           __half* output_data_RE, __half* output_data_IM,
-                          int fft_length, int amount_of_r16_steps){
+                          int fft_length, int amount_of_r16_steps,
+                          int amount_of_r2_steps){
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -164,7 +165,10 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
     int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
 
     //Compute RE and IM of twiddle factors
-    __half phase = __hdiv(__hmul(inter_warp_id_16 * j, M_PI), 128.0);
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(128.0));
     //TO-SELF: test __cosf vs cos accuracy and speed
     __half twiddle_RE = hcos(phase);
     __half twiddle_IM = -hsin(phase);
@@ -183,19 +187,19 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
   }
 
   //Load the modified data from shared mem buffer
-  wmma::load_matrix_sync(data_RE_frag_transposed, buffer_tmp_RE, 16);
-  wmma::load_matrix_sync(data_IM_frag_transposed, buffer_tmp_IM, 16);
+  wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
+  wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
   //RE(A)xIM(B) + IM(A)xRE(B)
-  wmma::mma_sync(accumulator_RE_1_frag, dft_RE_frag, data_RE_frag_transposed,
+  wmma::mma_sync(accumulator_RE_1_frag, dft_RE_frag, data_RE_frag,
                  accumulator_RE_1_frag);
-  wmma::mma_sync(accumulator_RE_2_frag, dft_IM_frag, data_IM_frag_transposed,
+  wmma::mma_sync(accumulator_RE_2_frag, dft_IM_frag, data_IM_frag,
                  accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_frag, dft_IM_frag, data_RE_frag_transposed,
+  wmma::mma_sync(accumulator_IM_frag, dft_IM_frag, data_RE_frag,
                  accumulator_IM_frag);
-  wmma::mma_sync(accumulator_IM_frag, dft_RE_frag, data_IM_frag_transposed,
+  wmma::mma_sync(accumulator_IM_frag, dft_RE_frag, data_IM_frag,
                  accumulator_IM_frag);
 
 
@@ -255,7 +259,10 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
       int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
       //Compute twiddle factors
-      __half phase = __hdiv(__hmul(2 * i * j, M_PI), combined_fft_length);
+      __half phase =
+          __hdiv(__hmul(static_cast<__half>(2 * i * j),
+                        static_cast<__half>(M_PI)),
+                 static_cast<__half>(combined_fft_length));
       //TO-SELF: test __cosf vs cos accuracy and speed
       __half twiddle_RE = hcos(phase);
       __half twiddle_IM = -hsin(phase);
