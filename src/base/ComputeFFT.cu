@@ -165,9 +165,17 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   args[4] = (void*)&(fft_plan.fft_length_);
   args[5] = (void*)&(fft_plan.amount_of_r16_steps_);
   args[6] = (void*)&(fft_plan.amount_of_r2_steps_);
+  dim3 gridDim;
+  gridDim.x = fft_plan.fft_gridsize_;
+  gridDim.y = 0;
+  gridDim.z = 0;
+  dim3 blockDim;
+  blockDim.x = fft_plan.fft_blocksize_;
+  blockDim.y = 0;
+  blockDim.z = 0;
 
-  cudaLaunchCooperativeKernel(TensorFFT, fft_plan.fft_gridsize_,
-                              fft_plan.fft_blocksize_, args,
+
+  cudaLaunchCooperativeKernel(TensorFFT, gridDim, blockDim, &(args[0]),
                               fft_shared_mem_amount);
 
   /*
