@@ -173,10 +173,12 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   blockDim.x = fft_plan.fft_blocksize_;
   blockDim.y = 0;
   blockDim.z = 0;
+  cudaStream_t stream;
+  cudaStreamCreate(&stream);
 
 
   cudaLaunchCooperativeKernel(TensorFFT, gridDim, blockDim, &(args[0]),
-                              static_cast<size_t>(fft_shared_mem_amount), NULL);
+                              static_cast<size_t>(fft_shared_mem_amount), stream);
 
   /*
   int sub_fft_length = 16;
