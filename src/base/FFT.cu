@@ -24,6 +24,8 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
                           __half* output_data_RE, __half* output_data_IM,
                           int fft_length, int amount_of_r16_steps,
                           int amount_of_r2_steps){
+  cooperative_groups::grid_group group = cooperative_groups::this_grid();
+  
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -251,7 +253,6 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
     int substep_id = warp_id / amount_of_warps_pes_substep;
 
     //SynchBarier for all threads across all blocks
-    cooperative_groups::grid_group group = cooperative_groups::this_grid();
     group.sync();
 
     //Each of the 32 threads pre warp loads 8 (8*32=16*16) data

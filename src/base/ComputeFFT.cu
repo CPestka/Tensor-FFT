@@ -24,6 +24,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include <cooperative_groups.h>
 
 #include "Transposer.cu"
 #include "TensorDFT16.cu"
@@ -156,16 +157,18 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
   std::cout << fft_plan.fft_gridsize_ << " " << fft_plan.fft_blocksize_ << " "
             << fft_shared_mem_amount << std::endl;
 
-  cudaFuncSetAttribute(TensorFFT,
-                       cudaFuncAttributeMaxDynamicSharedMemorySize,
-                       fft_shared_mem_amount);
+  void* args[7];
+  args[0] = (void*)&(data.dptr_input_RE_);
+  args[1] = (void*)&(data.dptr_input_IM_);
+  args[2] = (void*)&(data.dptr_results_RE_);
+  args[3] = (void*)&(data.dptr_results_IM_);
+  args[4] = (void*)&(fft_plan.fft_length_);
+  args[5] = (void*)&(fft_plan.amount_of_r16_steps_);
+  args[6] = (void*)&(fft_plan.amount_of_r2_steps_);
 
-  TensorFFT<<<fft_plan.fft_gridsize_, fft_plan.fft_blocksize_,
-              fft_shared_mem_amount>>>(
-      data.dptr_input_RE_, data.dptr_input_IM_,
-      data.dptr_results_RE_, data.dptr_results_IM_,
-      fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
-      fft_plan.amount_of_r2_steps_);
+  cudaLaunchCooperativeKernel(TensorFFT, fft_plan.fft_gridsize_,
+                              fft_plan.fft_blocksize_, args,
+                              fft_shared_mem_amount, 0);
 
   /*
   int sub_fft_length = 16;
