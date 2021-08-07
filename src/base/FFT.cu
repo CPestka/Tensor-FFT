@@ -118,10 +118,8 @@ __global__ void TensorFFT(__half* input_data_RE, __half* input_data_IM,
       input_array_id = (2 * input_array_id) + (tmp_id % 2);
     }
 
-    buffer_RE[buffer_array_id] = __hdiv(input_data_RE[input_array_id],
-                                        static_cast<__half>(fft_length));
-    buffer_IM[buffer_array_id] = __hdiv(input_data_IM[input_array_id],
-                                        static_cast<__half>(fft_length));
+    buffer_RE[buffer_array_id] = input_data_RE[input_array_id];
+    buffer_IM[buffer_array_id] = input_data_IM[input_array_id];
   }
 
   //Load the inputs

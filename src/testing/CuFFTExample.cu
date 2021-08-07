@@ -9,7 +9,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "../TestingDataCreation.cu"
+#include "TestingDataCreation.cu"
 
 int main(){
   long long fft_length = 16*16*16;
