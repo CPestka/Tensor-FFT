@@ -12,7 +12,7 @@
 #include "TestingDataCreation.cu"
 
 int main(){
-  long long fft_length = 16*16*16;
+  long long fft_length = 16*16*16*16*16;
 
   std::vector<float> weights;
   weights.push_back(1.0);
