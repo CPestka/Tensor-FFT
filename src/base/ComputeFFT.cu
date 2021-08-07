@@ -166,9 +166,12 @@ std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data
 
   dim3 gridDim(fft_plan.fft_gridsize_, 1, 1);
   dim3 blockDim(fft_plan.fft_blocksize_, 1, 1);
-  
-  cudaLaunchCooperativeKernel((void*)TensorFFT, gridDim, blockDim, args,
-                              static_cast<size_t>(fft_shared_mem_amount), NULL);
+
+  if (cudaLaunchCooperativeKernel(
+          (void*)TensorFFT, gridDim, blockDim, args,
+          static_cast<size_t>(fft_shared_mem_amount), NULL) != cudaSuccess) {
+    return cudaGetErrorString(cudaPeekAtLastError());
+  };
 
   int sub_fft_length = 16;
   for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
