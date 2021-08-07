@@ -64,6 +64,8 @@ int main(){
     return false;
   }
 
+  cudaDeviceSynchronize();
+
   /*
   //Copy results back
   error_mess =
