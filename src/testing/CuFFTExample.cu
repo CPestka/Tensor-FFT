@@ -49,6 +49,7 @@ int main(){
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan execution failed." << std::endl;
     return false;
+  }
 
   cufftDestroy(plan);
   cudaFree(dptr_results);
