@@ -12,7 +12,7 @@
 #include "TestingDataCreation.cu"
 
 int main(){
-  long long fft_length = 16*16*16*16*16;
+  long long fft_length = 16*16*16*16*16*16*2*2*2;
 
   std::vector<float> weights;
   weights.push_back(1.0);
@@ -50,6 +50,8 @@ int main(){
     std::cout << "Error! Plan execution failed." << std::endl;
     return false;
   }
+
+  cudaDeviceSynchronize();
 
   cufftDestroy(plan);
   cudaFree(dptr_results);
