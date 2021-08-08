@@ -25,7 +25,7 @@ __global__ void ComputeTwiddle(__half* output, int length_halfed){
         hcos(__hdiv(__hmul(static_cast<__half>(M_PI),
                            static_cast<__half>(thread_id * k)),
                     static_cast<__half>(length_halfed)));
-    output[thread_id + 128 * length_halfed + 32 * length_halfed] =
+    output[matrix_id + 128 * length_halfed + 32 * length_halfed] =
         hcos(__hdiv(__hmul(static_cast<__half>(M_PI),
                            static_cast<__half>(thread_id * k)),
                     static_cast<__half>(length_halfed)));
@@ -50,7 +50,7 @@ int main() {
 
   cudaDeviceSynchronize();
 
-  /*
+  
   for(int i=0; i<n*m; i++){
     double fp32_trig_RE = results[i];
     double fp32_trig_IM = results[i + (n*m)];
@@ -75,7 +75,7 @@ int main() {
       std::cout << "2_IM" << std::endl;
     }
   }
-  */
+
   std::cout << "cos(): RE" << std::endl;
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
