@@ -3,6 +3,10 @@
 #include <fstream>
 #include <string>
 
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cuda_fp16.h>
+
 int main() {
   constexpr int n = 16;
   constexpr int m = 16;
