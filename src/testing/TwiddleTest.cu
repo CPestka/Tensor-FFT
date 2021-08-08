@@ -20,11 +20,11 @@ __global__ void TwiddleTest(__half* output, int length_halfed){
         static_cast<__half>(-sinf((M_PI * thread_id * k)/length_halfed));
 
     output[thread_id + 128 * length_halfed] =
-        cosh(__hdiv(__hmul(static_cast<__half>(M_PI),
+        hcos(__hdiv(__hmul(static_cast<__half>(M_PI),
                            static_cast<__half>(thread_id * k)),
-                    static_cast<__half>(length_halfed));
+                    static_cast<__half>(length_halfed)));
     output[thread_id + 128 * length_halfed + 32 * length_halfed] =
-        cosh(__hdiv(__hmul(static_cast<__half>(M_PI),
+        hcos(__hdiv(__hmul(static_cast<__half>(M_PI),
                            static_cast<__half>(thread_id * k)),
                     static_cast<__half>(length_halfed));
   }
@@ -76,7 +76,7 @@ int main() {
 
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
-      std::cout << results[j + (i * m)] << "\t"
+      std::cout << results[j + (i * m)] << "\t";
     }
     std::cout << std::endl;
   }
