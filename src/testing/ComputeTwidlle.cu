@@ -33,15 +33,15 @@ int main() {
       for(int i=0; i<m; i++){
         myfile << static_cast<double>(twiddle[i + (j * m)]) << ", ";
       }
-      myfile << "/n";
+      myfile << "\n";
     }
 
-    myfile << "/n";
+    myfile << "\n";
     for(int j=0; j<n; j++){
       for(int i=0; i<m; i++){
         myfile << static_cast<double>(twiddle[i + (j * m) + (m * n)]) << ", ";
       }
-      myfile << "/n";
+      myfile << "\n";
     }
 
     myfile.close();
