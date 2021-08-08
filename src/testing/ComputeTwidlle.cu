@@ -39,7 +39,7 @@ int main() {
     myfile << "/n";
     for(int j=0; j<n; j++){
       for(int i=0; i<m; i++){
-        file_name << static_cast<double>(twiddle[i + (j * m) + (m * n)]) << ", ";
+        myfile << static_cast<double>(twiddle[i + (j * m) + (m * n)]) << ", ";
       }
       myfile << "/n";
     }
