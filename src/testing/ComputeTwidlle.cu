@@ -2,6 +2,7 @@
 #include <memory>
 #include <fstream>
 #include <string>
+#include <iomanip>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
