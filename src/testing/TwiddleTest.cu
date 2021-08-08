@@ -75,7 +75,7 @@ int main() {
 
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
-      std::cout << results[j + (i * m)] << "\t";
+      std::cout << static_cast<double>(results[j + (i * m)]) << "\t";
     }
     std::cout << std::endl;
   }
