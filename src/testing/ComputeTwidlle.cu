@@ -28,20 +28,20 @@ int main() {
       (((("twiddle_" + std::to_string(n)) + "_") + std::to_string(m)) + ".dat");
   std::ofstream myfile (file_name);
   if (myfile.is_open()) {
-    file_name << std::setprecision(20);
+    myfile << std::setprecision(20);
     for(int j=0; j<n; j++){
       for(int i=0; i<m; i++){
-        file_name << static_cast<double>(twiddle[i + (j * m)]) << ", ";
+        myfile << static_cast<double>(twiddle[i + (j * m)]) << ", ";
       }
-      file_name << "/n";
+      myfile << "/n";
     }
 
-    file_name << "/n";
+    myfile << "/n";
     for(int j=0; j<n; j++){
       for(int i=0; i<m; i++){
         file_name << static_cast<double>(twiddle[i + (j * m) + (m * n)]) << ", ";
       }
-      file_name << "/n";
+      myfile << "/n";
     }
 
     myfile.close();
