@@ -26,7 +26,7 @@ __global__ void TwiddleTest(__half* output, int length_halfed){
     output[thread_id + 128 * length_halfed + 32 * length_halfed] =
         hcos(__hdiv(__hmul(static_cast<__half>(M_PI),
                            static_cast<__half>(thread_id * k)),
-                    static_cast<__half>(length_halfed));
+                    static_cast<__half>(length_halfed)));
   }
 
 }
