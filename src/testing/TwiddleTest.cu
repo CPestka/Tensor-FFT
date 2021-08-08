@@ -9,17 +9,19 @@ __global__ void ComputeTwiddle(__half* output, int length_halfed){
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
 
   for(int k=0; k<16; k++){
-    output[thread_id] =
+    int matrix_id = k + 16 * thread_id;
+
+    output[matrix_id] =
         static_cast<__half>(cos((M_PI * thread_id * k)/length_halfed));
-    output[thread_id + 32 * length_halfed] =
+    output[matrix_id + 32 * length_halfed] =
         static_cast<__half>(-sin((M_PI * thread_id * k)/length_halfed));
 
-    output[thread_id + 64 * length_halfed] =
+    output[matrix_id + 64 * length_halfed] =
         static_cast<__half>(cosf((M_PI * thread_id * k)/length_halfed));
-    output[thread_id + 64 * length_halfed + 32 * length_halfed] =
+    output[matrix_id + 64 * length_halfed + 32 * length_halfed] =
         static_cast<__half>(-sinf((M_PI * thread_id * k)/length_halfed));
 
-    output[thread_id + 128 * length_halfed] =
+    output[matrix_id + 128 * length_halfed] =
         hcos(__hdiv(__hmul(static_cast<__half>(M_PI),
                            static_cast<__half>(thread_id * k)),
                     static_cast<__half>(length_halfed)));
@@ -76,6 +78,12 @@ int main() {
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
       std::cout << static_cast<double>(results[j + (i * m)]) << "\t";
+    }
+    std::cout << std::endl;
+  }
+  for(int i=0; i<n; i++){
+    for(int j=0; j<m; j++){
+      std::cout << static_cast<double>(results[j + (i * m) + (n * m)]) << "\t";
     }
     std::cout << std::endl;
   }
