@@ -1,9 +1,9 @@
 #include <iostream>
 #include <memory>
 
-#include <cuda_fp16.h>
-#include <cuda_runtime.h>
 #include <cuda.h>
+#include <cuda_runtime.h>
+#include <cuda_fp16.h>
 
 __global__ void Twiddle(__half* output, int length_halfed){
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -28,7 +28,6 @@ __global__ void Twiddle(__half* output, int length_halfed){
                            static_cast<__half>(thread_id * k)),
                     static_cast<__half>(length_halfed)));
   }
-
 }
 
 int main() {
