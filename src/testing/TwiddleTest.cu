@@ -50,6 +50,7 @@ int main() {
 
   cudaDeviceSynchronize();
 
+  /*
   for(int i=0; i<n*m; i++){
     double fp32_trig_RE = results[i];
     double fp32_trig_IM = results[i + (n*m)];
@@ -74,16 +75,48 @@ int main() {
       std::cout << "2_IM" << std::endl;
     }
   }
-
+  */
+  std::cout << "cos(): RE" << std::endl;
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
       std::cout << static_cast<double>(results[j + (i * m)]) << "\t";
     }
     std::cout << std::endl;
   }
+  std::cout << "cos(): IM" << std::endl;
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
-      std::cout << static_cast<double>(results[j + (i * m) + (n * m)]) << "\t";
+      std::cout << static_cast<double>(results[j + (i * m) + (n*m)]) << "\t";
+    }
+    std::cout << std::endl;
+  }
+
+  std::cout << "cosf(): RE" << std::endl;
+  for(int i=0; i<n; i++){
+    for(int j=0; j<m; j++){
+      std::cout << static_cast<double>(results[j + (i * m) + (2*n*m)]) << "\t";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "cosf(): IM" << std::endl;
+  for(int i=0; i<n; i++){
+    for(int j=0; j<m; j++){
+      std::cout << static_cast<double>(results[j + (i * m) + (3*n*m)]) << "\t";
+    }
+    std::cout << std::endl;
+  }
+
+  std::cout << "hcos(): RE" << std::endl;
+  for(int i=0; i<n; i++){
+    for(int j=0; j<m; j++){
+      std::cout << static_cast<double>(results[j + (i * m) + (4*n*m)]) << "\t";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "hcos(): IM" << std::endl;
+  for(int i=0; i<n; i++){
+    for(int j=0; j<m; j++){
+      std::cout << static_cast<double>(results[j + (i * m) + (5*n*m)]) << "\t";
     }
     std::cout << std::endl;
   }
