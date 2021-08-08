@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-__global__ void Twiddle(__half* output, int length_halfed){
+__global__ void ComputeTwiddle(__half* output, int length_halfed){
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
 
   for(int k=0; k<16; k++){
@@ -39,7 +39,7 @@ int main() {
   __half* dptr_results;
   cudaMalloc((void**)(&dptr_results), 3 * sizeof(__half) * 2 * n * m);
 
-  Twiddle<<<1, 16>>>(dptr_results, m/2);
+  ComputeTwiddle<<< 1, 16 >>>(dptr_results, m/2);
 
   cudaDeviceSynchronize();
 
