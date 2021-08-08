@@ -16,7 +16,7 @@ int main() {
 
   for(int i=0; i<n; i++){
     for(int j=0; j<m; j++){
-      double phase = (2 * M_PI * j * i) / (n * m);
+      double phase = (2 * M_PI * j * i) / n;
       double re = cos(phase);
       double im = -sin(phase);
       twiddle[j + (m * i)] = static_cast<__half>(re);
