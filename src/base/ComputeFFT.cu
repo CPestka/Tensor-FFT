@@ -98,8 +98,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
                       32 * fft_plan.r16_warps_per_block_,
                       shared_mem_in_bytes>>>(
           dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
-          dptr_current_results_IM, data.dptr_dft_matrix_RE_,
-          data.dptr_dft_matrix_IM_, fft_plan.fft_length_, sub_fft_length);
+          dptr_current_results_IM, fft_plan.fft_length_, sub_fft_length);
     }
 
     //Update sub_fft_length
@@ -153,7 +152,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data){
   TensorFFT256<<<fft_plan.fft256_gridsize_, fft_plan.fft256_blocksize_>>>(
       data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
-      data.dptr_results_IM, fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
+      data.dptr_results_IM_, fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
       fft_plan.amount_of_r2_steps_);
 
   __half* dptr_current_input_RE;
@@ -315,7 +314,6 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
                        shared_mem_in_bytes, streams[i]>>>(
             dptr_current_input_RE[i], dptr_current_input_IM[i],
             dptr_current_results_RE[i], dptr_current_results_IM[i],
-            data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i],
             fft_plan.fft_length_, sub_fft_length[i]);
       }
 
@@ -438,9 +436,7 @@ std::optional<std::string> ComputeFFTMultiGPU(Plan &fft_plan,
                         32 * fft_plan.r16_warps_per_block_,
                         shared_mem_in_bytes>>>(
             dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
-            dptr_current_results_IM, data.dptr_dft_matrix_RE_[n],
-            data.dptr_dft_matrix_IM_[n], fft_plan.fft_length_,
-            sub_fft_length);
+            dptr_current_results_IM, fft_plan.fft_length_, sub_fft_length);
       }
 
       //Update sub_fft_length
@@ -576,7 +572,6 @@ std::optional<std::string> ComputeFFTsMultiGPU(Plan &fft_plan,
                          shared_mem_in_bytes, streams[i]>>>(
               dptr_current_input_RE[i], dptr_current_input_IM[i],
               dptr_current_results_RE[i], dptr_current_results_IM[i],
-              data.dptr_dft_matrix_RE_[n][i], data.dptr_dft_matrix_IM_[n][i],
               fft_plan.fft_length_, sub_fft_length[i]);
         }
 
