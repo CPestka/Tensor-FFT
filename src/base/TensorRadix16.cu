@@ -147,8 +147,6 @@ __global__ void Radix16KernelFirstStep(__half* input_data_RE,
 //m>0
 __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
                               __half* output_data_RE, __half* output_data_IM,
-                              __half* dft_matrix_batch_RE,
-                              __half* dft_matrix_batch_IM,
                               int fft_length, int sub_fft_length) {
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   int warp_id = thread_id / 32;

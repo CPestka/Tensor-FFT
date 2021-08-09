@@ -32,7 +32,7 @@
 #include "Radix2.cu"
 #include "Plan.cpp"
 #include "DataHandler.cu"
-#include "FFT.cu"
+#include "TensorFFT256.cu"
 
 //Computes a sigle FFT.
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
