@@ -26,6 +26,14 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   __half phase =
       __hdiv(__hmul(static_cast<__half>(-M_PI),
                     static_cast<__half>(memory_point1_offset)), sub_fft_length);
+  //Modulo version for higher accuracy
+  /*
+  __half phase =
+      __hdiv(__hmul(static_cast<__half>(memory_point1_offset %
+                                        (sub_fft_length * 2)),
+                    static_cast<__half>(-M_PI)),
+             static_cast<__half>(8.0));
+  */
   __half twiddle_RE = hcos(phase);
   __half twiddle_IM = hsin(phase);
 
@@ -47,4 +55,21 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
       input_data_RE[memory_point1_offset] - modified_point2_RE;
   output_data_IM[memory_point2_offset] =
       input_data_IM[memory_point1_offset] - modified_point2_IM;
+
+  //For sequential scaling
+  /*
+  output_data_RE[memory_point1_offset] =
+      __hmul(input_data_RE[memory_point1_offset] + modified_point2_RE,
+             static_cast<__half>(0.5));
+  output_data_IM[memory_point1_offset] =
+      __hmul(input_data_IM[memory_point1_offset] + modified_point2_IM,
+             static_cast<__half>(0.5));
+
+  output_data_RE[memory_point2_offset] =
+      __hmul(input_data_RE[memory_point1_offset] - modified_point2_RE,
+             static_cast<__half>(0.5));
+  output_data_IM[memory_point2_offset] =
+      __hmul(input_data_IM[memory_point1_offset] - modified_point2_IM,
+             static_cast<__half>(0.5));
+  */
 }

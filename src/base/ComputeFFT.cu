@@ -151,37 +151,40 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
 //using the async version below should increase performance.
 std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data){
-  int fft_shared_mem_amount =
-      1024 * sizeof(__half) * fft_plan.amount_of_fft_warps_per_block_;
-
-  std::cout << fft_plan.fft_gridsize_ << " " << fft_plan.fft_blocksize_ << " "
-            << fft_shared_mem_amount << std::endl;
-
-  void* args[] = {
-    (void*)&(data.dptr_input_RE_), (void*)&(data.dptr_input_IM_),
-    (void*)&(data.dptr_results_RE_), (void*)&(data.dptr_results_IM_),
-    (void*)&(fft_plan.fft_length_), (void*)&(fft_plan.amount_of_r16_steps_),
-    (void*)&(fft_plan.amount_of_r2_steps_)
-  };
-
-  dim3 gridDim(fft_plan.fft_gridsize_, 1, 1);
-  dim3 blockDim(fft_plan.fft_blocksize_, 1, 1);
-
-  if (cudaLaunchCooperativeKernel(
-          (void*)TensorFFT, gridDim, blockDim, args,
-          static_cast<size_t>(fft_shared_mem_amount), NULL) != cudaSuccess) {
-    return cudaGetErrorString(cudaPeekAtLastError());
-  };
-
-  int sub_fft_length = 16;
-  for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
-    sub_fft_length = sub_fft_length * 16;
-  }
+  TensorFFT256<<<fft_plan.fft256_gridsize_, fft_plan.fft256_blocksize_>>>(
+      data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
+      data.dptr_results_IM, fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
+      fft_plan.amount_of_r2_steps_);
 
   __half* dptr_current_input_RE;
   __half* dptr_current_input_IM;
   __half* dptr_current_results_RE;
   __half* dptr_current_results_IM;
+
+  int sub_fft_length = 256;
+
+  //Launch radix16 kernels
+  for(int i=1; i<fft_plan.amount_of_r16_steps_; i++){
+    //For each step the input data is the output data of the previous step
+    if ((i % 2) == 1) {
+      dptr_current_input_RE = data.dptr_results_RE_;
+      dptr_current_input_IM = data.dptr_results_IM_;
+      dptr_current_results_RE = data.dptr_input_RE_;
+      dptr_current_results_IM = data.dptr_input_IM_;
+    } else {
+      dptr_current_input_RE = data.dptr_input_RE_;
+      dptr_current_input_IM = data.dptr_input_IM_;
+      dptr_current_results_RE = data.dptr_results_RE_;
+      dptr_current_results_IM = data.dptr_results_IM_;
+    }
+
+    Radix16Kernel<<<fft_plan.r16_gridsize_, fft_plan.r16_blocksize_>>>(
+        dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
+        dptr_current_results_IM, fft_plan.fft_length_, sub_fft_length);
+
+    //Update sub_fft_length
+    sub_fft_length = sub_fft_length * 16;
+  }
 
   //Radix 2 kernels
   for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){

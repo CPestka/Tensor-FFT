@@ -159,41 +159,210 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
   int inter_warp_id_16 = inter_warp_id % 16;
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
-  //Declare the fragments
-  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      data_RE_frag;
-  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      data_IM_frag;
+  int warp_global_memory_offset = 256 * warp_id;
+
+  __half buffer_RE[256];
+  __half buffer_IM[256];
+
   wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       dft_RE_frag;
   wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       dft_IM_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
 
-  //Initialize the output to zero
-  wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
-  wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0f);
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    int j = k + 8 * inter_warp_id_is_upper_16;
+    int buffer_array_id = inter_warp_id_16 + 16 * j;
+    //Modulo version for higher accuracy
+    /*
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>((j * inter_warp_id_16) % 16),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(8.0));
+    */
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(8.0));
+    buffer_RE[buffer_array_id] = hcos(phase);
+    buffer_IM[buffer_array_id] = -hsin(phase);
+  }
 
-  //Load the inputs
-  int warp_memory_offset = 256 * warp_id;
-  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_batch_RE + warp_memory_offset,
-                         16);
-  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_batch_IM + warp_memory_offset,
-                         16);
+  //Load DFT matrix into the according fragments
+  wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
+  wmma::load_matrix_sync(dft_IM_frag, buffer_IM, 16);
 
-  //Since fragments can only be accessed uniformly the reordering of the results
-  //when storing them back to memory can not be done directly with the fragments
-  //at all.
-  //Due to this purpose we utilize a shared memory buffer of size of the data
-  //for this block -> amount_of_warps_per_block * size_of_fragment (16*16) *
-  //2 (RE + IM) * sizeof(half); (blockdim.x / 32) = amount_of_warps_per_block
-  //For recomended amount_of_warps_per_block=4 -> 4kB -> ok on A100
-  extern __shared__ __half buffer[];
-  __half* buffer_RE = buffer + (512 * inter_block_warp_id);
-  __half* buffer_IM = buffer_RE + 256;
+  //Literal version of dft matrix. eqivalent to constexpr version of double cos
+  //or sin cast to __half with according phase
+  //Done this way sincve there is no constexpr version of trig func
+  /*
+  __half dft_matrix_RE[256] = {
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+
+    1, 0.923828125, 0.70703125, 0.382568359375,
+    0, -0.382568359375, -0.70703125, -0.923828125,
+    -1, -0.923828125, -0.70703125, -0.382568359375,
+    -0, 0.382568359375, 0.70703125, 0.923828125,
+
+    1, 0.70703125, 0, -0.70703125,
+    -1, -0.70703125, -0, 0.70703125,
+    1, 0.70703125, 0, -0.70703125,
+    -1, -0.70703125, -0, 0.70703125,
+
+    1, 0.382568359375, -0.70703125, -0.923828125,
+    -0, 0.923828125, 0.70703125, -0.382568359375,
+    -1, -0.382568359375, 0.70703125, 0.923828125,
+    0, -0.923828125, -0.70703125, 0.382568359375,
+
+    1, 0, -1, -0,
+    1, 0, -1, -0,
+    1, 0, -1, -0,
+    1, -0, -1, -0,
+
+    1, -0.382568359375, -0.70703125, 0.923828125,
+    0, -0.923828125, 0.70703125, 0.382568359375,
+    -1, 0.382568359375, 0.70703125, -0.923828125,
+    -0, 0.923828125, -0.70703125, -0.382568359375,
+
+    1, -0.70703125, -0, 0.70703125,
+    -1, 0.70703125, 0, -0.70703125,
+    1, -0.70703125, -0, 0.70703125,
+    -1, 0.70703125, -0, -0.70703125,
+
+    1, -0.923828125, 0.70703125, -0.382568359375,
+    -0, 0.382568359375, -0.70703125, 0.923828125,
+    -1, 0.923828125, -0.70703125, 0.382568359375,
+    -0, -0.382568359375, 0.70703125, -0.923828125,
+
+    1, -1, 1, -1,
+    1, -1, 1, -1,
+    1, -1, 1, -1,
+    1, -1, 1, -1,
+
+    1, -0.923828125, 0.70703125, -0.382568359375,
+    0, 0.382568359375, -0.70703125, 0.923828125,
+    -1, 0.923828125, -0.70703125, 0.382568359375,
+    -0, -0.382568359375, 0.70703125, -0.923828125,
+
+    1, -0.70703125, 0, 0.70703125,
+    -1, 0.70703125, -0, -0.70703125,
+    1, -0.70703125, -0, 0.70703125,
+    -1, 0.70703125, -0, -0.70703125,
+
+    1, -0.382568359375, -0.70703125, 0.923828125,
+    -0, -0.923828125, 0.70703125, 0.382568359375,
+    -1, 0.382568359375, 0.70703125, -0.923828125,
+    0, 0.923828125, -0.70703125, -0.382568359375,
+
+    1, -0, -1, 0,
+    1, -0, -1, -0,
+    1, -0, -1, 0,
+    1, 0, -1, 0,
+
+    1, 0.382568359375, -0.70703125, -0.923828125,
+    -0, 0.923828125, 0.70703125, -0.382568359375,
+    -1, -0.382568359375, 0.70703125, 0.923828125,
+    -0, -0.923828125, -0.70703125, 0.382568359375,
+
+    1, 0.70703125, -0, -0.70703125,
+    -1, -0.70703125, -0, 0.70703125,
+    1, 0.70703125, -0, -0.70703125,
+    -1, -0.70703125, 0, 0.70703125,
+
+    1, 0.923828125, 0.70703125, 0.382568359375,
+    -0, -0.382568359375, -0.70703125, -0.923828125,
+    -1, -0.923828125, -0.70703125, -0.382568359375,
+    0, 0.382568359375, 0.70703125, 0.923828125
+  };
+
+  __half dft_matrix_IM[256] = {
+    -0, -0, -0, -0,
+    -0, -0, -0, -0,
+    -0, -0, -0, -0,
+    -0, -0, -0, -0,
+
+    -0, -0.382568359375, -0.70703125, -0.923828125,
+    -1, -0.923828125, -0.70703125, -0.382568359375,
+    -0, 0.382568359375, 0.70703125, 0.923828125,
+    1, 0.923828125, 0.70703125, 0.382568359375,
+
+    -0, -0.70703125, -1, -0.70703125,
+    -0, 0.70703125, 1, 0.70703125,
+    0, -0.70703125, -1, -0.70703125,
+    -0, 0.70703125, 1, 0.70703125,
+
+    -0, -0.923828125, -0.70703125, 0.382568359375,
+    1, 0.382568359375, -0.70703125, -0.923828125,
+    -0, 0.923828125, 0.70703125, -0.382568359375,
+    -1, -0.382568359375, 0.70703125, 0.923828125,
+
+    -0, -1, -0, 1,
+    0, -1, -0, 1,
+    0, -1, -0, 1,
+    0, -1, -0, 1,
+
+    -0, -0.923828125, 0.70703125, 0.382568359375,
+    -1, 0.382568359375, 0.70703125, -0.923828125,
+    -0, 0.923828125, -0.70703125, -0.382568359375,
+    1, -0.382568359375, -0.70703125, 0.923828125,
+
+    -0, -0.70703125, 1, -0.70703125,
+    -0, 0.70703125, -1, 0.70703125,
+    0, -0.70703125, 1, -0.70703125,
+    -0, 0.70703125, -1, 0.70703125,
+
+    -0, -0.382568359375, 0.70703125, -0.923828125,
+    1, -0.923828125, 0.70703125, -0.382568359375,
+    -0, 0.382568359375, -0.70703125, 0.923828125,
+    -1, 0.923828125, -0.70703125, 0.382568359375,
+
+    -0, -0, 0, -0,
+    0, -0, 0, -0,
+    0, -0, 0, -0,
+    0, 0, 0, -0,
+
+    -0, 0.382568359375, -0.70703125, 0.923828125,
+    -1, 0.923828125, -0.70703125, 0.382568359375,
+    -0, -0.382568359375, 0.70703125, -0.923828125,
+    1, -0.923828125, 0.70703125, -0.382568359375,
+
+    -0, 0.70703125, -1, 0.70703125,
+    -0, -0.70703125, 1, -0.70703125,
+    0, 0.70703125, -1, 0.70703125,
+    -0, -0.70703125, 1, -0.70703125,
+
+    -0, 0.923828125, -0.70703125, -0.382568359375,
+    1, -0.382568359375, -0.70703125, 0.923828125,
+    -0, -0.923828125, 0.70703125, 0.382568359375,
+    -1, 0.382568359375, 0.70703125, -0.923828125,
+
+    -0, 1, -0, -1,
+    0, 1, -0, -1,
+    0, 1, -0, -1,
+    0, 1, 0, -1,
+
+    -0, 0.923828125, 0.70703125, -0.382568359375,
+    -1, -0.382568359375, 0.70703125, 0.923828125,
+    0, -0.923828125, -0.70703125, 0.382568359375,
+    1, 0.382568359375, -0.70703125, -0.923828125,
+
+    -0, 0.70703125, 1, 0.70703125,
+    -0, -0.70703125, -1, -0.70703125,
+    0, 0.70703125, 1, 0.70703125,
+    0, -0.70703125, -1, -0.70703125,
+
+    -0, 0.382568359375, 0.70703125, 0.923828125,
+    1, 0.923828125, 0.70703125, 0.382568359375,
+    -0, -0.382568359375, -0.70703125, -0.923828125,
+    -1, -0.923828125, -0.70703125, -0.382568359375
+  };
+
+  wmma::load_matrix_sync(dft_RE_frag, dft_matrix_RE, 16);
+  wmma::load_matrix_sync(dft_IM_frag, dft_matrix_IM, 16);
+  */
 
   int combined_fft_length = sub_fft_length * 16;
   int amount_of_warps_pes_substep = sub_fft_length / 16;
@@ -220,14 +389,30 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     //Compute twiddle factors
-    float phase = (2 * M_PI * i * j) / combined_fft_length;
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(2 * i * j),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(combined_fft_length));
+    //Modulo version for higher accuracy
+    /*
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>((2 * i * j) % combined_fft_length),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(combined_fft_length));
+    */
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = __float2half(cos(phase));
-    __half twiddle_IM = __float2half(-sin(phase));
+    __half twiddle_RE = hcos(phase);
+    __half twiddle_IM = -hsin(phase);
 
     //Fetch current data once from global memory to use it twice
     __half input_RE = input_data_RE[global_memory_offset];
     __half input_IM = input_data_IM[global_memory_offset];
+
+    //For sequential scaling
+    //__half input_RE = __hdiv(input_data_RE[global_memory_offset],
+    //                         static_cast<__half>(16.0));
+    //__half input_IM = __hdiv(input_data_IM[global_memory_offset],
+    //                         static_cast<__half>(16.0));
 
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
@@ -238,9 +423,24 @@ __global__ void Radix16Kernel(__half* input_data_RE, __half* input_data_IM,
         __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
   }
 
+  //Declare the fragments
+  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
+      data_RE_frag;
+  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
+      data_IM_frag;
+
   //Load the modified data from shared mem buffer
   wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
   wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
+
+  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
+  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
+  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
+
+  //Initialize the output to zero
+  wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
+  wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0f);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =

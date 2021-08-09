@@ -30,9 +30,13 @@ struct AltPlan{
   int amount_of_r16_steps_;
   int amount_of_r2_steps_;
 
-  int amount_of_fft_warps_per_block_;
-  int fft_blocksize_;
-  int fft_gridsize_;
+  int amount_of_fft256_warps_per_block_;
+  int fft256_blocksize_;
+  int fft256_gridsize_;
+
+  int amount_of_r16_warps_per_block_;
+  int r16_blocksize_;
+  int r16_gridsize_;
 
   int r2_blocksize_;
 };
@@ -82,12 +86,17 @@ std::optional<AltPlan> CreateAltPlan(int fft_length){
   my_plan.amount_of_r16_steps_ = (log2_of_fft_lenght / 4) - 1;
   my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
 
-  my_plan.amount_of_fft_warps_per_block_ =
+  my_plan.amount_of_fft256_warps_per_block_ =
       fft_length < (256 * 8) ? fft_length / 256 : 8;
 
-  my_plan.fft_blocksize_ = 32 * my_plan.amount_of_fft_warps_per_block_;
-  my_plan.fft_gridsize_ =
-      fft_length / (my_plan.amount_of_fft_warps_per_block_ * 256);
+  my_plan.fft256_blocksize_ = 32 * my_plan.amount_of_fft256_warps_per_block_;
+  my_plan.fft256_gridsize_ =
+      fft_length / (my_plan.amount_of_fft256_warps_per_block_ * 256);
+
+  my_plan.amount_of_r16_warps_per_block_ =
+      my_plan.amount_of_fft256_warps_per_block_;
+  my_plan.r16_blocksize_ = my_plan.fft256_blocksize_;
+  my_plan.r16_gridsize_ = my_plan.fft256_gridsize_;
 
   my_plan.r2_blocksize_ = fft_length < 1024 ? fft_length : 1024;
 
