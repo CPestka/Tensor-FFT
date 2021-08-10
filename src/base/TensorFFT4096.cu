@@ -1,9 +1,11 @@
 //This file contains the kernel TensorFFT256 that performs the "baselayer" FFTs
-//up to the size of 256. This is done by performing the "transposes" on the
-//input data, performing a length 16 DFT on that and than a radix16 step on
+//up to the size of 4096. This is done by performing the "transposes" on the
+//input data, performing a length 16 DFT on that and than two radix16 step on
 //that.
 //The bundleing of these task allows the results and auxilary data to be kept in
 //loacl/shared memory.
+//This kernel HAS TO BE LAUNCHED WITH EXACTLY 16 warps per thread i.e.
+//blocksize = 16*32
 #pragma once
 
 #include <type_traits>
@@ -19,10 +21,10 @@ using namespace nvcuda;
 
 template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
-__global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
-                             __half* output_data_RE, __half* output_data_IM,
-                             Integer fft_length, int amount_of_r16_steps,
-                             int amount_of_r2_steps){
+__global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
+                              __half* output_data_RE, __half* output_data_IM,
+                              Integer fft_length, int amount_of_r16_steps,
+                              int amount_of_r2_steps){
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   Integer warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -265,9 +267,93 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                           accumulator_RE_2_frag.x[i]);
   }
 
+  //
+  //Perform second R16 step
+  //
+
+  //For the second r16 step the results of 16 other warps are needed to perform
+  //one 4096 length combine. This should fit in shared memory on most devcices
+  //however due to a growth of 16x with each step in shared mem usage this isnt
+  //possible for further steps.
+  //Reorder and multiply with twiddle factors the results of the first r16 step
+  //so the matrix to load in a fragment is linear in memory (see TensorRadix16
+  //kernel for why).
+  //Indexing used takes care of the following steps: revert transpose of results
+  //, interprete result 16x16 matrix as one of 16 rows of 256x16 a matrix with
+  //row_id=inter_block_warp_id, safe 16  16x16 matrix cut out of that matrix in
+  //buffer_tmp and transpose the entries.
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    //int i = inter_warp_id_16;
+    int j = k + (8 * inter_warp_id_is_upper_16);
+    //For correct phase
+    int i_global = j + (16 * inter_block_warp_id);
+
+    int buffer_array_id_old = inter_warp_id_16 + (16 * j);
+    int buffer_array_id_new = inter_block_warp_id + (16 * j)
+                              + (1024 * inter_warp_id_16);
+
+    //On the fly computation of DFT matrix
+    //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
+    //and literal version
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(i_global * j),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(2048.0));
+    __half twiddle_RE = hcos(phase);
+    __half twiddle_IM = -hsin(phase);
+
+    __half input_RE = buffer_RE[buffer_array_id_old];
+    __half input_IM = buffer_IM[buffer_array_id_old];
+
+    //Store modified data to buffer_tmp arrays
+    //TODO: ? remove second buffer and use collum major load better?
+    //mod_RE = RE*twid_RE - IM*twid_IM
+    buffer[buffer_array_id_new + 512] =
+        __hsub(__hmul(input_RE, twiddle_RE), __hmul(input_IM, twiddle_IM));
+
+    //mod_IM = RE*twid_IM + IM*twid_RE
+    buffer[buffer_array_id_new + 768] =
+        __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
+  }
+
+  //Initialize the output to zero
+  wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
+  wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0);
+
+  //Each warp only fills 1/16 of a needed matrix -> wait for all 16 warps
+  __syncthreads();
+
+  //Load the modified data from shared mem buffer
+  wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
+  wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
+
+  //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
+  //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
+  //RE(A)xIM(B) + IM(A)xRE(B)
+  wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
+                 accumulator_RE_1_frag);
+  wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
+                 accumulator_RE_2_frag);
+  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
+                 accumulator_IM_frag);
+  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
+                 accumulator_IM_frag);
+
+  //Store results to buffer
+  wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
+                          wmma::mem_row_major);
+  #pragma unroll
+  for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
+    buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
+                          accumulator_RE_2_frag.x[i]);
+  }
+
   //Store results into global memory and revert transpose.
   #pragma unroll
   for(int k=0; k<8; k++){
+    int i = inter_warp_id_16;
     int j = k + (8 * inter_warp_id_is_upper_16);
     int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
     //Global id also reverses the transpose

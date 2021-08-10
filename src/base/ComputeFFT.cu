@@ -20,106 +20,96 @@
 #include <vector>
 #include <optional>
 #include <string>
+#include <type_traits>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
-#include <cooperative_groups.h>
 
-#include "Transposer.cu"
-#include "TensorDFT16.cu"
-#include "TensorRadix16.cu"
-#include "Radix2.cu"
 #include "Plan.cpp"
 #include "DataHandler.cu"
 #include "TensorFFT256.cu"
+#include "TensorFFT4096.cu"
+#include "TensorRadix16.cu"
 
 //Computes a sigle FFT.
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
 //using the async version below should increase performance.
-std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
-  //Launch kernel that performs the transposes to prepare the data for the
-  //radix steps
-  TransposeKernel<<<fft_plan.transposer_amount_of_blocks_,
-                    fft_plan.transposer_blocksize_>>>(
-      data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
-      data.dptr_results_IM_, fft_plan.fft_length_,
-      fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
+                                      const DataHandler &data<Integer>,
+                                      const int max_no_optin_shared_mem){
+  //Use opt in shared memory if required
+  if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
+    if (fft_plan.base_fft_mode_ == 256) {
+      cudaFuncSetAttribute(TensorFFT256,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           fft_plan.base_fft_shared_mem_in_bytes_);
+    } else {
+      cudaFuncSetAttribute(TensorFFT4096,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           fft_plan.base_fft_shared_mem_in_bytes_);
+    }
+  }
 
-  //Launch baselayer DFT step kernel
-  DFTKernel<<<fft_plan.dft_amount_of_blocks_,
-              32 * fft_plan.dft_warps_per_block_>>>(
-      data.dptr_results_RE_, data.dptr_results_IM_, data.dptr_input_RE_,
-      data.dptr_input_IM_, data.dptr_dft_matrix_RE_, data.dptr_dft_matrix_IM_);
+  //Compute base layer FFT
+  if (fft_plan.base_fft_mode_ == 256) {
+    TensorFFT256<<<fft_plan.base_fft_gridsize_,
+                   fft_plan.base_fft_blocksize_,
+                   fft_plan.base_fft_shared_mem_in_bytes_>>>(
+        data.dptr_input_RE_, data.dptr_input_IM_,
+        data.dptr_results_RE_, data.dptr_results_IM_, fft_plan.fft_length_,
+        fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
+  } else {
+    TensorFFT4096<<<fft_plan.base_fft_gridsize_,
+                    fft_plan.base_fft_blocksize_,
+                    fft_plan.base_fft_shared_mem_in_bytes_>>>(
+        data.dptr_input_RE_, data.dptr_input_IM_,
+        data.dptr_results_RE_, data.dptr_results_IM_, fft_plan.fft_length_,
+        fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
+  }
 
-  __half* dptr_current_input_RE;
-  __half* dptr_current_input_IM;
-  __half* dptr_current_results_RE;
-  __half* dptr_current_results_IM;
-  int sub_fft_length = 16;
+  //For each step the input data is the output data of the previous step
+  __half* dptr_current_input_RE = data.dptr_results_RE_;
+  __half* dptr_current_input_IM = data.dptr_results_IM_;
+  __half* dptr_current_results_RE = data.dptr_input_RE_;
+  __half* dptr_current_results_IM = data.dptr_input_IM_;
+
+  Integer sub_fft_length = fft_plan.base_fft_mode_ == 256 ? 256 : 4096;
+
+  //Use opt in shared memory if required
+  if (fft_plan.r16_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
+    cudaFuncSetAttribute(TensorRadix16,
+                         cudaFuncAttributeMaxDynamicSharedMemorySize,
+                         fft_plan.r16_shared_mem_in_bytes_);
+  }
 
   //Launch radix16 kernels
-  for(int i=0; i<fft_plan.amount_of_r16_steps_; i++){
-    //For each step the input data is the output data of the previous step
-    if ((i % 2) == 0) {
-      dptr_current_input_RE = data.dptr_input_RE_;
-      dptr_current_input_IM = data.dptr_input_IM_;
-      dptr_current_results_RE = data.dptr_results_RE_;
-      dptr_current_results_IM = data.dptr_results_IM_;
-    } else {
-      dptr_current_input_RE = data.dptr_results_RE_;
-      dptr_current_input_IM = data.dptr_results_IM_;
-      dptr_current_results_RE = data.dptr_input_RE_;
-      dptr_current_results_IM = data.dptr_input_IM_;
-    }
+  for(int i = fft_plan.base_fft_mode_ == 256 ? 1 : 2;
+      i<fft_plan.amount_of_r16_steps_; i++){
 
-    int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ * 16 * 16 *
-                              2 * sizeof(__half);
-
-    if (i == 0) {
-      /*
-      cudaFuncSetAttribute(Radix16KernelFirstStep,
-                           cudaFuncAttributeMaxDynamicSharedMemorySize,
-                           shared_mem_in_bytes);
-      */
-      Radix16KernelFirstStep<<<fft_plan.r16_amount_of_blocks_,
-                               32 * fft_plan.r16_warps_per_block_,
-                               shared_mem_in_bytes>>>(
-          dptr_current_input_RE, dptr_current_input_IM,
-          dptr_current_results_RE, dptr_current_results_IM,
-          data.dptr_dft_matrix_RE_, data.dptr_dft_matrix_IM_);
-    } else {
-      /*
-      cudaFuncSetAttribute(Radix16Kernel,
-                           cudaFuncAttributeMaxDynamicSharedMemorySize,
-                           shared_mem_in_bytes);
-      */
-      Radix16Kernel<<<fft_plan.r16_amount_of_blocks_,
-                      32 * fft_plan.r16_warps_per_block_,
-                      shared_mem_in_bytes>>>(
-          dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
-          dptr_current_results_IM, fft_plan.fft_length_, sub_fft_length);
-    }
+    TensorRadix16<<<fft_plan.r16_gridsize_,
+                    fft_plan.r16_blocksize_,
+                    fft_plan.r16_shared_mem_in_bytes_>>>(
+        dptr_current_input_RE, dptr_current_input_IM,
+        dptr_current_results_RE, dptr_current_results_IM,
+        fft_plan.fft_length_, sub_fft_length);
 
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 16;
+
+    //Swap ptrs to in and output
+    __half* tmp = dptr_current_input_RE;
+    dptr_current_input_RE = dptr_current_results_RE;
+    dptr_current_results_RE = tmp;
+    tmp = dptr_current_input_IM;
+    dptr_current_input_IM = dptr_current_results_IM;
+    dptr_current_results_IM = tmp;
   }
 
   //Radix 2 kernels
   for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
-    //For each step the input data is the output data of the previous step
-    if (((i + fft_plan.amount_of_r16_steps_) % 2) == 0) {
-      dptr_current_input_RE = data.dptr_results_RE_;
-      dptr_current_input_IM = data.dptr_results_IM_;
-      dptr_current_results_RE = data.dptr_input_RE_;
-      dptr_current_results_IM = data.dptr_input_IM_;
-    } else {
-      dptr_current_input_RE = data.dptr_input_RE_;
-      dptr_current_input_IM = data.dptr_input_IM_;
-      dptr_current_results_RE = data.dptr_results_RE_;
-      dptr_current_results_IM = data.dptr_results_IM_;
-    }
-
     int remaining_sub_ffts = 1;
     for(int k=0; k<fft_plan.amount_of_r2_steps_ - i; k++){
       remaining_sub_ffts = remaining_sub_ffts * 2;
@@ -130,8 +120,8 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
     //One radix2 kernel combines 2 subffts -> if there are still more than 2
     //launch multiple kernels
     for(int j=0; j<(remaining_sub_ffts/2); j++){
-      int memory_offset = j * 2 * sub_fft_length;
-      Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
+      Integer memory_offset = j * 2 * sub_fft_length;
+      Radix2Kernel<<<amount_of_r2_block, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
           dptr_current_input_IM + memory_offset,
           dptr_current_results_RE + memory_offset,
@@ -141,99 +131,33 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan, DataHandler &data){
 
     //Update sub_fft_length
     sub_fft_length = sub_fft_length * 2;
+
+    //Swap ptrs to in and output
+    __half* tmp = dptr_current_input_RE;
+    dptr_current_input_RE = dptr_current_results_RE;
+    dptr_current_results_RE = tmp;
+    tmp = dptr_current_input_IM;
+    dptr_current_input_IM = dptr_current_results_IM;
+    dptr_current_results_IM = tmp;
   }
 
+  if (cudaPeekAtLastError() != cudaSuccess){
+    return cudaGetErrorString(cudaPeekAtLastError());
+  }
   return std::nullopt;
 }
 
-//Computes a sigle FFT.
-//If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
-//using the async version below should increase performance.
-std::optional<std::string> ComputeFFTAlt(AltPlan &fft_plan, AltDataHandler &data){
-  TensorFFT256<<<fft_plan.fft256_gridsize_, fft_plan.fft256_blocksize_>>>(
-      data.dptr_input_RE_, data.dptr_input_IM_, data.dptr_results_RE_,
-      data.dptr_results_IM_, fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
-      fft_plan.amount_of_r2_steps_);
-
-  __half* dptr_current_input_RE;
-  __half* dptr_current_input_IM;
-  __half* dptr_current_results_RE;
-  __half* dptr_current_results_IM;
-
-  int sub_fft_length = 256;
-
-  //Launch radix16 kernels
-  for(int i=1; i<fft_plan.amount_of_r16_steps_; i++){
-    //For each step the input data is the output data of the previous step
-    if ((i % 2) == 1) {
-      dptr_current_input_RE = data.dptr_results_RE_;
-      dptr_current_input_IM = data.dptr_results_IM_;
-      dptr_current_results_RE = data.dptr_input_RE_;
-      dptr_current_results_IM = data.dptr_input_IM_;
-    } else {
-      dptr_current_input_RE = data.dptr_input_RE_;
-      dptr_current_input_IM = data.dptr_input_IM_;
-      dptr_current_results_RE = data.dptr_results_RE_;
-      dptr_current_results_IM = data.dptr_results_IM_;
-    }
-
-    Radix16Kernel<<<fft_plan.r16_gridsize_, fft_plan.r16_blocksize_>>>(
-        dptr_current_input_RE, dptr_current_input_IM, dptr_current_results_RE,
-        dptr_current_results_IM, fft_plan.fft_length_, sub_fft_length);
-
-    //Update sub_fft_length
-    sub_fft_length = sub_fft_length * 16;
-  }
-
-  //Radix 2 kernels
-  for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
-    //For each step the input data is the output data of the previous step
-    if (((i + fft_plan.amount_of_r16_steps_) % 2) == 1) {
-      dptr_current_input_RE = data.dptr_results_RE_;
-      dptr_current_input_IM = data.dptr_results_IM_;
-      dptr_current_results_RE = data.dptr_input_RE_;
-      dptr_current_results_IM = data.dptr_input_IM_;
-    } else {
-      dptr_current_input_RE = data.dptr_input_RE_;
-      dptr_current_input_IM = data.dptr_input_IM_;
-      dptr_current_results_RE = data.dptr_results_RE_;
-      dptr_current_results_IM = data.dptr_results_IM_;
-    }
-
-    int remaining_sub_ffts = 1;
-    for(int k=0; k<fft_plan.amount_of_r2_steps_ - i; k++){
-      remaining_sub_ffts = remaining_sub_ffts * 2;
-    }
-
-    int r2_gridsize = sub_fft_length / fft_plan.r2_blocksize_;
-
-    //One radix2 kernel combines 2 subffts -> if there are still more than 2
-    //launch multiple kernels
-    for(int j=0; j<(remaining_sub_ffts/2); j++){
-      int memory_offset = j * 2 * sub_fft_length;
-      Radix2Kernel<<<r2_gridsize, fft_plan.r2_blocksize_>>>(
-          dptr_current_input_RE + memory_offset,
-          dptr_current_input_IM + memory_offset,
-          dptr_current_results_RE + memory_offset,
-          dptr_current_results_IM + memory_offset,
-          sub_fft_length);
-    }
-
-    //Update sub_fft_length
-    sub_fft_length = sub_fft_length * 2;
-  }
-
-  return std::nullopt;
-}
-
-//Similar to ComputeFFT() but accepts multiple ffts at a time. For each fft
-//respectively the corresponding memcpys and kernels are issued into one stream
-//respectively, which allows work for multiple ffts to be executed concurrently
-//if the recources on the device are avaiable.
-//The memory requiredments are the same as for ComputeFFT() but added together
-//for each fft.
-std::optional<std::string> ComputeFFTs(Plan &fft_plan,
-                                       DataBatchHandler &data){
+//Accepts multiple ffts at a time. For each fft respectively the corresponding
+//memcpys and kernels are issued into one stream respectively, which allows work
+//for multiple ffts to be executed concurrently if the recources on the device
+//are avaiable.
+//The memory requiredments for a batch of n ffts is n*requiredment of a the
+//singular one.
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+std::optional<std::string> ComputeFFT(const Plan &fft_plan,
+                                      const DataBatchHandler &data,
+                                      const int max_no_optin_shared_mem){
   //Create a stream for each fft
   std::vector<cudaStream_t> streams;
   streams.resize(data.amount_of_ffts_);
@@ -243,24 +167,37 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
     }
   }
 
-  //Launch kernel that performs the transposes to prepare the data for the
-  //radix steps
-  for(int i=0; i<data.amount_of_ffts_; i++){
-    TransposeKernel<<<fft_plan.transposer_amount_of_blocks_,
-                      fft_plan.transposer_blocksize_, 0, streams[i]>>>(
-        data.dptr_input_RE_[i], data.dptr_input_IM_[i],
-        data.dptr_results_RE_[i], data.dptr_results_IM_[i],
-        fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
-        fft_plan.amount_of_r2_steps_);
+  //Use opt in shared memory if required
+  if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
+    if (fft_plan.base_fft_mode_ == 256) {
+      cudaFuncSetAttribute(TensorFFT256,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           fft_plan.base_fft_shared_mem_in_bytes_);
+    } else {
+      cudaFuncSetAttribute(TensorFFT4096,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           fft_plan.base_fft_shared_mem_in_bytes_);
+    }
   }
 
-  //Launch baselayer DFT step kernel
+  //Compute base layer FFT
   for(int i=0; i<data.amount_of_ffts_; i++){
-    DFTKernel<<<fft_plan.dft_amount_of_blocks_,
-                32 * fft_plan.dft_warps_per_block_, 0, streams[i]>>>(
-        data.dptr_results_RE_[i], data.dptr_results_IM_[i],
-        data.dptr_input_RE_[i], data.dptr_input_IM_[i],
-        data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i]);
+    if (fft_plan.base_fft_mode_ == 256) {
+      TensorFFT256<<<fft_plan.base_fft_gridsize_,
+                     fft_plan.base_fft_blocksize_,
+                     fft_plan.base_fft_shared_mem_in_bytes_>>>(
+          data.dptr_input_RE_[i], data.dptr_input_IM_[i],
+          data.dptr_results_RE_[i], data.dptr_results_IM_[i], fft_plan.fft_length_,
+          fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
+    } else {
+      TensorFFT4096<<<fft_plan.base_fft_gridsize_,
+                      fft_plan.base_fft_blocksize_,
+                      fft_plan.base_fft_shared_mem_in_bytes_>>>(
+          data.dptr_input_RE_[i], data.dptr_input_IM_[i],
+          data.dptr_results_RE_[i], data.dptr_results_IM_[i],
+          fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
+          fft_plan.amount_of_r2_steps_);
+    }
   }
 
   std::vector<__half*> dptr_current_input_RE;
@@ -272,102 +209,95 @@ std::optional<std::string> ComputeFFTs(Plan &fft_plan,
   dptr_current_results_RE.resize(data.amount_of_ffts_, nullptr);
   dptr_current_results_IM.resize(data.amount_of_ffts_, nullptr);
 
-  std::vector<int> sub_fft_length;
+  std::vector<Integer> sub_fft_length;
   sub_fft_length.resize(data.amount_of_ffts_, 16);
 
-  int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ *
-                            16 * 16 * 2 * sizeof(__half);
-  /*
-  cudaFuncSetAttribute(Radix16KernelFirstStep,
-                       cudaFuncAttributeMaxDynamicSharedMemorySize,
-                       shared_mem_in_bytes);
-  cudaFuncSetAttribute(Radix16Kernel,
-                       cudaFuncAttributeMaxDynamicSharedMemorySize,
-                       shared_mem_in_bytes);
-   */
-
+  //For each step the input data is the output data of the previous step
   for(int i=0; i<data.amount_of_ffts_; i++){
-    for(int j=0; j<fft_plan.amount_of_r16_steps_; j++){
-      //For each step the input data is the output data of the previous step
-      if ((j % 2) == 0) {
-        dptr_current_input_RE[i] = data.dptr_input_RE_[i];
-        dptr_current_input_IM[i] = data.dptr_input_IM_[i];
-        dptr_current_results_RE[i] = data.dptr_results_RE_[i];
-        dptr_current_results_IM[i] = data.dptr_results_IM_[i];
-      } else {
-        dptr_current_input_RE[i] = data.dptr_results_RE_[i];
-        dptr_current_input_IM[i] = data.dptr_results_IM_[i];
-        dptr_current_results_RE[i] = data.dptr_input_RE_[i];
-        dptr_current_results_IM[i] = data.dptr_input_IM_[i];
-      }
+    dptr_current_input_RE[i] = data.dptr_results_RE_[i];
+    dptr_current_input_IM[i] = data.dptr_results_IM_[i];
+    dptr_current_results_RE[i] = data.dptr_input_RE_[i];
+    dptr_current_results_IM[i] = data.dptr_input_IM_[i];
+    sub_fft_length[i] = fft_plan.base_fft_mode_ == 256 ? 256 : 4096;
+  }
 
-      if (j == 0) {
-        Radix16KernelFirstStep<<<fft_plan.r16_amount_of_blocks_,
-                                 32 * fft_plan.r16_warps_per_block_,
-                                 shared_mem_in_bytes, streams[i]>>>(
-            dptr_current_input_RE[i], dptr_current_input_IM[i],
-            dptr_current_results_RE[i], dptr_current_results_IM[i],
-            data.dptr_dft_matrix_RE_[i], data.dptr_dft_matrix_IM_[i]);
-      } else {
-        Radix16Kernel<<<fft_plan.r16_amount_of_blocks_,
-                       32 * fft_plan.r16_warps_per_block_,
-                       shared_mem_in_bytes, streams[i]>>>(
-            dptr_current_input_RE[i], dptr_current_input_IM[i],
-            dptr_current_results_RE[i], dptr_current_results_IM[i],
-            fft_plan.fft_length_, sub_fft_length[i]);
-      }
+  //Use opt in shared memory if required
+  if (fft_plan.r16_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
+    cudaFuncSetAttribute(TensorRadix16,
+                         cudaFuncAttributeMaxDynamicSharedMemorySize,
+                         fft_plan.r16_shared_mem_in_bytes_);
+  }
+
+  //Launch radix16 kernels
+  for(int i=0; i<data.amount_of_ffts_; i++){
+    for(int j = fft_plan.base_fft_mode_ == 256 ? 1 : 2;
+        j<fft_plan.amount_of_r16_steps_; j++){
+      TensorRadix16<<<fft_plan.r16_gridsize_,
+                      fft_plan.r16_blocksize_,
+                      fft_plan.r16_shared_mem_in_bytes_>>>(
+          dptr_current_input_RE[i], dptr_current_input_IM[i],
+          dptr_current_results_RE[i], dptr_current_results_IM[i],
+          fft_plan.fft_length_, sub_fft_length);
 
       //Update sub_fft_length
       sub_fft_length[i] = sub_fft_length[i] * 16;
+
+      //Swap ptrs to in and output
+      __half* tmp = dptr_current_input_RE[i];
+      dptr_current_input_RE[i] = dptr_current_results_RE[i];
+      dptr_current_results_RE[i] = tmp;
+      tmp = dptr_current_input_IM[i];
+      dptr_current_input_IM[i] = dptr_current_results_IM[i];
+      dptr_current_results_IM[i] = tmp;
     }
   }
 
   for(int i=0; i<data.amount_of_ffts_; i++){
     //Radix 2 kernels
     for(int j=0; j<fft_plan.amount_of_r2_steps_; j++){
-      //For each step the input data is the output data of the previous step
-      if (((j + fft_plan.amount_of_r16_steps_) % 2) == 0) {
-        dptr_current_input_RE[i] = data.dptr_input_RE_[i];
-        dptr_current_input_IM[i] = data.dptr_input_IM_[i];
-        dptr_current_results_RE[i] = data.dptr_results_RE_[i];
-        dptr_current_results_IM[i] = data.dptr_results_IM_[i];
-      } else {
-        dptr_current_input_RE[i] = data.dptr_results_RE_[i];
-        dptr_current_input_IM[i] = data.dptr_results_IM_[i];
-        dptr_current_results_RE[i] = data.dptr_input_RE_[i];
-        dptr_current_results_IM[i] = data.dptr_input_IM_[i];
-      }
-
-      int amount_of_r2_blocks = sub_fft_length[i] / fft_plan.r2_blocksize_;
 
       int remaining_sub_ffts = 1;
       for(int k=0; k<fft_plan.amount_of_r2_steps_ - j; k++){
         remaining_sub_ffts = remaining_sub_ffts * 2;
       }
 
+      int amount_of_r2_blocks = sub_fft_length[i] / fft_plan.r2_blocksize_;
+
       //One radix2 kernel combines 2 subffts -> if there are still more than 2
       //launch multiple kernels
       for(int k=0; k<(remaining_sub_ffts/2); k++){
-        int memory_offset = k * sub_fft_length[i];
-        Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_,
-                       0, streams[i]>>>(
+        Integer memory_offset = k * 2 * sub_fft_length;
+        Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
             dptr_current_input_RE[i] + memory_offset,
             dptr_current_input_IM[i] + memory_offset,
             dptr_current_results_RE[i] + memory_offset,
-            dptr_current_results_IM [i]+ memory_offset,
+            dptr_current_results_IM[i] + memory_offset,
             sub_fft_length[i]);
       }
 
       //Update sub_fft_length
       sub_fft_length[i] = sub_fft_length[i] * 2;
+
+      //Swap ptrs to in and output
+      __half* tmp = dptr_current_input_RE[i];
+      dptr_current_input_RE[i] = dptr_current_results_RE[i];
+      dptr_current_results_RE[i] = tmp;
+      tmp = dptr_current_input_IM[i];
+      dptr_current_input_IM[i] = dptr_current_results_IM[i];
+      dptr_current_results_IM[i] = tmp;
     }
   }
 
   cudaDeviceSynchronize();
 
+  if (cudaPeekAtLastError() != cudaSuccess){
+    return cudaGetErrorString(cudaPeekAtLastError());
+  }
+
   return std::nullopt;
 }
 
+/*
 //Multi GPU variant of ComputeFFT.
 //Computes one fft on each device on inputs hold by data.
 std::optional<std::string> ComputeFFTMultiGPU(Plan &fft_plan,
@@ -415,11 +345,11 @@ std::optional<std::string> ComputeFFTMultiGPU(Plan &fft_plan,
                                 2 * sizeof(__half);
 
       if (i == 0) {
-        /*
+
         cudaFuncSetAttribute(Radix16KernelFirstStep,
                              cudaFuncAttributeMaxDynamicSharedMemorySize,
                              shared_mem_in_bytes);
-        */
+
         Radix16KernelFirstStep<<<fft_plan.r16_amount_of_blocks_,
                                  32 * fft_plan.r16_warps_per_block_,
                                  shared_mem_in_bytes>>>(
@@ -427,11 +357,11 @@ std::optional<std::string> ComputeFFTMultiGPU(Plan &fft_plan,
             dptr_current_results_RE, dptr_current_results_IM,
             data.dptr_dft_matrix_RE_[n], data.dptr_dft_matrix_IM_[n]);
       } else {
-        /*
+
         cudaFuncSetAttribute(Radix16Kernel,
                              cudaFuncAttributeMaxDynamicSharedMemorySize,
                              shared_mem_in_bytes);
-        */
+
         Radix16Kernel<<<fft_plan.r16_amount_of_blocks_,
                         32 * fft_plan.r16_warps_per_block_,
                         shared_mem_in_bytes>>>(
@@ -535,14 +465,14 @@ std::optional<std::string> ComputeFFTsMultiGPU(Plan &fft_plan,
 
     int shared_mem_in_bytes = fft_plan.r16_warps_per_block_ *
                               16 * 16 * 2 * sizeof(__half);
-    /*
+
     cudaFuncSetAttribute(Radix16KernelFirstStep,
                          cudaFuncAttributeMaxDynamicSharedMemorySize,
                          shared_mem_in_bytes);
     cudaFuncSetAttribute(Radix16Kernel,
                          cudaFuncAttributeMaxDynamicSharedMemorySize,
                          shared_mem_in_bytes);
-     */
+
 
     for(int i=0; i<data.amount_of_ffts_; i++){
       for(int j=0; j<fft_plan.amount_of_r16_steps_; j++){
@@ -629,3 +559,4 @@ std::optional<std::string> ComputeFFTsMultiGPU(Plan &fft_plan,
 
   return std::nullopt;
 }
+*/

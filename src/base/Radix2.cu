@@ -1,6 +1,8 @@
 //Contains the kernel that performs the radix2 steps
 #pragma once
 
+#include <type_traits>
+
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <cuda_fp16.h>
@@ -15,11 +17,13 @@
 //multiple of those needed for one radix step, multiple kernels have to be
 //launched and the ptrs to the in/out data have to point to the beginnning of
 //the fft that is to be proccessed and not to the global start of the data.
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
 __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
                              __half* output_data_RE, __half* output_data_IM,
-                             int sub_fft_length) {
-  int memory_point1_offset = blockDim.x * blockIdx.x + threadIdx.x;
-  int memory_point2_offset = memory_point1_offset + sub_fft_length;
+                             Integer sub_fft_length) {
+  Integer memory_point1_offset = blockDim.x * blockIdx.x + threadIdx.x;
+  Integer memory_point2_offset = memory_point1_offset + sub_fft_length;
 
   //The twiddle factor for the first point is 1 -> only the second point has to
   //be modified
