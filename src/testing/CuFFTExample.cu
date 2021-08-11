@@ -1,4 +1,4 @@
-//Used to benchmark the function ComputeFFT
+//Used to profile the function ComputeFFT
 #include <iostream>
 #include <vector>
 #include <optional>
@@ -9,10 +9,10 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "TestingDataCreation.cu"
+#include "TestingDataCreation.h"
 
 int main(){
-  long long fft_length = 16*16*16*16*16*16*2*2*2;
+  constexpr long long fft_length = 16*16*16*16*16*16*2*2*2;
 
   std::vector<float> weights;
   weights.push_back(1.0);

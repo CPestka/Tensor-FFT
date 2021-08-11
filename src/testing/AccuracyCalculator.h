@@ -1,3 +1,8 @@
+//These functions read in values from files whose lines have to be formated like
+//this: x y z
+//The functions than compute the difference of the values in a line between the
+//two files and than computes either the average or standard deviation of that
+//difference for all lines (for the vector overloads over multiple files).
 #pragma once
 #include <iostream>
 #include <fstream>
@@ -5,8 +10,8 @@
 #include <string>
 #include <vector>
 
-double ComputeAverageDeviation(std::string file_name_1,
-                               std::string file_name_2){
+double ComputeAverageDeviation(const std::string file_name_1,
+                               const std::string file_name_2){
   long long length = 0;
   double tmp_dev = 0;
 
@@ -58,9 +63,9 @@ double ComputeAverageDeviation(std::string file_name_1,
   return (tmp_dev / static_cast<double>(2 * length));
 }
 
-double ComputeSigmaOfDeviation(std::string file_name_1,
-                               std::string file_name_2,
-                               double average){
+double ComputeSigmaOfDeviation(const std::string file_name_1,
+                               const std::string file_name_2,
+                               const double average){
   long long length = 0;
   double tmp_dev = 0;
 
@@ -114,8 +119,8 @@ double ComputeSigmaOfDeviation(std::string file_name_1,
   return sqrt(tmp_dev / static_cast<double>((2 * length) - 1));
 }
 
-double ComputeAverageDeviation(std::vector<std::string> file_name_1,
-                               std::vector<std::string> file_name_2){
+double ComputeAverageDeviation(const std::vector<std::string> file_name_1,
+                               const std::vector<std::string> file_name_2){
   long long length = 0;
   double tmp_dev = 0;
 
@@ -171,9 +176,9 @@ double ComputeAverageDeviation(std::vector<std::string> file_name_1,
   return (tmp_dev / static_cast<double>(2 * length));
 }
 
-double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
-                               std::vector<std::string> file_name_2,
-                               double average){
+double ComputeSigmaOfDeviation(const std::vector<std::string> file_name_1,
+                               const std::vector<std::string> file_name_2,
+                               const double average){
   long long length = 0;
   double tmp_dev = 0;
 
@@ -231,8 +236,8 @@ double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
   return sqrt(tmp_dev / static_cast<double>((2 * length) - 1));
 }
 
-double ComputeAverageDeviation(std::vector<std::string> file_name_1,
-                               std::string file_name_2){
+double ComputeAverageDeviation(const std::vector<std::string> file_name_1,
+                               const std::string file_name_2){
   long long length = 0;
   double tmp_dev = 0;
 
@@ -288,9 +293,9 @@ double ComputeAverageDeviation(std::vector<std::string> file_name_1,
   return (tmp_dev / static_cast<double>(2 * length));
 }
 
-double ComputeSigmaOfDeviation(std::vector<std::string> file_name_1,
-                               std::string file_name_2,
-                               double average){
+double ComputeSigmaOfDeviation(const std::vector<std::string> file_name_1,
+                               const std::string file_name_2,
+                               const double average){
   long long length = 0;
   double tmp_dev = 0;
 

@@ -4,20 +4,21 @@
 #include <optional>
 #include <string>
 #include <memory>
+#include <cassert>
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "TestingDataCreation.cu"
-#include "FileWriter.cu"
+#include "TestingDataCreation.h"
+#include "FileWriter.h"
 #include "Timer.h"
-#include "../base/ComputeFFT.cu"
-#include "../base/Plan.cpp"
+#include "../base/ComputeFFT.h"
+#include "../base/Plan.h"
 
 
 int main(){
-  int fft_length = 16*16*16*16*16*16*2*2*2;
+  constexpr int fft_length = 16*16*16*16*16*16*2*2*2;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
@@ -32,13 +33,18 @@ int main(){
 
   //The plan holds parameters needed for the execution of the kernels which are
   //mostly derived from the fft length.
+  std::optional<Plan> possible_plan = CreatePlan(fft_length);
   Plan my_plan;
-  if (CreatePlan(fft_length)) {
-    my_plan = CreatePlan(fft_length).value();
+  if (possible_plan) {
+    my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
     return false;
   }
+
+  //Check if parameters of plan work given limitations on used device.
+  int device_id;
+  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
 
   //The DataHandler class allocates and holds the ptrs to the data on the device
   //Instantiation and destruction handle the allocation and freeing of the
@@ -64,13 +70,10 @@ int main(){
     return false;
   }
 
-  cudaDeviceSynchronize();
-
-  /*
   //Copy results back
   error_mess =
-    my_handler.CopyResultsDeviceToHost(data.get(), my_plan.amount_of_r16_steps_,
-                                       my_plan.amount_of_r2_steps_);
+    my_handler.CopyResultsDeviceToHost(data.get(),
+                                       fft_plan.results_in_results_);
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
@@ -81,7 +84,6 @@ int main(){
 
   //Write results to file
   WriteResultsToFile("example_results.dat", fft_length, data.get());
-  */
 
   return true;
 }

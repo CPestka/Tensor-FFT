@@ -1,3 +1,4 @@
+//Util to test accuracy of device functions 
 #include <iostream>
 #include <memory>
 
@@ -5,7 +6,7 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-__global__ void ComputeTwiddle(__half* output, int length_halfed){
+__global__ void ComputeTwiddle(__half* output, const int length_halfed){
   int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
 
   for(int k=0; k<16; k++){
@@ -33,8 +34,8 @@ __global__ void ComputeTwiddle(__half* output, int length_halfed){
 }
 
 int main() {
-  int n = 16;
-  int m = 16;
+  constexpr int n = 16;
+  constexpr int m = 16;
 
   std::unique_ptr<__half[]> results = std::make_unique<__half[]>(2 * 3 * n * m);
 

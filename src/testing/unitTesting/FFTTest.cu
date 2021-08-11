@@ -1,26 +1,31 @@
 #pragma once
 
-//Used to test functonality
+//Used to test functonal correctness of results by comparing our fft results
+//to cuffts results using and accuracy cutoff to determine success.
 #include <iostream>
 #include <string>
 #include <memory>
 #include <optional>
 #include <vector>
+#include <type_traits>
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "../../base/Plan.cpp"
-#include "../../base/DataHandler.cu"
-#include "../../base/ComputeFFT.cu"
-#include "../TestingDataCreation.cu"
-#include "../FileWriter.cu"
+#include "../../base/Plan.h"
+#include "../../base/DataHandler.h"
+#include "../../base/ComputeFFT.h"
+#include "../TestingDataCreation.h"
+#include "../FileWriter.h"
 #include "../AccuracyCalculator.h"
-#include "CuFFTTest.cu"
+#include "CuFFTTest.h"
 
-std::optional<std::string> FullSingleFFTComputation(int fft_length,
-                                                    std::string file_name){
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+std::optional<std::string> FullSingleFFTComputation(
+    const Integer fft_length,
+    const std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length,  weights);
@@ -61,8 +66,7 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
 
   //Copy results back to cpu
   error_mess = my_handler.CopyResultsDeviceToHost(
-      data.get(), my_plan.amount_of_r16_steps_,
-      my_plan.amount_of_r2_steps_);
+      data.get(), my_plan.results_in_results_);
   if (error_mess) {
     return error_mess;
   }
@@ -77,9 +81,12 @@ std::optional<std::string> FullSingleFFTComputation(int fft_length,
   return std::nullopt;
 }
 
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
 std::optional<std::string> FullAsyncFFTComputation(
-    int fft_length, int amount_of_asynch_ffts,
-    std::vector<std::string> file_name){
+    const Integer fft_length,
+    const int amount_of_asynch_ffts,
+    const std::vector<std::string> file_name){
   //Prepare input data on cpu
   std::vector<float> weights;
   weights.push_back(1.0);
@@ -121,14 +128,14 @@ std::optional<std::string> FullAsyncFFTComputation(
   }
 
   //Compute FFT
-  error_mess = ComputeFFTs(my_plan, my_handler);
+  error_mess = ComputeFFT(my_plan, my_handler);
   if (error_mess) {
     return error_mess;
   }
 
   //Copy results back to cpu
   error_mess = my_handler.CopyResultsDeviceToHost(
-      data.get(), my_plan.amount_of_r16_steps_, my_plan.amount_of_r2_steps_);
+      data.get(), my_plan.results_in_results_);
   if (error_mess) {
     return error_mess;
   }
@@ -144,9 +151,11 @@ std::optional<std::string> FullAsyncFFTComputation(
   return std::nullopt;
 }
 
-bool TestFullFFT(int fft_length,
-                 double avg_deviation_threshold,
-                 double sigma_deviation_threshold){
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+bool TestFullFFT(const Integer fft_length,
+                 const double avg_deviation_threshold,
+                 const double sigma_deviation_threshold){
   std::optional<std::string> err;
 
   std::string comparison_data_file_name =
@@ -181,9 +190,12 @@ bool TestFullFFT(int fft_length,
   return true;
 }
 
-bool TestFullFFTAsynch(int fft_length, int amount_of_asynch_ffts,
-                       double avg_deviation_threshold,
-                       double sigma_deviation_threshold){
+template <typename Integer,
+    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+bool TestFullFFTAsynch(const Integer fft_length,
+                       const int amount_of_asynch_ffts,
+                       const double avg_deviation_threshold,
+                       const double sigma_deviation_threshold){
 std::optional<std::string> err;
 
 std::string comparison_data_file_name =

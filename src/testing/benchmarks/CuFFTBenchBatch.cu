@@ -3,114 +3,37 @@
 #include <vector>
 #include <optional>
 #include <string>
-#include <memory>
 
-#include <cuda_fp16.h>
-#include <cuda_runtime.h>
-#include <cuda.h>
-
-#include "../TestingDataCreation.cu"
 #include "../FileWriter.cu"
-#include "../Timer.h"
-#include "../../base/ComputeFFT.cu"
-#include "../../base/Plan.cpp"
-
-double ComputeAverage(std::vector<double> data){
-  double tmp = 0;
-  for(int i=0; i<static_cast<int>(data.size()); i++){
-    tmp += data[i];
-  }
-  return (tmp / (static_cast<double>(data.size()) - 1));
-}
-
-double ComputeSigma(std::vector<double> data, double average){
-  double tmp = 0;
-  for(int i=0; i<static_cast<int>(data.size()); i++){
-    double tmp_1 = data[i] - average;
-    tmp += (tmp_1 * tmp_1);
-  }
-  return sqrt(tmp / (static_cast<double>(data.size()) - 1));
-}
+#include "Bench.h"
 
 int main(){
-  int log_length_max = 25;
-  int sample_size = 200;
-  int warmup_samples = 5;
-  long long batch_size = 20;
+  constexpr int start_fft_length = 16*16;
+  constexpr int end_fft_length = 16*16*16*16*16*16*2*2*2;
 
-  std::vector<long long> fft_length;
-  std::vector<double> avg_runtime;
-  std::vector<double> sigma_runtime;
+  constexpr int sample_size = 200;
+  constexpr int warmup_samples = 5;
+  constexpr int async_batch_size 20;
 
-  std::optional<std::string> error_mess;
+  std::vector<int> fft_length;
+  fft_length.push_back(start_fft_length);
 
-  int length = 16 * 8;
-  for(int i=8; i<=log_length_max; i++){
-    length = length * 2;
-    fft_length.push_back(length);
-    std::cout << "Starting fft length: " << length << std::endl;
+  std::vector<RunResults> bench_data;
 
-    std::vector<float> weights;
-    weights.push_back(1.0);
-    std::unique_ptr<__half2[]> data =
-        CreateSineSuperpostionH2Batch(fft_length.back(),  weights, batch_size);
+  std::optional<std::string> err;
 
-    std::vector<double> runtime;
+  while (fft_length.back() <= end_fft_length) {
+    bench_data.push_back(BenchmarkCuFFT(fft_length.back(), warmup_samples,
+                                        sample_size, async_batch_size));
 
-    __half2* dptr_data;
-    __half2* dptr_results;
-    cudaMalloc(&dptr_data, sizeof(__half2) * fft_length.back() * batch_size);
-    cudaMalloc(&dptr_results, sizeof(__half2) * fft_length.back() * batch_size);
-
-    cufftHandle plan;
-    cufftResult r;
-
-    r = cufftCreate(&plan);
-    if (r != CUFFT_SUCCESS) {
-      std::cout << "Error! Plan creation failed." << std::endl;
-      return false;
-    }
-
-    size_t size = 0;
-    r = cufftXtMakePlanMany(plan, 1, &fft_length.back(), nullptr, 1, 1,
-                            CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F, batch_size,
-                            &size, CUDA_C_16F);
-    if (r != CUFFT_SUCCESS) {
-      std::cout << "Error! Plan creation failed." << std::endl;
-      return false;
-    }
-
-    for(int k=0; k<sample_size + warmup_samples; k++){
-      cudaMemcpy(dptr_data, data.get(),
-                 fft_length.back() * sizeof(__half2) * batch_size,
-                 cudaMemcpyHostToDevice);
-
-      cudaDeviceSynchronize();
-
-      IntervallTimer computation_time;
-
-      r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
-      if (r != CUFFT_SUCCESS) {
-        std::cout << "Error! Plan execution failed." << std::endl;
-        return false;
-      }
-
-      cudaDeviceSynchronize();
-
-      if (k >= warmup_samples) {
-        runtime.push_back(computation_time.getTimeInNanoseconds());
-      }
-    }
-
-    avg_runtime.push_back(ComputeAverage(runtime));
-    sigma_runtime.push_back(ComputeSigma(runtime, avg_runtime.back()));
-
-    cufftDestroy(plan);
-    cudaFree(dptr_results);
-    cudaFree(dptr_data);
+    fft_length.push_back(fft_length.back() * 2);
   }
 
-  WriteBenchResultsToFile(avg_runtime, sigma_runtime, fft_length,
-                          std::to_string(sample_size) + "_cuFFT_Batch");
+  WriteBenchResultsToFile(fft_length, bench_data);
+  if (err) {
+    std::cout << err.value() << std::endl;
+    return false;
+  }
+
   return true;
 }

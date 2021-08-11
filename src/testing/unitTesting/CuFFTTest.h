@@ -12,17 +12,16 @@
 #include <cuda_fp16.h>
 #include <cuComplex.h>
 
-#include "../FileWriter.cu"
-#include "../TestingDataCreation.cu"
-#include "../Timer.h"
+#include "../FileWriter.h"
+#include "../TestingDataCreation.h"
 
-std::optional<std::string> CreateComparisonDataHalf(long long fft_length,
-                                                    std::string file_name){
+std::optional<std::string> CreateComparisonDataHalf(
+    const long long fft_length,
+    const std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2(fft_length, weights);
-
 
   __half2* dptr_data;
   __half2* dptr_results;
@@ -65,13 +64,13 @@ std::optional<std::string> CreateComparisonDataHalf(long long fft_length,
   return std::nullopt;
 }
 
-std::optional<std::string> CreateComparisonDataDouble(long long fft_length,
-                                                      std::string file_name){
+std::optional<std::string> CreateComparisonDataDouble(
+    const long long fft_length,
+    const std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<cufftDoubleComplex[]> data =
       CreateSineSuperpostionDouble(fft_length, weights);
-
 
   cufftDoubleComplex* dptr_data;
   cufftDoubleComplex* dptr_results;

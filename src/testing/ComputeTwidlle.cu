@@ -1,3 +1,4 @@
+//Computes the twiddle factor matrix and writes it to file
 #include <iostream>
 #include <memory>
 #include <fstream>

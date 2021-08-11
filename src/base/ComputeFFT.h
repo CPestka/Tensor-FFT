@@ -26,8 +26,8 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-#include "Plan.cpp"
-#include "DataHandler.cu"
+#include "Plan.h"
+#include "DataHandler.h"
 #include "TensorFFT256.cu"
 #include "TensorFFT4096.cu"
 #include "TensorRadix16.cu"
@@ -35,6 +35,8 @@
 //Computes a sigle FFT.
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
 //using the async version below should increase performance.
+//Uses default stream -> no cudaDeviceSynchronize() calls between computation
+//and memory copies needed.
 template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
 std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
@@ -153,6 +155,9 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
 //are avaiable.
 //The memory requiredments for a batch of n ffts is n*requiredment of a the
 //singular one.
+//No manual cudaDeviceSynchronize() calls are needed before and after this
+//function as they are included at the end of this function and DataBatchHandler
+//methods.
 template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
 std::optional<std::string> ComputeFFT(const Plan &fft_plan,
@@ -185,14 +190,16 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
     if (fft_plan.base_fft_mode_ == 256) {
       TensorFFT256<<<fft_plan.base_fft_gridsize_,
                      fft_plan.base_fft_blocksize_,
-                     fft_plan.base_fft_shared_mem_in_bytes_>>>(
+                     fft_plan.base_fft_shared_mem_in_bytes_,
+                     streams[i]>>>(
           data.dptr_input_RE_[i], data.dptr_input_IM_[i],
           data.dptr_results_RE_[i], data.dptr_results_IM_[i], fft_plan.fft_length_,
           fft_plan.amount_of_r16_steps_, fft_plan.amount_of_r2_steps_);
     } else {
       TensorFFT4096<<<fft_plan.base_fft_gridsize_,
                       fft_plan.base_fft_blocksize_,
-                      fft_plan.base_fft_shared_mem_in_bytes_>>>(
+                      fft_plan.base_fft_shared_mem_in_bytes_,
+                      streams[i]>>>(
           data.dptr_input_RE_[i], data.dptr_input_IM_[i],
           data.dptr_results_RE_[i], data.dptr_results_IM_[i],
           fft_plan.fft_length_, fft_plan.amount_of_r16_steps_,
@@ -234,7 +241,8 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
         j<fft_plan.amount_of_r16_steps_; j++){
       TensorRadix16<<<fft_plan.r16_gridsize_,
                       fft_plan.r16_blocksize_,
-                      fft_plan.r16_shared_mem_in_bytes_>>>(
+                      fft_plan.r16_shared_mem_in_bytes_,
+                      streams[i]>>>(
           dptr_current_input_RE[i], dptr_current_input_IM[i],
           dptr_current_results_RE[i], dptr_current_results_IM[i],
           fft_plan.fft_length_, sub_fft_length);
@@ -267,7 +275,8 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
       //launch multiple kernels
       for(int k=0; k<(remaining_sub_ffts/2); k++){
         Integer memory_offset = k * 2 * sub_fft_length;
-        Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
+        Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_, 0,
+                       streams[i]>>>(
             dptr_current_input_RE[i] + memory_offset,
             dptr_current_input_IM[i] + memory_offset,
             dptr_current_results_RE[i] + memory_offset,

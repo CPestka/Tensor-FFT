@@ -5,21 +5,22 @@
 #include <optional>
 #include <string>
 #include <memory>
+#include <cassert>
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "TestingDataCreation.cu"
-#include "FileWriter.cu"
+#include "TestingDataCreation.h"
+#include "FileWriter.h"
 #include "Timer.h"
-#include "../base/ComputeFFT.cu"
-#include "../base/Plan.cpp"
+#include "../base/ComputeFFT.h"
+#include "../base/Plan.h"
 
 
 int main(){
-  int fft_length = 16*16*16;
-  int batch_size = 20;
+  constexpr int fft_length = 16*16*16;
+  constexpr int batch_size = 20;
 
   std::vector<float> weights;
   weights.push_back(1.0);
@@ -28,13 +29,17 @@ int main(){
 
   std::optional<std::string> error_mess;
 
+  std::optional<Plan> possible_plan = CreatePlan(fft_length);
   Plan my_plan;
-  if (CreatePlan(fft_length)) {
-    my_plan = CreatePlan(fft_length).value();
+  if (possible_plan) {
+    my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
     return false;
   }
+
+  int device_id;
+  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
 
   //Instead of the DataHandler class
   DataBatchHandler my_handler(fft_length, batch_size);
@@ -50,17 +55,16 @@ int main(){
     return false;
   }
 
-  //Instead of the ComputeFFT() function
-  error_mess = ComputeFFTs(my_plan, my_handler);
+  //Uses different overload
+  error_mess = ComputeFFT(my_plan, my_handler);
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
   }
 
-  /*
   error_mess =
-    my_handler.CopyResultsDeviceToHost(data.get(), my_plan.amount_of_r16_steps_,
-                                       my_plan.amount_of_r2_steps_);
+    my_handler.CopyResultsDeviceToHost(data.get(),
+                                       fft_plan.results_in_results_);
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
@@ -70,7 +74,6 @@ int main(){
 
   //Write results to file
   WriteResultBatchToFile( , fft_length, data.get());
-  */
 
   return true;
 }

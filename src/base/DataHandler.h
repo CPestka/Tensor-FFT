@@ -131,6 +131,8 @@ public:
        return cudaGetErrorString(cudaPeekAtLastError());
     }
 
+    cudaDeviceSynchronize();
+
     return std::nullopt;
   }
 

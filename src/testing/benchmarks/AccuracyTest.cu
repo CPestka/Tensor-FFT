@@ -9,14 +9,14 @@
 #include <cuda.h>
 
 #include "../AccuracyCalculator.h"
-#include "../unitTesting/CuFFTTest.cu"
-#include "../unitTesting/FFTTest.cu"
-#include "../../base/ComputeFFT.cu"
-#include "../FileWriter.cu"
+#include "../unitTesting/CuFFTTest.h"
+#include "../unitTesting/FFTTest.h"
+#include "../../base/ComputeFFT.h"
+#include "../FileWriter.h"
 
 int main(){
-  int sample_size = 10;
-  int log_fft_length_boundry = 20;
+  constexpr int sample_size = 10;
+  constexpr int log_fft_length_boundry = 29;
 
   std::vector<int> fft_length;
   std::vector<double> avg_dev;
