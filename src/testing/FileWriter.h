@@ -11,7 +11,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include "BenchUtil.h"
+#include "benchmarks/BenchUtil.h"
 
 //Writes results of a fft that uses __half to file
 template <typename Integer,
