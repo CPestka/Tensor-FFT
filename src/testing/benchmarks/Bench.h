@@ -16,8 +16,8 @@
 
 #include "../TestingDataCreation.h"
 #include "../Timer.h"
-#include "../base/ComputeFFT.h"
-#include "../base/Plan.h"
+#include "../../base/ComputeFFT.h"
+#include "../../base/Plan.h"
 #include "BenchUtil.h"
 
 //Takes performance parameters as input
