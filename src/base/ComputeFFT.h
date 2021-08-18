@@ -36,9 +36,9 @@
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
 //using the async version below should increase performance.
 //Uses default stream -> no cudaDeviceSynchronize() calls between computation
-//and memory copies needed.
+//and memory copies needed unless memcpies are smaller than 64K.
 template <typename Integer>
-std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
+std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
                                       const DataHandler<Integer> &data,
                                       const int max_no_optin_shared_mem =
                                       32768){
@@ -123,7 +123,7 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
     //launch multiple kernels
     for(int j=0; j<(remaining_sub_ffts/2); j++){
       Integer memory_offset = j * 2 * sub_fft_length;
-      Radix2Kernel<<<amount_of_r2_block, fft_plan.r2_blocksize_>>>(
+      Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
           dptr_current_input_IM + memory_offset,
           dptr_current_results_RE + memory_offset,
