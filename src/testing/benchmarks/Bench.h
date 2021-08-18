@@ -350,8 +350,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 }
 
 //Bench for single fft of cufft
-template <typename Integer>
-std::optional<BenchResult> BenchmarkCuFFT(Integer fft_length,
+std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
                                           const int warmup_samples,
                                           const int sample_size){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
@@ -423,8 +422,7 @@ std::optional<BenchResult> BenchmarkCuFFT(Integer fft_length,
   return results;
 }
 
-template <typename Integer>
-std::optional<BenchResult> BenchmarkCuFFT(Integer fft_length,
+std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
                                           const int warmup_samples,
                                           const int sample_size,
                                           const int async_batch_size){
