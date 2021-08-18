@@ -263,3 +263,21 @@ std::optional<std::string> WriteBenchResultsToFile(
   }
   return std::nullopt;
 }
+
+template <typename Integer>
+std::optional<std::string> WriteBenchResultsToFile(
+      const std::vector<BenchResults> results,
+      const std::vector<Integer> fft_length){
+  std::ofstream myfile ("BenchResults.dat");
+  if (myfile.is_open()) {
+    for(int i=0; i<static_cast<int>(results.size()); i++){
+      myfile << fft_length[i] << " "
+             << results[i].average_time_ << " "
+             << results[i].std_deviation_ << "\n";
+    }
+    myfile.close();
+  } else {
+    return "Error! Unable to open file.";
+  }
+  return std::nullopt;
+}

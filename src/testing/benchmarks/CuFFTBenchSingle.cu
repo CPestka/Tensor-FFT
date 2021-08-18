@@ -17,7 +17,7 @@ int main(){
   std::vector<int> fft_length;
   fft_length.push_back(start_fft_length);
 
-  std::vector<RunResults> bench_data;
+  std::vector<BenchResults> bench_data;
 
   std::optional<std::string> err;
 
