@@ -30,18 +30,14 @@ std::vector<RunResults> RunBenchOverSearchSpace(
 
   for(int i=0; i<static_cast<int>(configs.size()); i++){
     //Run Bench with a configuration
-    std::optional<BenchResult> possible_bench_result = Benchmark(
+    std::optional<RunResults> possible_bench_result = Benchmark(
         fft_length, warmup_samples, sample_size, configs[i].mode_,
         configs[i].base_fft_warps_per_block_,
         configs[i].r16_warps_per_block_, configs[i].r2_blocksize_);
 
     //If Benchmark completed successfully save results.
     if (possible_bench_result) {
-      RunResults current_result =
-          {configs[i].mode_, configs[i].base_fft_warps_per_block_,
-           configs[i].r16_warps_per_block_, configs[i].r2_blocksize_,
-           possible_bench_result.value()};
-      results.push_back(current_result);
+      results.push_back(possible_bench_result.value());
     }
   }
 
@@ -59,18 +55,14 @@ std::vector<RunResults> RunBenchOverSearchSpace(
 
   for(int i=0; i<static_cast<int>(configs.size()); i++){
     //Run Bench with a configuration
-    std::optional<BenchResult> possible_bench_result = Benchmark(
+    std::optional<RunResults> possible_bench_result = Benchmark(
         fft_length, warmup_samples, sample_size, async_batch_size,
         configs[i].mode_, configs[i].base_fft_warps_per_block_,
         configs[i].r16_warps_per_block_, configs[i].r2_blocksize_);
 
     //If Benchmark completed successfully save results.
     if (possible_bench_result) {
-      RunResults current_result =
-          {configs[i].mode_, configs[i].base_fft_warps_per_block_,
-           configs[i].r16_warps_per_block_, configs[i].r2_blocksize_,
-           possible_bench_result.value()};
-      results.push_back(current_result);
+      results.push_back(possible_bench_result.value());
     }
   }
 
