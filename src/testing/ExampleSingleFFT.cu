@@ -65,7 +65,8 @@ int main(){
   }
 
   //Compute the FFT on the device
-  error_mess = ComputeFFT(my_plan, my_handler);
+  error_mess = ComputeFFT(my_plan, my_handler,
+                          GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
@@ -74,7 +75,7 @@ int main(){
   //Copy results back
   error_mess =
     my_handler.CopyResultsDeviceToHost(data.get(),
-                                       fft_plan.results_in_results_);
+                                       my_plan.results_in_results_);
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;

@@ -99,7 +99,7 @@ std::optional<Plan<Integer>> CreatePlan(const Integer fft_length,
   my_plan.amount_of_r16_steps_ = (log2_of_fft_lenght / 4) - 1;
   my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
 
-  if ((mode == Mode_4096) && (fft_length_ < 4096)) {
+  if ((mode == Mode_4096) && (my_plan.fft_length_ < 4096)) {
     std::cout << "Error! Baselayer fft length cant be longer that fft_length."
               << std::endl;
     return std::nullopt;
@@ -122,7 +122,7 @@ std::optional<Plan<Integer>> CreatePlan(const Integer fft_length,
               << " has been overwritten to "
               << total_amount_of_warps
               << " since it is larger than total_amount_of_warps."
-              << sttd::endl;
+              << std::endl;
     my_plan.base_fft_warps_per_block_ = total_amount_of_warps;
   } else {
     if ((total_amount_of_warps % base_fft_warps_per_block) != 0) {
@@ -136,6 +136,7 @@ std::optional<Plan<Integer>> CreatePlan(const Integer fft_length,
       if (base_fft_warps_per_block != 16) {
         std::cout << "Warning! input of base_fft_warps_per_block has been"
                   << " overwritten to 16. Since 16 is madatory for mode=4096."
+                  << std::endl;
       }
       my_plan.base_fft_warps_per_block_ = 16;
     } else {
@@ -155,7 +156,7 @@ std::optional<Plan<Integer>> CreatePlan(const Integer fft_length,
               << " has been overwritten to "
               << total_amount_of_warps
               << " since it is larger than total_amount_of_warps."
-              << sttd::endl;
+              << std::endl;
     my_plan.r16_warps_per_block_ = total_amount_of_warps;
   } else {
     if ((total_amount_of_warps % r16_warps_per_block) != 0) {
@@ -256,7 +257,7 @@ std::optional<Plan<Integer>> CreatePlan(const Integer fft_length,
 template <typename Integer>
 bool PlanWorksOnDevice(const Plan<Integer> my_plan, const int device_id){
   cudaDeviceProp properties;
-  cudaGetDevicePropertier(&properties, device_id);
+  cudaGetDeviceProperties(&properties, device_id);
 
   if (properties.major < 8) {
     std::cout << "Error! Compute capability >= 8 is required." << std::endl;
@@ -292,4 +293,11 @@ bool PlanWorksOnDevice(const Plan<Integer> my_plan, const int device_id){
   }
 
   return true;
+}
+
+int GetMaxNoOptInSharedMem(const int device_id){
+  cudaDeviceProp properties;
+  cudaGetDeviceProperties(&properties, device_id);
+
+  return properties.sharedMemPerBlock;
 }

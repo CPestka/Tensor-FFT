@@ -40,7 +40,8 @@
 template <typename Integer>
 std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
                                       const DataHandler<Integer> &data,
-                                      const int max_no_optin_shared_mem){
+                                      const int max_no_optin_shared_mem =
+                                      32768){
   //Use opt in shared memory if required
   if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
     if (fft_plan.base_fft_mode_ == Mode_256) {
