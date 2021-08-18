@@ -20,7 +20,63 @@
 #include "../../base/Plan.h"
 #include "BenchUtil.h"
 
-struct BenchResult;
+template <typename Integer>
+std::vector<RunResults> RunBenchOverSearchSpace(
+    const std::vector<RunConfig> &configs,
+    const int sample_size,
+    const int warmup_samples,
+    const Integer fft_length){
+  std::vector<RunResults> results;
+
+  for(int i=0; i<static_cast<int>(configs.size()); i++){
+    //Run Bench with a configuration
+    std::optional<BenchResult> possible_bench_result = Benchmark(
+        fft_length, warmup_samples, sample_size, configs[i].mode_,
+        configs[i].base_fft_warps_per_block_,
+        configs[i].r16_warps_per_block_, configs[i].r2_blocksize_);
+
+    //If Benchmark completed successfully save results.
+    if (possible_bench_result) {
+      RunResults current_result =
+          {configs[i].mode_, configs[i].base_fft_warps_per_block_,
+           configs[i].r16_warps_per_block_, configs[i].r2_blocksize_,
+           possible_bench_result.value()};
+      results.push_back(current_result);
+    }
+  }
+
+  return results;
+}
+
+template <typename Integer>
+std::vector<RunResults> RunBenchOverSearchSpace(
+    const std::vector<RunConfig> &configs,
+    const int sample_size,
+    const int warmup_samples,
+    const int async_batch_size,
+    const Integer fft_length){
+  std::vector<RunResults> results;
+
+  for(int i=0; i<static_cast<int>(configs.size()); i++){
+    //Run Bench with a configuration
+    std::optional<BenchResult> possible_bench_result = Benchmark(
+        fft_length, warmup_samples, sample_size, async_batch_size,
+        configs[i].mode_, configs[i].base_fft_warps_per_block_,
+        configs[i].r16_warps_per_block_, configs[i].r2_blocksize_);
+
+    //If Benchmark completed successfully save results.
+    if (possible_bench_result) {
+      RunResults current_result =
+          {configs[i].mode_, configs[i].base_fft_warps_per_block_,
+           configs[i].r16_warps_per_block_, configs[i].r2_blocksize_,
+           possible_bench_result.value()};
+      results.push_back(current_result);
+    }
+  }
+
+  return results;
+}
+
 
 //Takes performance parameters as input
 //Mostly intended for tuner.cu
