@@ -202,8 +202,9 @@ std::optional<std::string> WriteTunerDataToFile(
   std::ofstream myfile ((("TunerData_" + std::to_string(fft_length)) + ".dat"));
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
+      int mode = results[i].mode_ == Mode_256 ? 256 : 4096;
       myfile << fft_length << " "
-             << results[i].mode_ == Mode_256 ? 256 : 4096 << " "
+             << mode << " "
              << results[i].base_fft_warps_per_block_ << " "
              << results[i].r16_warps_per_block_ << " "
              << results[i].r2_blocksize_ << " "
@@ -224,8 +225,9 @@ std::optional<std::string> WriteTunerDataToFile(
   std::ofstream myfile ("TunerResults.dat");
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
+      int mode = results[i].mode_ == Mode_256 ? 256 : 4096;
       myfile << fft_length[i] << " "
-             << results[i].mode_ == Mode_256 ? "256" : "4096" << " "
+             << mode << " "
              << results[i].base_fft_warps_per_block_ << " "
              << results[i].r16_warps_per_block_ << " "
              << results[i].r2_blocksize_ << "\n";
@@ -244,8 +246,9 @@ std::optional<std::string> WriteBenchResultsToFile(
   std::ofstream myfile ("BenchResults.dat");
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
+      int mode = results[i].mode_ == Mode_256 ? 256 : 4096;
       myfile << fft_length[i] << " "
-             << results[i].mode_ == Mode_256 ? 256 : 4096 << " "
+             << mode << " "
              << results[i].base_fft_warps_per_block_ << " "
              << results[i].r16_warps_per_block_ << " "
              << results[i].r2_blocksize_ << " "
