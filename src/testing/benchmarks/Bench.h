@@ -109,7 +109,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   }
 
   int device_id;
-  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+  cudaGetDevice(&device_id);
+  assert((PlanWorksOnDevice(my_plan, device_id)));
+
+  int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
   std::optional<std::string> error_mess;
 
@@ -130,7 +133,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     cudaDeviceSynchronize();
 
     IntervallTimer computation_time;
-    error_mess = ComputeFFT(my_plan, my_handler);
+    error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
       return std::nullopt;
@@ -177,7 +180,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   }
 
   int device_id;
-  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+  cudaGetDevice(&device_id);
+  assert((PlanWorksOnDevice(my_plan, device_id)));
+
+  int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
   std::optional<std::string> error_mess;
 
@@ -198,7 +204,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     cudaDeviceSynchronize();
 
     IntervallTimer computation_time;
-    error_mess = ComputeFFT(my_plan, my_handler);
+    error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
       return std::nullopt;
@@ -253,7 +259,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   }
 
   int device_id;
-  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+  cudaGetDevice(&device_id);
+  assert((PlanWorksOnDevice(my_plan, device_id)));
+
+  int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
   std::optional<std::string> error_mess;
 
@@ -274,7 +283,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     cudaDeviceSynchronize();
 
     IntervallTimer computation_time;
-    error_mess = ComputeFFT(my_plan, my_handler);
+    error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
       return std::nullopt;
@@ -322,7 +331,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   }
 
   int device_id;
-  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+  cudaGetDevice(&device_id);
+  assert((PlanWorksOnDevice(my_plan, device_id)));
+
+  int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
   std::optional<std::string> error_mess;
 
@@ -343,7 +355,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     cudaDeviceSynchronize();
 
     IntervallTimer computation_time;
-    error_mess = ComputeFFT(my_plan, my_handler);
+    error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
       return std::nullopt;
