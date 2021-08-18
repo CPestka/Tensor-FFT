@@ -58,7 +58,7 @@ T ComputeSigma(const std::vector<T> data, const T average){
 }
 
 RunConfig GetFastestConfig(const std::vector<RunResults> &results){
-  T smallest = results[0].results_.average_time_;
+  double smallest = results[0].results_.average_time_;
   int id_smallest = 0;
   for(int i=1; i<static_cast<int>(results.size()); i++){
     if (results[i].results_.average_time_ < smallest) {
