@@ -283,9 +283,9 @@ bool PlanWorksOnDevice(const Plan<Integer> my_plan, const int device_id){
   }
 
   if ((my_plan.base_fft_shared_mem_in_bytes_ >
-       properties.sharedMemPerBlockOptin) ||
+       static_cast<int>(properties.sharedMemPerBlockOptin)) ||
       (my_plan.r16_shared_mem_in_bytes_ >
-       properties.sharedMemPerBlockOptin)) {
+       static_cast<int>(properties.sharedMemPerBlockOptin))) {
     std::cout << "Error! One or more kernels exceeds max shared memory per"
               << " block."
               << std::endl;
