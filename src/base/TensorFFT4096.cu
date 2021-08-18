@@ -352,7 +352,6 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //Store results into global memory and revert transpose.
   #pragma unroll
   for(int k=0; k<8; k++){
-    int i = inter_warp_id_16;
     int j = k + (8 * inter_warp_id_is_upper_16);
     int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
     //Global id also reverses the transpose

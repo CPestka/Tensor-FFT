@@ -49,7 +49,6 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
   //4 dynamic shared memory buffers
    extern __shared__ __half buffer[];
    int warp_shared_memory_offset = 512 * inter_block_warp_id;
-   Integer warp_global_memory_offset = 256 * warp_id;
    __half* buffer_RE = buffer + warp_shared_memory_offset;
    __half* buffer_IM = buffer + warp_shared_memory_offset + 256;
 
@@ -110,8 +109,8 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     Integer i = inter_warp_id_16 + (inter_substep_id * 16);
     int j = k + (8 * inter_warp_id_is_upper_16);
     Integer global_memory_offset = i +
-                               sub_fft_length * j +
-                               substep_id * combined_fft_length;
+                                   sub_fft_length * j +
+                                   substep_id * combined_fft_length;
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     //On the fly computation of twiddle fctors

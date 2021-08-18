@@ -31,6 +31,7 @@
 #include "TensorFFT256.cu"
 #include "TensorFFT4096.cu"
 #include "TensorRadix16.cu"
+#include "Radix2.cu"
 
 //Computes a sigle FFT.
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
