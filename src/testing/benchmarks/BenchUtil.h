@@ -172,9 +172,9 @@ template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
 std::vector<RunResults> RunBenchOverSearchSpace(
     const std::vector<RunConfig> &configs,
-    const sample_size,
-    const warmup_samples,
-    const async_batch_size,
+    const int sample_size,
+    const int warmup_samples,
+    const int async_batch_size,
     const Integer fft_length){
   std::vector<RunResults> results;
 
