@@ -45,11 +45,11 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
   //Use opt in shared memory if required
   if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
     if (fft_plan.base_fft_mode_ == Mode_256) {
-      cudaFuncSetAttribute(TensorFFT256,
+      cudaFuncSetAttribute((void*)TensorFFT256,
                            cudaFuncAttributeMaxDynamicSharedMemorySize,
                            fft_plan.base_fft_shared_mem_in_bytes_);
     } else {
-      cudaFuncSetAttribute(TensorFFT4096,
+      cudaFuncSetAttribute((void*)TensorFFT4096,
                            cudaFuncAttributeMaxDynamicSharedMemorySize,
                            fft_plan.base_fft_shared_mem_in_bytes_);
     }
@@ -82,7 +82,7 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
 
   //Use opt in shared memory if required
   if (fft_plan.r16_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
-    cudaFuncSetAttribute(TensorRadix16,
+    cudaFuncSetAttribute((void*)TensorRadix16,
                          cudaFuncAttributeMaxDynamicSharedMemorySize,
                          fft_plan.r16_shared_mem_in_bytes_);
   }
