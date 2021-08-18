@@ -44,7 +44,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
                                       const int max_no_optin_shared_mem){
   //Use opt in shared memory if required
   if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
-    if (fft_plan.base_fft_mode_ == 256) {
+    if (fft_plan.base_fft_mode_ == Mode_256) {
       cudaFuncSetAttribute(TensorFFT256,
                            cudaFuncAttributeMaxDynamicSharedMemorySize,
                            fft_plan.base_fft_shared_mem_in_bytes_);
@@ -56,7 +56,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
   }
 
   //Compute base layer FFT
-  if (fft_plan.base_fft_mode_ == 256) {
+  if (fft_plan.base_fft_mode_ == Mode_256) {
     TensorFFT256<<<fft_plan.base_fft_gridsize_,
                    fft_plan.base_fft_blocksize_,
                    fft_plan.base_fft_shared_mem_in_bytes_>>>(
@@ -78,7 +78,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
   __half* dptr_current_results_RE = data.dptr_input_RE_;
   __half* dptr_current_results_IM = data.dptr_input_IM_;
 
-  Integer sub_fft_length = fft_plan.base_fft_mode_ == 256 ? 256 : 4096;
+  Integer sub_fft_length = fft_plan.base_fft_mode_ == Mode_256 ? 256 : 4096;
 
   //Use opt in shared memory if required
   if (fft_plan.r16_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
@@ -88,7 +88,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
   }
 
   //Launch radix16 kernels
-  for(int i = fft_plan.base_fft_mode_ == 256 ? 1 : 2;
+  for(int i = fft_plan.base_fft_mode_ == Mode_256 ? 1 : 2;
       i<fft_plan.amount_of_r16_steps_; i++){
 
     TensorRadix16<<<fft_plan.r16_gridsize_,
@@ -174,7 +174,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
 
   //Use opt in shared memory if required
   if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
-    if (fft_plan.base_fft_mode_ == 256) {
+    if (fft_plan.base_fft_mode_ == Mode_256) {
       cudaFuncSetAttribute(TensorFFT256,
                            cudaFuncAttributeMaxDynamicSharedMemorySize,
                            fft_plan.base_fft_shared_mem_in_bytes_);
@@ -187,7 +187,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
 
   //Compute base layer FFT
   for(int i=0; i<data.amount_of_ffts_; i++){
-    if (fft_plan.base_fft_mode_ == 256) {
+    if (fft_plan.base_fft_mode_ == Mode_256) {
       TensorFFT256<<<fft_plan.base_fft_gridsize_,
                      fft_plan.base_fft_blocksize_,
                      fft_plan.base_fft_shared_mem_in_bytes_,
@@ -225,7 +225,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
     dptr_current_input_IM[i] = data.dptr_results_IM_[i];
     dptr_current_results_RE[i] = data.dptr_input_RE_[i];
     dptr_current_results_IM[i] = data.dptr_input_IM_[i];
-    sub_fft_length[i] = fft_plan.base_fft_mode_ == 256 ? 256 : 4096;
+    sub_fft_length[i] = fft_plan.base_fft_mode_ == Mode_256 ? 256 : 4096;
   }
 
   //Use opt in shared memory if required
@@ -237,7 +237,7 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan,
 
   //Launch radix16 kernels
   for(int i=0; i<data.amount_of_ffts_; i++){
-    for(int j = fft_plan.base_fft_mode_ == 256 ? 1 : 2;
+    for(int j = fft_plan.base_fft_mode_ == Mode_256 ? 1 : 2;
         j<fft_plan.amount_of_r16_steps_; j++){
       TensorRadix16<<<fft_plan.r16_gridsize_,
                       fft_plan.r16_blocksize_,

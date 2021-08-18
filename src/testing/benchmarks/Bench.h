@@ -40,7 +40,9 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 
   std::vector<double> runtime;
 
-  std::optional<Plan> possible_plan = CreatePlan(fft_length);
+  std::optional<Plan> possible_plan =
+      CreatePlan(fft_length, mode, base_fft_warps_per_block,
+                 r16_warps_per_block, r2_blocksize);
   Plan my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
@@ -176,7 +178,9 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 
   std::vector<double> runtime;
 
-  std::optional<Plan> possible_plan = CreatePlan(fft_length);
+  std::optional<Plan> possible_plan =
+      CreatePlan(fft_length, mode, base_fft_warps_per_block,
+                 r16_warps_per_block, r2_blocksize);
   Plan my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();

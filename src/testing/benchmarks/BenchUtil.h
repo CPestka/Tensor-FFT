@@ -76,9 +76,9 @@ template <typename Integer,
 RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
   RunParameterSearchSpace search_space;
 
-  search_space.mode_.push_back(256);
+  search_space.mode_.push_back(Mode_256);
   if (fft_length >= 4096) {
-    search_space.mode_.push_back(4096);
+    search_space.mode_.push_back(Mode_4096);
   }
 
   cudaDeviceProp properties;
@@ -110,7 +110,7 @@ std::vector<RunConfig> GetRunConfigs(RunParameterSearchSpace search_space){
         j++){
       for(int k=0; k<static_cast<int>(search_space.r2_blocksize_.size()); k++){
         RunConfig tmp;
-        tmp.mode_ = 256;
+        tmp.mode_ = Mode_256;
         tmp.base_fft_warps_per_block_ =
             search_space.base_fft_warps_per_block_[i];
         tmp.r16_warps_per_block_ = search_space.r16_warps_per_block_[j];
@@ -121,13 +121,13 @@ std::vector<RunConfig> GetRunConfigs(RunParameterSearchSpace search_space){
   }
 
   //This mode is only avaiable for fft_length >= 4096
-  if (search_space.mode_.back() == 4096) {
+  if (search_space.mode_.back() == Mode_4096) {
     //For the 4096 mode the base_fft_warps_per_block_ is always 16
     for(int j=0; j<static_cast<int>(search_space.r16_warps_per_block_.size());
         j++){
       for(int k=0; k<static_cast<int>(search_space.r2_blocksize_.size()); k++){
         RunConfig tmp;
-        tmp.mode_ = 4096;
+        tmp.mode_ = Mode_4096;
         tmp.base_fft_warps_per_block_ = 16;
         tmp.r16_warps_per_block_ = search_space.r16_warps_per_block_[j];
         tmp.r2_blocksize_ = search_space.r2_blocksize_[k];

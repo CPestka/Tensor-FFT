@@ -7,8 +7,7 @@
 #include <sstream>
 #include <type_traits>
 
-
-enum BaseFFTMode {256, 4096};
+enum BaseFFTMode {Mode_256, Mode_4096};
 
 //Holds the neccesary info for the computation of a fft of a given length.
 //Use CreatePlan(...) to obtain a plan.
@@ -77,7 +76,7 @@ int ExactLog2(const Integer x) {
 template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
 std::optional<Plan> CreatePlan(const Integer fft_length,
-                               const BaseFFTMode mode = 256,
+                               const BaseFFTMode mode = Mode_256,
                                const int base_fft_warps_per_block = 8,
                                const int r16_warps_per_block = 8,
                                const int r2_blocksize = 256){
@@ -100,7 +99,7 @@ std::optional<Plan> CreatePlan(const Integer fft_length,
   my_plan.amount_of_r16_steps_ = (log2_of_fft_lenght / 4) - 1;
   my_plan.amount_of_r2_steps_ = log2_of_fft_lenght % 4;
 
-  if ((mode == 4096) && (fft_length_ < 4096)) {
+  if ((mode == Mode_4096) && (fft_length_ < 4096)) {
     std::cout << "Error! Baselayer fft length cant be longer that fft_length."
               << std::endl;
     return std::nullopt;
@@ -108,7 +107,7 @@ std::optional<Plan> CreatePlan(const Integer fft_length,
   my_plan.base_fft_mode_ = mode;
 
   int remaining_radix_steps_after_base_layer =
-      (my_plan.base_fft_mode_ == 256) ?
+      (my_plan.base_fft_mode_ == Mode_256) ?
           (my_plan.amount_of_r16_steps_ + my_plan.amount_of_r2_steps_ - 1) :
           (my_plan.amount_of_r16_steps_ + my_plan.amount_of_r2_steps_ - 2);
 
@@ -133,7 +132,7 @@ std::optional<Plan> CreatePlan(const Integer fft_length,
       return std::nullopt;
     }
 
-    if (my_plan.base_fft_mode_ == 4096) {
+    if (my_plan.base_fft_mode_ == Mode_4096) {
       if (base_fft_warps_per_block != 16) {
         std::cout << "Warning! input of base_fft_warps_per_block has been"
                   << " overwritten to 16. Since 16 is madatory for mode=4096."
@@ -167,7 +166,7 @@ std::optional<Plan> CreatePlan(const Integer fft_length,
     }
     my_plan.r16_warps_per_block_ = r16_warps_per_block;
   }
-  
+
   my_plan.r16_blocksize_ = my_plan.r16_warps_per_block_ * 32;
   my_plan.r16_gridsize_ =
       total_amount_of_warps / my_plan.r16_warps_per_block_;
@@ -221,7 +220,7 @@ std::optional<Plan> CreatePlan(const Integer fft_length,
 
         tmp = "";
         ss >> tmp;
-        mode = std::stoi(tmp);
+        mode = std::stoi(tmp) == 256 ? Mode_256 : Mode_4096;
 
         tmp = "";
         ss >> tmp;
