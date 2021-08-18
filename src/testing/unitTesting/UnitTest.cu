@@ -2,9 +2,6 @@
 #include <iostream>
 #include <string>
 
-#include "TransposeTest.cu"
-#include "DFTMatrixTest.cu"
-#include "DFTTest.cu"
 #include "FFTTest.cu"
 
 int main(){
