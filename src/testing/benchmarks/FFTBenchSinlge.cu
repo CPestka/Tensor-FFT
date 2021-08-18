@@ -26,7 +26,7 @@ int main(){
       //Benchmark(fft_length.back(), warmup_samples, sample_size,
       //          "TunerResults.dat");
       Benchmark(fft_length.back(), warmup_samples,
-                sample_size, 256, 8, 8, 256);
+                sample_size, Mode_256, 8, 8, 256);
     if (tmp) {
       bench_data.push_back(tmp.value());
       fft_length.push_back(fft_length.back() * 2);
