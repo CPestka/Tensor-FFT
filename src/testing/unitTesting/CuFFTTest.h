@@ -16,7 +16,7 @@
 #include "../TestingDataCreation.h"
 
 std::optional<std::string> CreateComparisonDataHalf(
-    const long long fft_length,
+    long long fft_length,
     const std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
