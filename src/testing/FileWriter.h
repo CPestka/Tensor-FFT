@@ -222,7 +222,7 @@ std::optional<std::string> WriteTunerDataToFile(
 
 template <typename Integer>
 std::optional<std::string> WriteTunerResultsToFile(
-      const std::vector<RunResults> results,
+      const std::vector<RunConfig> results,
       const std::vector<Integer> fft_length){
   std::ofstream myfile ("TunerResults.dat");
   if (myfile.is_open()) {
