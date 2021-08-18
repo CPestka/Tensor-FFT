@@ -18,7 +18,7 @@ int main(){
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2(fft_length,  weights, batch_size);
+      CreateSineSuperpostionH2Batch(fft_length,  weights, batch_size);
 
   __half2* dptr_data;
   __half2* dptr_results;
