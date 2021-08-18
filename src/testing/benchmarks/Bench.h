@@ -451,8 +451,8 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
 
   size_t size = 0;
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1,
-                          CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F, batch_size,
-                          &size, CUDA_C_16F);
+                          CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F,
+                          async_batch_size, &size, CUDA_C_16F);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
     return std::nullopt;
@@ -460,7 +460,7 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
 
   for(int k=0; k<sample_size + warmup_samples; k++){
     cudaMemcpy(dptr_data, data.get(),
-               fft_length * sizeof(__half2) * batch_size,
+               fft_length * sizeof(__half2) * async_batch_size,
                cudaMemcpyHostToDevice);
 
     cudaDeviceSynchronize();
