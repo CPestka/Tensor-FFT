@@ -9,6 +9,8 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
+#include "../../base/Plan.h"
+
 struct BenchResult {
   double average_time_;
   double std_deviation_;
