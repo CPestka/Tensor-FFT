@@ -13,7 +13,7 @@ int main(){
 
   constexpr int sample_size = 200;
   constexpr int warmup_samples = 5;
-  constexpr int async_batch_size 20;
+  constexpr int async_batch_size = 20;
 
   std::vector<int> fft_length;
   fft_length.push_back(start_fft_length);
