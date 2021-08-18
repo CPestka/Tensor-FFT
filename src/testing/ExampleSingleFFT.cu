@@ -44,7 +44,8 @@ int main(){
 
   //Check if parameters of plan work given limitations on used device.
   int device_id;
-  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+  cudaGetDevice(&device_id);
+  assert((PlanWorksOnDevice(my_plan, device_id)));
 
   //The DataHandler class allocates and holds the ptrs to the data on the device
   //Instantiation and destruction handle the allocation and freeing of the
