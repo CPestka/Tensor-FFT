@@ -24,8 +24,7 @@ struct BenchResult;
 
 //Takes performance parameters as input
 //Mostly intended for tuner.cu
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<BenchResult> Benchmark(const Integer fft_length,
                                      const int warmup_samples,
                                      const int sample_size,
@@ -94,8 +93,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 }
 
 //Reads optimized parameters from file created by tuner.cu
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<BenchResult> Benchmark(const Integer fft_length,
                                      const int warmup_samples,
                                      const int sample_size,
@@ -161,8 +159,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 
 //Async versions of the above
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<BenchResult> Benchmark(const Integer fft_length,
                                      const int warmup_samples,
                                      const int sample_size,
@@ -231,8 +228,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   return results;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<BenchResult> Benchmark(const Integer fft_length,
                                      const int warmup_samples,
                                      const int sample_size,
@@ -298,8 +294,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 }
 
 //Bench for single fft of cufft
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
                                           const int warmup_samples,
                                           const int sample_size){
@@ -367,8 +362,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
   return results;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
                                           const int warmup_samples,
                                           const int sample_size,

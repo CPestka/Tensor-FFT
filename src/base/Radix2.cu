@@ -17,8 +17,7 @@
 //multiple of those needed for one radix step, multiple kernels have to be
 //launched and the ptrs to the in/out data have to point to the beginnning of
 //the fft that is to be proccessed and not to the global start of the data.
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
                              __half* output_data_RE, __half* output_data_IM,
                              Integer sub_fft_length) {

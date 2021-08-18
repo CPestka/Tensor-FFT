@@ -33,8 +33,7 @@ using namespace nvcuda;
 //sub_fft_length=16^(m+1).
 //This kernel is, if the fft legth is long enough, called (multiple times) after
 //either TensorFFT256 or TensorFFT4096 and then followed Radix2Kernel.
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
                               __half* output_data_RE, __half* output_data_IM,
                               Integer fft_length, Integer sub_fft_length) {

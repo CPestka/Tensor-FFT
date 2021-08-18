@@ -21,8 +21,7 @@
 #include "../AccuracyCalculator.h"
 #include "CuFFTTest.h"
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> FullSingleFFTComputation(
     const Integer fft_length,
     const std::string file_name){
@@ -81,8 +80,7 @@ std::optional<std::string> FullSingleFFTComputation(
   return std::nullopt;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> FullAsyncFFTComputation(
     const Integer fft_length,
     const int amount_of_asynch_ffts,
@@ -151,8 +149,7 @@ std::optional<std::string> FullAsyncFFTComputation(
   return std::nullopt;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 bool TestFullFFT(const Integer fft_length,
                  const double avg_deviation_threshold,
                  const double sigma_deviation_threshold){
@@ -190,8 +187,7 @@ bool TestFullFFT(const Integer fft_length,
   return true;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 bool TestFullFFTAsynch(const Integer fft_length,
                        const int amount_of_asynch_ffts,
                        const double avg_deviation_threshold,

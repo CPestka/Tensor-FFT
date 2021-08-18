@@ -37,8 +37,7 @@
 //using the async version below should increase performance.
 //Uses default stream -> no cudaDeviceSynchronize() calls between computation
 //and memory copies needed.
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
                                       const DataHandler<Integer> &data,
                                       const int max_no_optin_shared_mem){
@@ -158,8 +157,7 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
 //No manual cudaDeviceSynchronize() calls are needed before and after this
 //function as they are included at the end of this function and DataBatchHandler
 //methods.
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
                                       const DataBatchHandler<Integer> &data,
                                       const int max_no_optin_shared_mem){

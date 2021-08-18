@@ -19,8 +19,7 @@
 //constructor to check if the construction (thus device mem allocation) was
 //successfull.
 //Required memory on device = 4*sizeof(__half)*fft_length
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 class DataHandler{
 public:
   DataHandler(const Integer fft_length) : fft_length_(fft_length) {
@@ -84,8 +83,7 @@ public:
 
 //Similar to the DataHandler class but is used for the async fft compution and
 //thus holds the data of the entire batch of ffts to be computed.
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 class DataBatchHandler{
 public:
   DataBatchHandler(const Integer fft_length, const int amount_of_ffts) :

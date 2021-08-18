@@ -14,8 +14,7 @@
 #include "benchmarks/BenchUtil.h"
 
 //Writes results of a fft that uses __half to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteResultsToFile(const std::string file_name,
                                               const Integer fft_length,
                                               const __half* data){
@@ -35,8 +34,7 @@ std::optional<std::string> WriteResultsToFile(const std::string file_name,
 }
 
 //Writes results of a fft that uses __half to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteResultsREToFile(const std::string file_name,
                                                 const Integer fft_length,
                                                 const __half* data){
@@ -54,8 +52,7 @@ std::optional<std::string> WriteResultsREToFile(const std::string file_name,
 }
 
 //Writes results of a fft that uses 2 __half to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteResultsToFile(const std::string file_name,
                                               const Integer fft_length,
                                               const __half* data_RE,
@@ -76,8 +73,7 @@ std::optional<std::string> WriteResultsToFile(const std::string file_name,
 }
 
 //Writes results of a fft that uses 2 __half to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteResultBatchToFile(
     const std::vector<std::string> file_names,
     const Integer fft_length,
@@ -102,8 +98,7 @@ std::optional<std::string> WriteResultBatchToFile(
 
 
 //Writes results of a fft that uses __half2 to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteResultsToFileHalf2(const std::string file_name,
                                                    const Integer fft_length,
                                                    const __half2* data){
@@ -124,8 +119,7 @@ std::optional<std::string> WriteResultsToFileHalf2(const std::string file_name,
 }
 
 //Writes results of a fft that uses cufftDoubleComplex to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteResultsToFileDouble2(
     const std::string file_name,
     const Integer fft_length,
@@ -146,8 +140,7 @@ std::optional<std::string> WriteResultsToFileDouble2(
 }
 
 //Writes Benchmark results to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteBenchResultsToFile(
     const std::vector<double> run_avg,
     const std::vector<double> run_sig,
@@ -181,8 +174,7 @@ std::optional<std::string> WriteLogToFile(const std::string file_name,
 }
 
 //Writes result of Accuracy test to file
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteAccuracyTestResultsToFile(
     const std::vector<double> average,
     const std::vector<double> std_dev,
@@ -203,8 +195,7 @@ std::optional<std::string> WriteAccuracyTestResultsToFile(
   return std::nullopt;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteTunerDataToFile(
       const std::vector<RunResults> results,
       const Integer fft_length){
@@ -226,8 +217,7 @@ std::optional<std::string> WriteTunerDataToFile(
   return std::nullopt;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteTunerDataToFile(
       const std::vector<RunResults> results,
       const std::vector<Integer> fft_length){
@@ -247,8 +237,7 @@ std::optional<std::string> WriteTunerDataToFile(
   return std::nullopt;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::optional<std::string> WriteBenchResultsToFile(
       const std::vector<RunResults> results,
       const std::vector<Integer> fft_length){

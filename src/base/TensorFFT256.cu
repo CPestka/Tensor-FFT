@@ -17,8 +17,7 @@
 
 using namespace nvcuda;
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                              __half* output_data_RE, __half* output_data_IM,
                              Integer fft_length, int amount_of_r16_steps,

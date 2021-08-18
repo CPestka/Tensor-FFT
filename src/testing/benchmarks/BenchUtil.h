@@ -71,8 +71,7 @@ RunConfig GetFastestConfig(const std::vector<RunResults> &results){
   return fastest_config;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
   RunParameterSearchSpace search_space;
 
@@ -96,7 +95,7 @@ RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
     warp_amount = (warp_amount * 2);
   }
 
-  return std::move(search_space);
+  return search_space;
 }
 
 //If 1024<maxThreadsPerBlock<2048 -> 256 configs
@@ -136,11 +135,10 @@ std::vector<RunConfig> GetRunConfigs(RunParameterSearchSpace search_space){
     }
   }
 
-  return std::move(configs);
+  return configs;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::vector<RunResults> RunBenchOverSearchSpace(
     const std::vector<RunConfig> &configs,
     const int sample_size,
@@ -165,11 +163,10 @@ std::vector<RunResults> RunBenchOverSearchSpace(
     }
   }
 
-  return std::move(results);
+  return results;
 }
 
-template <typename Integer,
-    typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
+template <typename Integer>
 std::vector<RunResults> RunBenchOverSearchSpace(
     const std::vector<RunConfig> &configs,
     const int sample_size,
@@ -195,5 +192,5 @@ std::vector<RunResults> RunBenchOverSearchSpace(
     }
   }
 
-  return std::move(results);
+  return results;
 }
