@@ -162,7 +162,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length.back(),  weights);
+      CreateSineSuperpostion(fft_length,  weights);
 
   std::vector<double> runtime;
 
