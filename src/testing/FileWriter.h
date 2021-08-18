@@ -225,7 +225,7 @@ std::optional<std::string> WriteTunerDataToFile(
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
       myfile << fft_length[i] << " "
-             << results[i].mode_ == Mode_256 ? 256 : 4096 << " "
+             << results[i].mode_ == Mode_256 ? "256" : "4096" << " "
              << results[i].base_fft_warps_per_block_ << " "
              << results[i].r16_warps_per_block_ << " "
              << results[i].r2_blocksize_ << "\n";
