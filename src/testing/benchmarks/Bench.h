@@ -437,8 +437,8 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
 
   __half2* dptr_data;
   __half2* dptr_results;
-  cudaMalloc(&dptr_data, sizeof(__half2) * fft_length * batch_size);
-  cudaMalloc(&dptr_results, sizeof(__half2) * fft_length * batch_size);
+  cudaMalloc(&dptr_data, sizeof(__half2) * fft_length * async_batch_size);
+  cudaMalloc(&dptr_results, sizeof(__half2) * fft_length * async_batch_size);
 
   cufftHandle plan;
   cufftResult r;
