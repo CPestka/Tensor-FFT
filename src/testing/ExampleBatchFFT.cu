@@ -29,7 +29,7 @@ int main(){
 
   std::optional<std::string> error_mess;
 
-  std::optional<Plan> possible_plan = CreatePlan(fft_length);
+  std::optional<Plan<int>> possible_plan = CreatePlan(fft_length);
   Plan<int> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
