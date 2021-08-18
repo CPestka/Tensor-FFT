@@ -12,7 +12,7 @@
 #include "TestingDataCreation.h"
 
 int main(){
-  constexpr long long fft_length = 16*16*16*16*16*16*2*2*2;
+  long long fft_length = 16*16*16*16*16*16*2*2*2;
 
   std::vector<float> weights;
   weights.push_back(1.0);

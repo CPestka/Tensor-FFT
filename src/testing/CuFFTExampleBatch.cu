@@ -12,7 +12,7 @@
 #include "TestingDataCreation.h"
 
 int main(){
-  constexpr long long fft_length = 16*16*16;
+  long long fft_length = 16*16*16;
   constexpr int batch_size = 20;
 
   std::vector<float> weights;
