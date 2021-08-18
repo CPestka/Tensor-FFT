@@ -266,7 +266,7 @@ std::optional<std::string> WriteBenchResultsToFile(
 
 template <typename Integer>
 std::optional<std::string> WriteBenchResultsToFile(
-      const std::vector<BenchResults> results,
+      const std::vector<BenchResult> results,
       const std::vector<Integer> fft_length){
   std::ofstream myfile ("BenchResults.dat");
   if (myfile.is_open()) {
