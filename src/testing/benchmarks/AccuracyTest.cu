@@ -10,7 +10,7 @@
 
 #include "../AccuracyCalculator.h"
 #include "../unitTesting/CuFFTTest.h"
-#include "../unitTesting/FTTTest.h"
+#include "../unitTesting/FTTTest.cu"
 #include "../../base/ComputeFFT.h"
 #include "../FileWriter.h"
 
