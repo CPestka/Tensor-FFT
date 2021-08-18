@@ -13,20 +13,22 @@ int main(){
 
   constexpr int sample_size = 200;
   constexpr int warmup_samples = 5;
-  constexpr int async_batch_size 20;
+  constexpr int async_batch_size = 20;
 
   std::vector<int> fft_length;
   fft_length.push_back(start_fft_length);
 
-  std::vector<RunResults> bench_data;
+  std::vector<BenchResults> bench_data;
 
   std::optional<std::string> err;
 
   while (fft_length.back() <= end_fft_length) {
-    bench_data.push_back(BenchmarkCuFFT(fft_length.back(), warmup_samples,
-                                        sample_size, async_batch_size));
-
-    fft_length.push_back(fft_length.back() * 2);
+    std::optional<BenchResult> tmp =
+        BenchmarkCuFFT(fft_length.back(), warmup_samples, sample_size, async_batch_size);
+    if (tmp) {
+      bench_data.push_back(tmp.value());
+      fft_length.push_back(fft_length.back() * 2);
+    }
   }
 
   WriteBenchResultsToFile(fft_length, bench_data);
