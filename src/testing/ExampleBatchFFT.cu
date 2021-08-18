@@ -30,7 +30,7 @@ int main(){
   std::optional<std::string> error_mess;
 
   std::optional<Plan> possible_plan = CreatePlan(fft_length);
-  Plan my_plan;
+  Plan<int> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
   } else {
@@ -39,7 +39,8 @@ int main(){
   }
 
   int device_id;
-  assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+  cudaGetDevice(&device_id);
+  assert((PlanWorksOnDevice(my_plan, device_id)));
 
   //Instead of the DataHandler class
   DataBatchHandler my_handler(fft_length, batch_size);
@@ -56,7 +57,8 @@ int main(){
   }
 
   //Uses different overload
-  error_mess = ComputeFFT(my_plan, my_handler);
+  error_mess = ComputeFFT(my_plan, my_handler,
+                          GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
