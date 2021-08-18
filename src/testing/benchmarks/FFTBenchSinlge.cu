@@ -22,15 +22,18 @@ int main(){
   std::optional<std::string> err;
 
   while (fft_length.back() <= end_fft_length) {
-    bench_data.push_back(Benchmark(fft_length.back(), warmup_samples,
-                                   sample_size, "TunerResults.dat"));
-    //bench_data.push_back(Benchmark(fft_length.back(), warmup_samples,
-    //                     sample_size, 256, 8, 8, 256));
-
-    fft_length.push_back(fft_length.back() * 2);
+    std::optional<RunResults> tmp =
+      Benchmark(fft_length.back(), warmup_samples, sample_size,
+                "TunerResults.dat");
+      //Benchmark(fft_length.back(), warmup_samples,
+      //          sample_size, 256, 8, 8, 256);
+    if (tmp) {
+      bench_data.push_back(tmp.value());
+      fft_length.push_back(fft_length.back() * 2);
+    }
   }
 
-  WriteBenchResultsToFile(fft_length, bench_data);
+  WriteBenchResultsToFile(bench_data, fft_length);
   if (err) {
     std::cout << err.value() << std::endl;
     return false;

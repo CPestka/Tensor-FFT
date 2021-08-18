@@ -81,13 +81,13 @@ std::vector<RunResults> RunBenchOverSearchSpace(
 //Takes performance parameters as input
 //Mostly intended for tuner.cu
 template <typename Integer>
-std::optional<BenchResult> Benchmark(const Integer fft_length,
-                                     const int warmup_samples,
-                                     const int sample_size,
-                                     const BaseFFTMode mode,
-                                     const int base_fft_warps_per_block,
-                                     const int r16_warps_per_block,
-                                     const int r2_blocksize){
+std::optional<RunResults> Benchmark(const Integer fft_length,
+                                    const int warmup_samples,
+                                    const int sample_size,
+                                    const BaseFFTMode mode,
+                                    const int base_fft_warps_per_block,
+                                    const int r16_warps_per_block,
+                                    const int r2_blocksize){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights;
@@ -146,16 +146,17 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   BenchResult results;
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
-
-  return results;
+  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
+                    r2_blocksize, results}
+  return tmp;
 }
 
 //Reads optimized parameters from file created by tuner.cu
 template <typename Integer>
-std::optional<BenchResult> Benchmark(const Integer fft_length,
-                                     const int warmup_samples,
-                                     const int sample_size,
-                                     const std::string tuner_results_file){
+std::optional<RunResults> Benchmark(const Integer fft_length,
+                                    const int warmup_samples,
+                                    const int sample_size,
+                                    const std::string tuner_results_file){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights;
@@ -214,20 +215,22 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
 
-  return results;
+  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
+                    r2_blocksize, results}
+  return tmp;
 }
 
 //Async versions of the above
 
 template <typename Integer>
-std::optional<BenchResult> Benchmark(const Integer fft_length,
-                                     const int warmup_samples,
-                                     const int sample_size,
-                                     const int async_batch_size,
-                                     const BaseFFTMode mode,
-                                     const int base_fft_warps_per_block,
-                                     const int r16_warps_per_block,
-                                     const int r2_blocksize){
+std::optional<RunResults> Benchmark(const Integer fft_length,
+                                    const int warmup_samples,
+                                    const int sample_size,
+                                    const int async_batch_size,
+                                    const BaseFFTMode mode,
+                                    const int base_fft_warps_per_block,
+                                    const int r16_warps_per_block,
+                                    const int r2_blocksize){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights;
@@ -287,15 +290,17 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
 
-  return results;
+  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
+                    r2_blocksize, results}
+  return tmp;
 }
 
 template <typename Integer>
-std::optional<BenchResult> Benchmark(const Integer fft_length,
-                                     const int warmup_samples,
-                                     const int sample_size,
-                                     const int async_batch_size,
-                                     const std::string tuner_results_file){
+std::optional<RunResults> Benchmark(const Integer fft_length,
+                                    const int warmup_samples,
+                                    const int sample_size,
+                                    const int async_batch_size,
+                                    const std::string tuner_results_file){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights;
@@ -354,7 +359,9 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
 
-  return results;
+  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
+                    r2_blocksize, results}
+  return tmp;
 }
 
 //Bench for single fft of cufft
