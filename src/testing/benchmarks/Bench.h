@@ -251,6 +251,8 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   int device_id;
   assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
 
+  std::optional<std::string> error_mess;
+
   DataBatchHandler my_handler(fft_length, async_batch_size);
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
@@ -299,13 +301,13 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   std::vector<float> weights;
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length, batch_size, weights);
+      CreateSineSuperpostionBatch(fft_length, async_batch_size, weights);
 
   std::vector<double> runtime;
 
-  std::optional<Plan> possible_plan =
+  std::optional<Plan<Integer>> possible_plan =
       CreatePlan(fft_length, tuner_results_file);
-  Plan my_plan;
+  Plan<Integer> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
   } else {
@@ -315,6 +317,8 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 
   int device_id;
   assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
+
+  std::optional<std::string> error_mess;
 
   DataBatchHandler my_handler(fft_length, async_batch_size);
   error_mess = my_handler.PeakAtLastError();
