@@ -111,6 +111,8 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   int device_id;
   assert((PlanWorksOnDevice(my_plan, cudaGetDevice(&device_id))));
 
+  std::optional<std::string> error_mess;
+
   DataHandler my_handler(fft_length);
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
