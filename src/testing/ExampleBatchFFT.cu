@@ -66,7 +66,7 @@ int main(){
 
   error_mess =
     my_handler.CopyResultsDeviceToHost(data.get(),
-                                       fft_plan.results_in_results_);
+                                       my_plan.results_in_results_);
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
