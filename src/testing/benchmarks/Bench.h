@@ -374,7 +374,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   size_t size = 0;
@@ -383,7 +383,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
                           CUDA_C_16F);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
@@ -397,7 +397,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
     r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
     if (r != CUFFT_SUCCESS) {
       std::cout << "Error! Plan execution failed." << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -448,7 +448,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   size_t size = 0;
@@ -457,7 +457,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
                           &size, CUDA_C_16F);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
@@ -472,7 +472,7 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
     r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
     if (r != CUFFT_SUCCESS) {
       std::cout << "Error! Plan execution failed." << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
