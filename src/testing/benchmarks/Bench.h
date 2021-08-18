@@ -20,6 +20,8 @@
 #include "../../base/Plan.h"
 #include "BenchUtil.h"
 
+struct BenchResult;
+
 //Takes performance parameters as input
 //Mostly intended for tuner.cu
 template <typename Integer,
