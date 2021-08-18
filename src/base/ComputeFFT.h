@@ -245,7 +245,7 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
                       streams[i]>>>(
           dptr_current_input_RE[i], dptr_current_input_IM[i],
           dptr_current_results_RE[i], dptr_current_results_IM[i],
-          fft_plan.fft_length_, sub_fft_length);
+          fft_plan.fft_length_, sub_fft_length[i]);
 
       //Update sub_fft_length
       sub_fft_length[i] = sub_fft_length[i] * 16;
@@ -274,7 +274,7 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
       //One radix2 kernel combines 2 subffts -> if there are still more than 2
       //launch multiple kernels
       for(int k=0; k<(remaining_sub_ffts/2); k++){
-        Integer memory_offset = k * 2 * sub_fft_length;
+        Integer memory_offset = k * 2 * sub_fft_length[i];
         Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_, 0,
                        streams[i]>>>(
             dptr_current_input_RE[i] + memory_offset,
