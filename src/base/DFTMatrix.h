@@ -3,9 +3,10 @@
 //Due to limitations of fragments, the literals cant just be loaded from local
 //memory into the fragments. So shared memory is used instead (shared memory
 //can not be initialized, hence the copy).
-__device__ __forceinline__ LoadLiteralDFTMatrixToShared(int inter_warp_id,
-                                                        __half* dft_RE,
-                                                        __half* dft_IM){
+//TODO: could be sliced into more copies -> less registers
+__device__ __forceinline__ void LoadLiteralDFTMatrixToShared(int inter_warp_id,
+                                                             __half* dft_RE,
+                                                             __half* dft_IM){
   {
   __half dft_matrix_RE[256] = {
     1, 1, 1, 1,

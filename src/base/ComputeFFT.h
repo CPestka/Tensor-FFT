@@ -39,8 +39,8 @@
 //and memory copies needed.
 template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
-std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
-                                      const DataHandler &data<Integer>,
+std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
+                                      const DataHandler<Integer> &data,
                                       const int max_no_optin_shared_mem){
   //Use opt in shared memory if required
   if (fft_plan.base_fft_shared_mem_in_bytes_ > max_no_optin_shared_mem) {
@@ -160,8 +160,8 @@ std::optional<std::string> ComputeFFT(const Plan &fft_plan<Integer>,
 //methods.
 template <typename Integer,
     typename std::enable_if<std::is_integral<Integer>::value>::type* = nullptr>
-std::optional<std::string> ComputeFFT(const Plan &fft_plan,
-                                      const DataBatchHandler &data,
+std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
+                                      const DataBatchHandler<Integer> &data,
                                       const int max_no_optin_shared_mem){
   //Create a stream for each fft
   std::vector<cudaStream_t> streams;
