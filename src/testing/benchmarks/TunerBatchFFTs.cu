@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Bench.h"
-#include "FileWriter.cu"
+#include "FileWriter.h"
 
 int main(){
   constexpr int start_fft_length = 16*16;
@@ -39,7 +39,7 @@ int main(){
       std::cout << err.value() << std::endl;
       return false;
     }
-    
+
     optimal_config.push_back(GetFastestConfig(bench_data));
 
     fft_length.push_back(fft_length.back() * 2);

@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-#include "../FileWriter.cu"
+#include "../FileWriter.h"
 #include "Bench.h"
 
 int main(){

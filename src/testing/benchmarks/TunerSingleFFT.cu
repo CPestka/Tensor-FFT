@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Bench.h"
-#include "FileWriter.cu"
+#include "FileWriter.h"
 
 int main(){
   constexpr int start_fft_length = 16*16;
