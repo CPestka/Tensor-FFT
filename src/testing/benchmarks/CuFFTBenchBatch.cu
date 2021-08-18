@@ -31,7 +31,7 @@ int main(){
     }
   }
 
-  WriteBenchResultsToFile(fft_length, bench_data);
+  WriteBenchResultsToFile(bench_data, fft_length);
   if (err) {
     std::cout << err.value() << std::endl;
     return false;
