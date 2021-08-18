@@ -75,7 +75,11 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteResultBatchToFile( , fft_length, data.get());
+  std::vector<std::string>> file_names;
+  for(int i=0; i<batch_size; i++){
+    file_names.push_back("example_results_async_" + std::to_string(i) + ".dat");
+  }
+  WriteResultBatchToFile(file_names , fft_length, data.get());
 
   return true;
 }
