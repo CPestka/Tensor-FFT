@@ -105,7 +105,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
-    return nullopt;
+    return std::nullopt;
   }
 
   int device_id;
@@ -115,14 +115,14 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
-    return nullopt;
+    return std::nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return nullopt;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -131,7 +131,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     error_mess = ComputeFFT(my_plan, my_handler);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return nullopt;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -163,9 +163,9 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
 
   std::vector<double> runtime;
 
-  std::optional<Plan> possible_plan =
+  std::optional<Plan<Integer>> possible_plan =
       CreatePlan(fft_length, tuner_results_file);
-  Plan my_plan;
+  Plan<Integer> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
   } else {
