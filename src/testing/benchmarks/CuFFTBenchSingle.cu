@@ -22,10 +22,12 @@ int main(){
   std::optional<std::string> err;
 
   while (fft_length.back() <= end_fft_length) {
-    bench_data.push_back(BenchmarkCuFFT(fft_length.back(), warmup_samples,
-                                        sample_size));
-
-    fft_length.push_back(fft_length.back() * 2);
+    std::optional<BenchResult> tmp =
+        BenchmarkCuFFT(fft_length.back(), warmup_samples, sample_size);
+    if (tmp) {
+      bench_data.push_back(tmp.value());
+      fft_length.push_back(fft_length.back() * 2);
+    }
   }
 
   WriteBenchResultsToFile(fft_length, bench_data);

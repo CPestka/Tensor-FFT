@@ -105,7 +105,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
-    return false;
+    return nullopt;
   }
 
   int device_id;
@@ -115,14 +115,14 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
-    return false;
+    return nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -131,7 +131,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     error_mess = ComputeFFT(my_plan, my_handler);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -170,7 +170,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   int device_id;
@@ -180,14 +180,14 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -196,7 +196,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     error_mess = ComputeFFT(my_plan, my_handler);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -241,7 +241,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   int device_id;
@@ -251,14 +251,14 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -267,7 +267,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     error_mess = ComputeFFT(my_plan, my_handler);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -306,7 +306,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   int device_id;
@@ -316,14 +316,14 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
   error_mess = my_handler.PeakAtLastError();
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
-    return false;
+    return std::nullopt;
   }
 
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -332,7 +332,7 @@ std::optional<BenchResult> Benchmark(const Integer fft_length,
     error_mess = ComputeFFT(my_plan, my_handler);
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
-      return false;
+      return std::nullopt;
     }
 
     cudaDeviceSynchronize();
@@ -411,6 +411,11 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
+  if (cudaPeekAtLastError() != cudaSuccess){
+    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+    return std::nullopt;
+  }
+
   BenchResult results;
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
@@ -480,6 +485,11 @@ std::optional<BenchResult> BenchmarkCuFFT(const Integer fft_length,
   cufftDestroy(plan);
   cudaFree(dptr_results);
   cudaFree(dptr_data);
+
+  if (cudaPeekAtLastError() != cudaSuccess){
+    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+    return std::nullopt;
+  }
 
   BenchResult results;
   results.average_time_ = ComputeAverage(runtime);
