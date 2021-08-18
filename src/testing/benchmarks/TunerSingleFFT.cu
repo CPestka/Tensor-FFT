@@ -18,7 +18,7 @@ int main(){
 
   std::vector<RunConfig> optimal_config;
 
-  std::vecotor<int> fft_length
+  std::vector<int> fft_length;
   fft_length.push_back(start_fft_length);
 
   std::optional<std::string> err;
