@@ -147,7 +147,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
   RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
-                    r2_blocksize, results}
+                    r2_blocksize, results};
   return tmp;
 }
 
@@ -215,8 +215,9 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
 
-  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
-                    r2_blocksize, results}
+  RunResults tmp = {my_plan.base_fft_mode_, my_plan.base_fft_warps_per_block_,
+                    my_plan.r16_warps_per_block_, my_plan.r2_blocksize_,
+                    results};
   return tmp;
 }
 
@@ -291,7 +292,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
 
   RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
-                    r2_blocksize, results}
+                    r2_blocksize, results};
   return tmp;
 }
 
@@ -359,8 +360,9 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
 
-  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
-                    r2_blocksize, results}
+  RunResults tmp = {my_plan.base_fft_mode_, my_plan.base_fft_warps_per_block_,
+                    my_plan.r16_warps_per_block_, my_plan.r2_blocksize_,
+                    results};
   return tmp;
 }
 
