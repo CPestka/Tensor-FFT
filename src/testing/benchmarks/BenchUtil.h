@@ -67,7 +67,11 @@ RunConfig GetFastestConfig(const std::vector<RunResults> &results){
       smallest = results[i].results_.average_time_;
     }
   }
-  RunConfig fastest_config = results[id_smallest];
+  RunConfig fastest_config =
+      {results[id_smallest].mode_,
+       results[id_smallest].base_fft_warps_per_block_,
+       results[id_smallest].r16_warps_per_block_,
+       results[id_smallest].r2_blocksize_};
   return fastest_config;
 }
 
@@ -81,7 +85,7 @@ RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
   }
 
   cudaDeviceProp properties;
-  cudaGetDevicePropertier(&properties, device_id);
+  cudaGetDeviceProperties(&properties, device_id);
   int max_warps_per_block = properties.maxThreadsPerBlock / 32;
   int total_amount_of_warps = fft_length / 32;
   int warp_amount = 1;

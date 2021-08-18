@@ -203,12 +203,12 @@ std::optional<std::string> WriteTunerDataToFile(
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
       myfile << fft_length << " "
-             << resuts[i].mode_ == Mode_256 ? 256 : 4096 << " "
-             << resuts[i].base_fft_warps_per_block_ << " "
-             << resuts[i].r16_warps_per_block_ << " "
-             << resuts[i].r2_blocksize_ << " "
-             << resuts[i].results_.average_time_ << " "
-             << resuts[i].results_.std_deviation_ << "\n";
+             << results[i].mode_ == Mode_256 ? 256 : 4096 << " "
+             << results[i].base_fft_warps_per_block_ << " "
+             << results[i].r16_warps_per_block_ << " "
+             << results[i].r2_blocksize_ << " "
+             << results[i].results_.average_time_ << " "
+             << results[i].results_.std_deviation_ << "\n";
     }
     myfile.close();
   } else {
@@ -225,10 +225,10 @@ std::optional<std::string> WriteTunerDataToFile(
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
       myfile << fft_length[i] << " "
-             << resuts[i].mode_ == Mode_256 ? 256 : 4096 << " "
-             << resuts[i].base_fft_warps_per_block_ << " "
-             << resuts[i].r16_warps_per_block_ << " "
-             << resuts[i].r2_blocksize_ << "\n";
+             << results[i].mode_ == Mode_256 ? 256 : 4096 << " "
+             << results[i].base_fft_warps_per_block_ << " "
+             << results[i].r16_warps_per_block_ << " "
+             << results[i].r2_blocksize_ << "\n";
     }
     myfile.close();
   } else {
@@ -245,12 +245,12 @@ std::optional<std::string> WriteBenchResultsToFile(
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(results.size()); i++){
       myfile << fft_length[i] << " "
-             << resuts[i].mode_ == Mode_256 ? 256 : 4096 << " "
-             << resuts[i].base_fft_warps_per_block_ << " "
-             << resuts[i].r16_warps_per_block_ << " "
-             << resuts[i].r2_blocksize_ << " "
-             << resuts[i].results_.average_time_ << " "
-             << resuts[i].results_.std_deviation_ << "\n";
+             << results[i].mode_ == Mode_256 ? 256 : 4096 << " "
+             << results[i].base_fft_warps_per_block_ << " "
+             << results[i].r16_warps_per_block_ << " "
+             << results[i].r2_blocksize_ << " "
+             << results[i].results_.average_time_ << " "
+             << results[i].results_.std_deviation_ << "\n";
     }
     myfile.close();
   } else {
