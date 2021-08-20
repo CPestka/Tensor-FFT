@@ -8,7 +8,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-// #include "../AccuracyCalculator.h"
+#include "../AccuracyCalculator.h"
 #include "../unitTesting/CuFFTTest.h"
 // #include "../unitTesting/FFTTest.cu"
 #include "../../base/ComputeFFT.h"
