@@ -152,82 +152,82 @@ std::optional<std::string> FullAsyncFFTComputation(
   return std::nullopt;
 }
 
-// template <typename Integer>
-// bool TestFullFFT(const Integer fft_length,
-//                  const double avg_deviation_threshold,
-//                  const double sigma_deviation_threshold){
-//   std::optional<std::string> err;
-//
-//   std::string comparison_data_file_name =
-//     ("test_comparison_" + std::to_string(fft_length)) + ".dat";
-//   std::string data_file_name =
-//     ("test_" + std::to_string(fft_length)) + ".dat";
-//
-//   err = CreateComparisonDataDouble(fft_length, comparison_data_file_name);
-//   if (err) {
-//     std::cout << err.value() << std::endl;
-//     return false;
-//   }
-//
-//   err = FullSingleFFTComputation(fft_length, data_file_name);
-//   if (err) {
-//     std::cout << err.value() << std::endl;
-//     return false;
-//   }
-//
-//   double avg = ComputeAverageDeviation(comparison_data_file_name,
-//                                        data_file_name);
-//   double sigma = ComputeSigmaOfDeviation(comparison_data_file_name,
-//                                          data_file_name, avg);
-//   if ((avg > avg_deviation_threshold) || (sigma > sigma_deviation_threshold)){
-//     std::cout << "Accuracy test failed!" << std::endl
-//               << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
-//               << " Sigma: " << sigma << " Threshold: "
-//               << sigma_deviation_threshold << std::endl;
-//     return false;
-//   }
-//
-//   return true;
-// }
-//
-// template <typename Integer>
-// bool TestFullFFTAsynch(const Integer fft_length,
-//                        const int amount_of_asynch_ffts,
-//                        const double avg_deviation_threshold,
-//                        const double sigma_deviation_threshold){
-// std::optional<std::string> err;
-//
-// std::string comparison_data_file_name =
-//   ("test_comparison_" + std::to_string(fft_length)) + ".dat";
-// std::vector<std::string> data_file_name;
-// for(int i=0; i<amount_of_asynch_ffts; i++){
-//   data_file_name.push_back(((("test_" + std::to_string(fft_length)) + "_async_")
-//                             + std::to_string(i)) + ".dat");
-// }
-//
-// err = CreateComparisonDataDouble(fft_length, comparison_data_file_name);
-// if (err) {
-//   std::cout << err.value() << std::endl;
-//   return false;
-// }
-//
-// err = FullAsyncFFTComputation(fft_length, amount_of_asynch_ffts,
-//                               data_file_name);
-// if (err) {
-//   std::cout << err.value() << std::endl;
-//   return false;
-// }
-//
-// double avg = ComputeAverageDeviation(data_file_name, comparison_data_file_name);
-// double sigma = ComputeSigmaOfDeviation(data_file_name,
-//                                        comparison_data_file_name, avg);
-// if ((avg > avg_deviation_threshold) || (sigma > sigma_deviation_threshold)){
-//   std::cout << "Accuracy test failed!" << std::endl
-//             << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
-//             << " Sigma: " << sigma << " Threshold: "
-//             << sigma_deviation_threshold << std::endl;
-//   return false;
-// }
-//
-// return true;
-// }
+template <typename Integer>
+bool TestFullFFT(const Integer fft_length,
+                 const double avg_deviation_threshold,
+                 const double sigma_deviation_threshold){
+  std::optional<std::string> err;
+
+  std::string comparison_data_file_name =
+    ("test_comparison_" + std::to_string(fft_length)) + ".dat";
+  std::string data_file_name =
+    ("test_" + std::to_string(fft_length)) + ".dat";
+
+  err = CreateComparisonDataDouble(fft_length, comparison_data_file_name);
+  if (err) {
+    std::cout << err.value() << std::endl;
+    return false;
+  }
+
+  err = FullSingleFFTComputation(fft_length, data_file_name);
+  if (err) {
+    std::cout << err.value() << std::endl;
+    return false;
+  }
+
+  double avg = ComputeAverageDeviation(comparison_data_file_name,
+                                       data_file_name);
+  double sigma = ComputeSigmaOfDeviation(comparison_data_file_name,
+                                         data_file_name, avg);
+  if ((avg > avg_deviation_threshold) || (sigma > sigma_deviation_threshold)){
+    std::cout << "Accuracy test failed!" << std::endl
+              << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
+              << " Sigma: " << sigma << " Threshold: "
+              << sigma_deviation_threshold << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+template <typename Integer>
+bool TestFullFFTAsynch(const Integer fft_length,
+                       const int amount_of_asynch_ffts,
+                       const double avg_deviation_threshold,
+                       const double sigma_deviation_threshold){
+std::optional<std::string> err;
+
+std::string comparison_data_file_name =
+  ("test_comparison_" + std::to_string(fft_length)) + ".dat";
+std::vector<std::string> data_file_name;
+for(int i=0; i<amount_of_asynch_ffts; i++){
+  data_file_name.push_back(((("test_" + std::to_string(fft_length)) + "_async_")
+                            + std::to_string(i)) + ".dat");
+}
+
+err = CreateComparisonDataDouble(fft_length, comparison_data_file_name);
+if (err) {
+  std::cout << err.value() << std::endl;
+  return false;
+}
+
+err = FullAsyncFFTComputation(fft_length, amount_of_asynch_ffts,
+                              data_file_name);
+if (err) {
+  std::cout << err.value() << std::endl;
+  return false;
+}
+
+double avg = ComputeAverageDeviation(data_file_name, comparison_data_file_name);
+double sigma = ComputeSigmaOfDeviation(data_file_name,
+                                       comparison_data_file_name, avg);
+if ((avg > avg_deviation_threshold) || (sigma > sigma_deviation_threshold)){
+  std::cout << "Accuracy test failed!" << std::endl
+            << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
+            << " Sigma: " << sigma << " Threshold: "
+            << sigma_deviation_threshold << std::endl;
+  return false;
+}
+
+return true;
+}
