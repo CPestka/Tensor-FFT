@@ -65,7 +65,7 @@ std::optional<std::string> CreateComparisonDataHalf(
 }
 
 std::optional<std::string> CreateComparisonDataDouble(
-    const long long fft_length,
+    long long fft_length,
     const std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
@@ -82,7 +82,8 @@ std::optional<std::string> CreateComparisonDataDouble(
   cufftHandle plan;
   cufftResult r;
 
-  r = cufftPlan1d(&plan, fft_length, CUFFT_Z2Z, 1);
+  r = cufftPlanMany(&plan, 1, &fft_length, nullptr, 1, 1, nullptr, 1, 1,
+                    CUFFT_Z2Z, 1);
   if (r != CUFFT_SUCCESS) {
     return "Error! Plan creation failed.";
   }
