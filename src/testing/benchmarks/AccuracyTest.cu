@@ -11,8 +11,8 @@
 // #include "../AccuracyCalculator.h"
 // #include "../unitTesting/CuFFTTest.h"
 // #include "../unitTesting/FFTTest.cu"
-// #include "../../base/ComputeFFT.h"
-// #include "../FileWriter.h"
+#include "../../base/ComputeFFT.h"
+#include "../FileWriter.h"
 
 int main(){
   constexpr int sample_size = 10;
