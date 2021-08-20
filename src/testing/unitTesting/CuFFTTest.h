@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 
-#include <cufft.h>
-#include <cufftXt.h>
-#include <cuda_fp16.h>
+//#include <cufft.h>
+//#include <cufftXt.h>
+//#include <cuda_fp16.h>
 //#include <cuComplex.h>
 
 #include "../FileWriter.h"
