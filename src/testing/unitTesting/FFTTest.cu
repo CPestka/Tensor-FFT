@@ -81,76 +81,77 @@ std::optional<std::string> FullSingleFFTComputation(
 
   return std::nullopt;
 }
-//
-// template <typename Integer>
-// std::optional<std::string> FullAsyncFFTComputation(
-//     const Integer fft_length,
-//     const int amount_of_asynch_ffts,
-//     const std::vector<std::string> file_name){
-//   //Prepare input data on cpu
-//   std::vector<float> weights;
-//   weights.push_back(1.0);
-//   std::unique_ptr<__half[]> data = CreateSineSuperpostionBatch(
-//       fft_length, amount_of_asynch_ffts, weights);
-//
-//   //Get plan
-//   Plan my_plan;
-//   if (CreatePlan(fft_length)) {
-//     my_plan = CreatePlan(fft_length).value();
-//   } else {
-//     return "Plan creation failed";
-//   }
-//
-//   std::optional<std::string> error_mess;
-//
-//   for(int i=0; i<amount_of_asynch_ffts; i++){
-//     error_mess = WriteResultsToFile(((("test_async_input_" +
-//                                        std::to_string(fft_length))
-//                                        + "_") + std::to_string(i)) + ".dat",
-//                                        fft_length,
-//                                        data.get() + (i * 2 * fft_length));
-//     if (error_mess) {
-//       return error_mess;
-//     }
-//   }
-//
-//   //Construct a DataHandler for data on GPU
-//   DataBatchHandler my_handler(fft_length, amount_of_asynch_ffts);
-//   error_mess = my_handler.PeakAtLastError();
-//   if (error_mess) {
-//     return error_mess;
-//   }
-//
-//   //Copy data to gpu
-//   error_mess = my_handler.CopyDataHostToDevice(data.get());
-//   if (error_mess) {
-//     return error_mess;
-//   }
-//
-//   //Compute FFT
-//   error_mess = ComputeFFT(my_plan, my_handler);
-//   if (error_mess) {
-//     return error_mess;
-//   }
-//
-//   //Copy results back to cpu
-//   error_mess = my_handler.CopyResultsDeviceToHost(
-//       data.get(), my_plan.results_in_results_);
-//   if (error_mess) {
-//     return error_mess;
-//   }
-//
-//   cudaDeviceSynchronize();
-//
-//   error_mess = WriteResultBatchToFile(file_name, fft_length, data.get());
-//   if (error_mess) {
-//     return error_mess;
-//   }
-//
-//
-//   return std::nullopt;
-// }
-//
+
+template <typename Integer>
+std::optional<std::string> FullAsyncFFTComputation(
+    const Integer fft_length,
+    const int amount_of_asynch_ffts,
+    const std::vector<std::string> file_name){
+  //Prepare input data on cpu
+  std::vector<float> weights;
+  weights.push_back(1.0);
+  std::unique_ptr<__half[]> data = CreateSineSuperpostionBatch(
+      fft_length, amount_of_asynch_ffts, weights);
+
+  std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
+  Plan<Integer> my_plan;
+  if (possible_plan) {
+    my_plan = possible_plan.value();
+  } else {
+    std::cout << "Plan creation failed" << std::endl;
+    return std::nullopt;
+  }
+
+  std::optional<std::string> error_mess;
+
+  for(int i=0; i<amount_of_asynch_ffts; i++){
+    error_mess = WriteResultsToFile(((("test_async_input_" +
+                                       std::to_string(fft_length))
+                                       + "_") + std::to_string(i)) + ".dat",
+                                       fft_length,
+                                       data.get() + (i * 2 * fft_length));
+    if (error_mess) {
+      return error_mess;
+    }
+  }
+
+  //Construct a DataHandler for data on GPU
+  DataBatchHandler my_handler(fft_length, amount_of_asynch_ffts);
+  error_mess = my_handler.PeakAtLastError();
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Copy data to gpu
+  error_mess = my_handler.CopyDataHostToDevice(data.get());
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Compute FFT
+  error_mess = ComputeFFT(my_plan, my_handler);
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Copy results back to cpu
+  error_mess = my_handler.CopyResultsDeviceToHost(
+      data.get(), my_plan.results_in_results_);
+  if (error_mess) {
+    return error_mess;
+  }
+
+  cudaDeviceSynchronize();
+
+  error_mess = WriteResultBatchToFile(file_name, fft_length, data.get());
+  if (error_mess) {
+    return error_mess;
+  }
+
+
+  return std::nullopt;
+}
+
 // template <typename Integer>
 // bool TestFullFFT(const Integer fft_length,
 //                  const double avg_deviation_threshold,
