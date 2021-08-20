@@ -10,7 +10,7 @@
 #include <cufft.h>
 #include <cufftXt.h>
 #include <cuda_fp16.h>
-#include <cuComplex.h>
+//#include <cuComplex.h>
 
 #include "../FileWriter.h"
 #include "../TestingDataCreation.h"
