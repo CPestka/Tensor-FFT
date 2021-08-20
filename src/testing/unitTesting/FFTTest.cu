@@ -29,12 +29,14 @@ std::optional<std::string> FullSingleFFTComputation(
   weights.push_back(1.0);
   std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length,  weights);
 
-  Plan my_plan;
-  if (CreatePlan(fft_length)) {
-    my_plan = CreatePlan(fft_length).value();
-  } else {
-    return "Plan creation failed";
-  }
+  // std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
+  // Plan<Integer> my_plan;
+  // if (possible_plan) {
+  //   my_plan = possible_plan.value();
+  // } else {
+  //   std::cout << "Plan creation failed" << std::endl;
+  //   return std::nullopt;
+  // }
 
   // std::optional<std::string> error_mess;
   //
