@@ -32,7 +32,7 @@ int main(){
     std::string cuFFT_file_name = ("accuracy_cuFFT_" +
                                    std::to_string(fft_length.back()))
                                   + ".dat";
-    err = CreateComparisonDataDouble(fft_length.back(), cuFFT_file_name);
+    //err = CreateComparisonDataDouble(fft_length.back(), cuFFT_file_name);
     if (err) {
       std::cout << err.value() << std::endl;
       return false;
