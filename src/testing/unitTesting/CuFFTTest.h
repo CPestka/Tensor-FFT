@@ -65,7 +65,7 @@ std::optional<std::string> CreateComparisonDataHalf(
 }
 
 std::optional<std::string> CreateComparisonDataDouble(
-    long long fft_length,
+    int fft_length,
     const std::string file_name){
   std::vector<float> weights;
   weights.push_back(1.0);
