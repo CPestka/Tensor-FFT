@@ -38,46 +38,46 @@ std::optional<std::string> FullSingleFFTComputation(
     return std::nullopt;
   }
 
-  // std::optional<std::string> error_mess;
-  //
-  // error_mess = WriteResultsREToFile(("test_input_" + std::to_string(fft_length))
-  //                                   + ".dat", fft_length, data.get());
-  // if (error_mess) {
-  //   return error_mess;
-  // }
-  //
-  // //Construct a DataHandler for data on GPU
-  // DataHandler my_handler(fft_length);
-  // error_mess = my_handler.PeakAtLastError();
-  // if (error_mess) {
-  //   return error_mess;
-  // }
-  //
-  // //Copy data to gpu
-  // error_mess = my_handler.CopyDataHostToDevice(data.get());
-  // if (error_mess) {
-  //   return error_mess;
-  // }
-  //
-  // //Compute FFT
-  // error_mess = ComputeFFT(my_plan, my_handler);
-  // if (error_mess) {
-  //   return error_mess;
-  // }
-  //
-  // //Copy results back to cpu
-  // error_mess = my_handler.CopyResultsDeviceToHost(
-  //     data.get(), my_plan.results_in_results_);
-  // if (error_mess) {
-  //   return error_mess;
-  // }
-  //
-  // cudaDeviceSynchronize();
-  //
-  // error_mess = WriteResultsToFile(file_name, fft_length, data.get());
-  // if (error_mess) {
-  //   return error_mess;
-  // }
+  std::optional<std::string> error_mess;
+
+  error_mess = WriteResultsREToFile(("test_input_" + std::to_string(fft_length))
+                                    + ".dat", fft_length, data.get());
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Construct a DataHandler for data on GPU
+  DataHandler my_handler(fft_length);
+  error_mess = my_handler.PeakAtLastError();
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Copy data to gpu
+  error_mess = my_handler.CopyDataHostToDevice(data.get());
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Compute FFT
+  error_mess = ComputeFFT(my_plan, my_handler);
+  if (error_mess) {
+    return error_mess;
+  }
+
+  //Copy results back to cpu
+  error_mess = my_handler.CopyResultsDeviceToHost(
+      data.get(), my_plan.results_in_results_);
+  if (error_mess) {
+    return error_mess;
+  }
+
+  cudaDeviceSynchronize();
+
+  error_mess = WriteResultsToFile(file_name, fft_length, data.get());
+  if (error_mess) {
+    return error_mess;
+  }
 
   return std::nullopt;
 }
