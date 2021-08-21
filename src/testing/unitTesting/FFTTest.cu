@@ -25,8 +25,8 @@ template <typename Integer>
 std::optional<std::string> FullSingleFFTComputation(
     const Integer fft_length,
     const std::string file_name){
-  std::vector<float> weights_RE{ 1.0, 0.5 };
-  std::vector<float> weights_IM{ 0.0, 1.0 };
+  std::vector<float> weights_RE{ 1.0, 0.7 };
+  std::vector<float> weights_IM{ 0.0, 0.0 };
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
 
@@ -97,8 +97,8 @@ std::optional<std::string> FullAsyncFFTComputation(
     const int amount_of_asynch_ffts,
     const std::vector<std::string> file_name){
   //Prepare input data on cpu
-  std::vector<float> weights_RE{ 1.0, 0.5 };
-  std::vector<float> weights_IM{ 0.0, 1.0 };
+  std::vector<float> weights_RE{ 1.0, 0.7 };
+  std::vector<float> weights_IM{ 0.0, 0.0 };
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostionBatch(fft_length, amount_of_asynch_ffts,
                                   weights_RE, weights_IM);
