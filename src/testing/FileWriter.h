@@ -130,8 +130,8 @@ std::optional<std::string> WriteResultsToFileDouble2(
   if (myfile.is_open()) {
     for(int i=0; i<fft_length; i++){
       float x = static_cast<double>(i)/static_cast<double>(fft_length);
-      myfile << x << " " << data[i].x
-             << " " << data[i].y
+      myfile << x << " " << data[i].x / fft_length
+             << " " << data[i].y / fft_length
              << "\n";
     }
     myfile.close();

@@ -20,7 +20,7 @@ int main(){
                             sigma_deviation_threshold))) {
       std::cout << "Error! Test at fft_length: "
                 << fft_length
-                << "failed!"
+                << " failed!"
                 << std::endl;
       return false;
     }
