@@ -132,14 +132,15 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     __half twiddle_IM = -hsin(phase);
 
     //Fetch current data once from global memory to use it twice
-    __half input_RE = input_data_RE[global_memory_offset];
-    __half input_IM = input_data_IM[global_memory_offset];
+    //For unscaled or scaling at once
+    // __half input_RE = input_data_RE[global_memory_offset];
+    // __half input_IM = input_data_IM[global_memory_offset];
 
     //For sequential scaling
-    //__half input_RE = __hdiv(input_data_RE[global_memory_offset],
-    //                         static_cast<__half>(16.0));
-    //__half input_IM = __hdiv(input_data_IM[global_memory_offset],
-    //                         static_cast<__half>(16.0));
+    __half input_RE = __hdiv(input_data_RE[global_memory_offset],
+                            static_cast<__half>(16.0));
+    __half input_IM = __hdiv(input_data_IM[global_memory_offset],
+                            static_cast<__half>(16.0));
 
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
