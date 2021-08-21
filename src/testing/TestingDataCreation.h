@@ -15,7 +15,7 @@
 std::vector<float> GetRandomWeights(int max_frequencies, int seed){
   std::seed_seq seed_seq = {seed};
   std::default_random_engine generator(seed_seq);
-  std::uniform_distrobution<float> distro(-1.0, 1.0);
+  std::uniform_real_distrobution<float> distro(-1.0, 1.0);
 
   std::vector<float> results;
 
