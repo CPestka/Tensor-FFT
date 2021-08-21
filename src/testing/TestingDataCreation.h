@@ -60,7 +60,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostion(int amount_of_timesamples,
 
   for(int i=0; i<amount_of_timesamples; i++){
     float tmp = 0;
-    for(int j=0; j<static_cast<int>(weights.size()); j++){
+    for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
       tmp += (weights_RE[j] *
               sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
@@ -68,7 +68,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostion(int amount_of_timesamples,
     data[i] = __float2half(tmp);
 
     tmp = 0;
-    for(int j=0; j<static_cast<int>(weights.size()); j++){
+    for(int j=0; j<static_cast<int>(weights_IM.size()); j++){
       tmp += (weights_IM[j] *
               sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
@@ -114,21 +114,21 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(int amount_of_timesamples,
 //Has amount_of_timesamples half2 elements holding one complex value each
 std::unique_ptr<__half2[]> CreateSineSuperpostionH2(
     int amount_of_timesamples,
-    std::vector<float> weights_RE
+    std::vector<float> weights_RE,
     std::vector<float> weights_IM){
   std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(
       amount_of_timesamples);
 
   for(int i=0; i<amount_of_timesamples; i++){
     float tmp = 0;
-    for(int j=0; j<static_cast<int>(weights.size()); j++){
+    for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
       tmp += (weights_RE[j] *
               sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
 
     float tmp_1 = 0;
-    for(int j=0; j<static_cast<int>(weights.size()); j++){
+    for(int j=0; j<static_cast<int>(weights_IM.size()); j++){
       tmp_1 += (weights_IM[j] *
               sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
@@ -174,13 +174,13 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2Batch(
   for(int k=0; k<batch_size; k++){
     for(int i=0; i<amount_of_timesamples; i++){
       float tmp = 0;
-      for(int j=0; j<static_cast<int>(weights.size()); j++){
+      for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
         tmp += (weights_RE[j] *
                 sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
       }
       float tmp_1 = 0;
-      for(int j=0; j<static_cast<int>(weights.size()); j++){
+      for(int j=0; j<static_cast<int>(weights_IM.size()); j++){
         tmp_1 += (weights_IM[j] *
                   sin(2 * M_PI * std::pow(2, j) *
                       (static_cast<double>(i) / amount_of_timesamples)));
@@ -224,7 +224,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
 
   for(int i=0; i<amount_of_timesamples; i++){
     float tmp = 0;
-    for(int j=0; j<static_cast<int>(weights.size()); j++){
+    for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
       tmp += (weights_RE[j] *
               sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
@@ -232,7 +232,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
     data[i].x = tmp;
 
     tmp = 0;
-    for(int j=0; j<static_cast<int>(weights.size()); j++){
+    for(int j=0; j<static_cast<int>(weights_IM.size()); j++){
       tmp += (weights_IM[j] *
               sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
@@ -273,7 +273,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionBatch(
   for(int k=0; k<amount_of_batches; k++){
     for(int i=0; i<amount_of_timesamples; i++){
       float tmp = 0;
-      for(int j=0; j<static_cast<int>(weights.size()); j++){
+      for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
         tmp += (weights_RE[j] *
                 sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
@@ -281,7 +281,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionBatch(
       data[i + (k * 2 * amount_of_timesamples)] = __float2half(tmp);
 
       tmp = 0;
-      for(int j=0; j<static_cast<int>(weights.size()); j++){
+      for(int j=0; j<static_cast<int>(weights_IM.size()); j++){
         tmp += (weights_IM[j] *
                 sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
