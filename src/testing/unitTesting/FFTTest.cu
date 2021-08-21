@@ -41,8 +41,8 @@ std::optional<std::string> FullSingleFFTComputation(
 
   std::optional<std::string> error_mess;
 
-  error_mess = WriteResultsREToFile(("test_input_" + std::to_string(fft_length))
-                                    + ".dat", fft_length, data.get());
+  error_mess = WriteResultsToFile(("test_input_" + std::to_string(fft_length))
+                                   + ".dat", fft_length, data.get());
   if (error_mess) {
     return error_mess;
   }
