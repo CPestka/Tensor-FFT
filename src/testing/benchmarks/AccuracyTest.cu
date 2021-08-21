@@ -15,7 +15,7 @@
 #include "../FileWriter.h"
 
 int main(){
-  constexpr int sample_size = 10;
+  constexpr int sample_size = 4;
   constexpr int log_fft_length_boundry = 29;
 
   std::vector<int> fft_length;
