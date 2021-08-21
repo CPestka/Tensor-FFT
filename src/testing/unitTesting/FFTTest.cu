@@ -26,7 +26,7 @@ std::optional<std::string> FullSingleFFTComputation(
     const Integer fft_length,
     const std::string file_name){
   std::vector<float> weights_RE{ 1.0, 0.5, 0.2, 0.5, 0.4};
-  std::vector<float> weights_RE{ 0.2, 0.7, 1.0, 0.5, 0.7};
+  std::vector<float> weights_IM{ 0.2, 0.7, 1.0, 0.5, 0.7};
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostion(fft_length,  weights_RE, weights_IM);
 
@@ -90,7 +90,7 @@ std::optional<std::string> FullAsyncFFTComputation(
     const std::vector<std::string> file_name){
   //Prepare input data on cpu
   std::vector<float> weights_RE{ 1.0, 0.5, 0.2, 0.5, 0.4};
-  std::vector<float> weights_RE{ 0.2, 0.7, 1.0, 0.5, 0.7};
+  std::vector<float> weights_IM{ 0.2, 0.7, 1.0, 0.5, 0.7};
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostionBatch(fft_length, async_batch_size,
                                   weights_RE, weights_IM);
