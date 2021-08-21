@@ -8,8 +8,8 @@ int main(){
   constexpr int start_fft_length = 16*16;
   constexpr int end_fft_length = 16*16*16*16*16*16*2*2*2;
   constexpr int async_batch_size = 4;
-  constexpr double average_deviation_threshold = 0.01;
-  constexpr double sigma_deviation_threshold = 0.01;
+  constexpr double average_deviation_threshold = 0.1;
+  constexpr double sigma_deviation_threshold = 0.1;
 
   int fft_length = start_fft_length;
   while (fft_length <= end_fft_length) {
