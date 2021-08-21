@@ -92,7 +92,7 @@ std::optional<std::string> FullAsyncFFTComputation(
   std::vector<float> weights_RE{ 1.0, 0.5, 0.2, 0.5, 0.4};
   std::vector<float> weights_IM{ 0.2, 0.7, 1.0, 0.5, 0.7};
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length, async_batch_size,
+      CreateSineSuperpostionBatch(fft_length, amount_of_asynch_ffts,
                                   weights_RE, weights_IM);
 
   std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
