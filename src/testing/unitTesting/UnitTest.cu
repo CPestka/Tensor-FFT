@@ -14,10 +14,11 @@ int main(){
   int fft_length = start_fft_length;
   while (fft_length <= end_fft_length) {
     if ((!TestFullFFT(fft_length, average_deviation_threshold,
-                     sigma_deviation_threshold)) ||
-        (!TestFullFFTAsynch(fft_length, async_batch_size,
-                            average_deviation_threshold,
-                            sigma_deviation_threshold))) {
+                     sigma_deviation_threshold))
+        // || (!TestFullFFTAsynch(fft_length, async_batch_size,
+        //                        average_deviation_threshold,
+        //                        sigma_deviation_threshold))
+        ) {
       std::cout << "Error! Test at fft_length: "
                 << fft_length
                 << " failed!"
