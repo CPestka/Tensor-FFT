@@ -82,10 +82,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
                                     const int r2_blocksize){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
+  std::vector<float> weights_RE = GetRandomWeights(20, 42);
+  std::vector<float> weights_IM = GetRandomWeights(20, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length,  weights);
+      CreateSineSuperpostion(fft_length,  weights_RE, weights_IM);
 
   std::vector<double> runtime;
 
@@ -154,10 +154,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
                                     const std::string tuner_results_file){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
+  std::vector<float> weights_RE = GetRandomWeights(20, 42);
+  std::vector<float> weights_IM = GetRandomWeights(20, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length,  weights);
+      CreateSineSuperpostion(fft_length,  weights_RE, weights_IM);
 
   std::vector<double> runtime;
 
@@ -232,10 +232,11 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
                                     const int r2_blocksize){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
+  std::vector<float> weights_RE = GetRandomWeights(20, 42);
+  std::vector<float> weights_IM = GetRandomWeights(20, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length, async_batch_size, weights);
+      CreateSineSuperpostionBatch(fft_length, async_batch_size,
+                                  weights_RE, weights_IM);
 
   std::vector<double> runtime;
 
@@ -305,10 +306,11 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
                                     const std::string tuner_results_file){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
+  std::vector<float> weights_RE = GetRandomWeights(20, 42);
+  std::vector<float> weights_IM = GetRandomWeights(20, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length, async_batch_size, weights);
+      CreateSineSuperpostionBatch(fft_length, async_batch_size,
+                                  weights_RE, weights_IM);
 
   std::vector<double> runtime;
 
@@ -376,10 +378,10 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
                                           const int sample_size){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
-  std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2(fft_length,  weights);
+  std::vector<float> weights_RE = GetRandomWeights(20, 42);
+  std::vector<float> weights_IM = GetRandomWeights(20, 4242);
+  std::unique_ptr<__half[]> data =
+      CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM);
 
   std::vector<double> runtime;
 
@@ -449,10 +451,11 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
                                           const int async_batch_size){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
-  std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2Batch(fft_length,  weights, async_batch_size);
+  std::vector<float> weights_RE = GetRandomWeights(20, 42);
+  std::vector<float> weights_IM = GetRandomWeights(20, 4242);
+  std::unique_ptr<__half[]> data =
+      CreateSineSuperpostionH2Batch(fft_length, async_batch_size,
+                                    weights_RE, weights_IM);
 
   std::vector<double> runtime;
 

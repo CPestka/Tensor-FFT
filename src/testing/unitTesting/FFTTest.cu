@@ -25,9 +25,10 @@ template <typename Integer>
 std::optional<std::string> FullSingleFFTComputation(
     const Integer fft_length,
     const std::string file_name){
-  std::vector<float> weights;
-  weights.push_back(1.0);
-  std::unique_ptr<__half[]> data = CreateSineSuperpostion(fft_length,  weights);
+  std::vector<float> weights_RE{ 1.0, 0.5, 0.2, 0.5, 0.4};
+  std::vector<float> weights_RE{ 0.2, 0.7, 1.0, 0.5, 0.7};
+  std::unique_ptr<__half[]> data =
+      CreateSineSuperpostion(fft_length,  weights_RE, weights_IM);
 
   std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
   Plan<Integer> my_plan;
@@ -88,10 +89,11 @@ std::optional<std::string> FullAsyncFFTComputation(
     const int amount_of_asynch_ffts,
     const std::vector<std::string> file_name){
   //Prepare input data on cpu
-  std::vector<float> weights;
-  weights.push_back(1.0);
-  std::unique_ptr<__half[]> data = CreateSineSuperpostionBatch(
-      fft_length, amount_of_asynch_ffts, weights);
+  std::vector<float> weights_RE{ 1.0, 0.5, 0.2, 0.5, 0.4};
+  std::vector<float> weights_RE{ 0.2, 0.7, 1.0, 0.5, 0.7};
+  std::unique_ptr<__half[]> data =
+      CreateSineSuperpostionBatch(fft_length, async_batch_size,
+                                  weights_RE, weights_IM);
 
   std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
   Plan<Integer> my_plan;
