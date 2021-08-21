@@ -47,6 +47,13 @@ std::optional<std::string> FullSingleFFTComputation(
     return error_mess;
   }
 
+  //Check if parameters of plan work given limitations on used device.
+  int device_id;
+  cudaGetDevice(&device_id);
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    return "Error Plan doesnt work on used device.";
+  };
+
   //Construct a DataHandler for data on GPU
   DataHandler my_handler(fft_length);
   error_mess = my_handler.PeakAtLastError();
@@ -61,7 +68,8 @@ std::optional<std::string> FullSingleFFTComputation(
   }
 
   //Compute FFT
-  error_mess = ComputeFFT(my_plan, my_handler);
+  error_mess = ComputeFFT(my_plan, my_handler,
+                          GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     return error_mess;
   }
@@ -117,6 +125,13 @@ std::optional<std::string> FullAsyncFFTComputation(
     }
   }
 
+  //Check if parameters of plan work given limitations on used device.
+  int device_id;
+  cudaGetDevice(&device_id);
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    return "Error Plan doesnt work on used device.";
+  };
+
   //Construct a DataHandler for data on GPU
   DataBatchHandler my_handler(fft_length, amount_of_asynch_ffts);
   error_mess = my_handler.PeakAtLastError();
@@ -131,7 +146,8 @@ std::optional<std::string> FullAsyncFFTComputation(
   }
 
   //Compute FFT
-  error_mess = ComputeFFT(my_plan, my_handler);
+  error_mess = ComputeFFT(my_plan, my_handler,
+                          GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     return error_mess;
   }
