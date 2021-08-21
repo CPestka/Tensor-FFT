@@ -40,7 +40,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostion(int amount_of_timesamples,
     float tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i] = __float2half(tmp);
@@ -62,7 +62,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostion(int amount_of_timesamples,
     float tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights_RE[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i] = __float2half(tmp);
@@ -70,7 +70,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostion(int amount_of_timesamples,
     tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights_IM[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i + amount_of_timesamples] = __float2half(tmp);
@@ -101,7 +101,7 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(int amount_of_timesamples,
     float tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i] = __floats2half2_rn(tmp, 0);
@@ -123,14 +123,14 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(
     float tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights_RE[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
 
     float tmp_1 = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp_1 += (weights_IM[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
 
@@ -152,7 +152,7 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2Batch(
       float tmp = 0;
       for(int j=0; j<static_cast<int>(weights.size()); j++){
         tmp += (weights[j] *
-                sin(2 * M_PI * (std::pow(2, j) *
+                sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
       }
       data[i + (k * amount_of_timesamples)] = __floats2half2_rn(tmp, 0);
@@ -176,13 +176,13 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2Batch(
       float tmp = 0;
       for(int j=0; j<static_cast<int>(weights.size()); j++){
         tmp += (weights_RE[j] *
-                sin(2 * M_PI * (std::pow(2, j) *
+                sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
       }
       float tmp_1 = 0;
       for(int j=0; j<static_cast<int>(weights.size()); j++){
         tmp_1 += (weights_IM[j] *
-                  sin(2 * M_PI * (std::pow(2, j) *
+                  sin(2 * M_PI * std::pow(2, j) *
                       (static_cast<double>(i) / amount_of_timesamples)));
       }
       data[i + (k * amount_of_timesamples)] = __floats2half2_rn(tmp, tmp_1);
@@ -204,7 +204,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
     float tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i].x = tmp;
@@ -226,7 +226,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
     float tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights_RE[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i].x = tmp;
@@ -234,7 +234,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
     tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights_IM[j] *
-              sin(2 * M_PI * (std::pow(2, j) *
+              sin(2 * M_PI * std::pow(2, j) *
                   (static_cast<double>(i) / amount_of_timesamples)));
     }
     data[i].y = tmp;
@@ -253,7 +253,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionBatch(
       float tmp = 0;
       for(int j=0; j<static_cast<int>(weights.size()); j++){
         tmp += (weights[j] *
-                sin(2 * M_PI * (std::pow(2, j) *
+                sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
       }
       data[i + (k * 2 * amount_of_timesamples)] = __float2half(tmp);
@@ -275,7 +275,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionBatch(
       float tmp = 0;
       for(int j=0; j<static_cast<int>(weights.size()); j++){
         tmp += (weights_RE[j] *
-                sin(2 * M_PI * (std::pow(2, j) *
+                sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
       }
       data[i + (k * 2 * amount_of_timesamples)] = __float2half(tmp);
@@ -283,7 +283,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionBatch(
       tmp = 0;
       for(int j=0; j<static_cast<int>(weights.size()); j++){
         tmp += (weights_IM[j] *
-                sin(2 * M_PI * (std::pow(2, j) *
+                sin(2 * M_PI * std::pow(2, j) *
                     (static_cast<double>(i) / amount_of_timesamples)));
       }
       data[i + amount_of_timesamples + (k * 2 * amount_of_timesamples)] =
