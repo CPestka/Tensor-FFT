@@ -53,27 +53,27 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   //On the fly computation of DFT matrix
   //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
   //and literal version
-  #pragma unroll
-  for(int k=0; k<8; k++){
-    int j = k + 8 * inter_warp_id_is_upper_16;
-    int buffer_array_id = inter_warp_id_16 + 16 * j;
-    //Modulo version for higher accuracy
-    /*
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>((j * inter_warp_id_16) % 16),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(8.0));
-    */
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(8.0));
-    buffer_RE[buffer_array_id] = hcos(phase);
-    buffer_IM[buffer_array_id] = -hsin(phase);
-  }
+  // #pragma unroll
+  // for(int k=0; k<8; k++){
+  //   int j = k + 8 * inter_warp_id_is_upper_16;
+  //   int buffer_array_id = inter_warp_id_16 + 16 * j;
+  //   //Modulo version for higher accuracy
+  //   /*
+  //   __half phase =
+  //       __hdiv(__hmul(static_cast<__half>((j * inter_warp_id_16) % 16),
+  //                     static_cast<__half>(M_PI)),
+  //              static_cast<__half>(8.0));
+  //   */
+  //   __half phase =
+  //       __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+  //                     static_cast<__half>(M_PI)),
+  //              static_cast<__half>(8.0));
+  //   buffer_RE[buffer_array_id] = hcos(phase);
+  //   buffer_IM[buffer_array_id] = -hsin(phase);
+  // }
 
   //Literal version of dft matrix.
-  //LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
+  LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
 
   //Load DFT matrix into the according fragments
   wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
@@ -90,12 +90,14 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
       data_IM_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
+  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_1_frag;
+  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_2_frag;
 
   //Initialize the output to zero
   wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_1_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_2_frag, 0.0);
 
   //Compute x of input_data[x] for a given "shuffeld"_input_data[thread_id],
   //where the "shuffeld" version referres to the data being reorded in the
@@ -185,114 +187,122 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
                  accumulator_RE_2_frag);
   __syncthreads();
-  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
-                 accumulator_IM_frag);
+  wmma::mma_sync(accumulator_IM_1_frag, data_IM_frag, dft_RE_frag,
+                 accumulator_IM_1_frag);
   __syncthreads();
-  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
-                 accumulator_IM_frag);
+  wmma::mma_sync(accumulator_IM_2_frag, data_RE_frag, dft_IM_frag,
+                 accumulator_IM_2_frag);
 
   __syncthreads();
   //Store IM part of the output
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
+  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
                           wmma::mem_row_major);
 
   __syncthreads();
   //Compute RE(A)xRE(B)-IM(A)xIM(B)
   //Special access patern for uniform operation on all elements of fragments
-  #pragma unroll
-  for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
-    buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
-                          accumulator_RE_2_frag.x[i]);
-  }
+  // #pragma unroll
+  // for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
+  //   buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
+  //                         accumulator_RE_2_frag.x[i]);
+  // }
 
   __syncthreads();
   if (threadIdx.x == 0) {
     for(int i=0; i<256; i++){
-      printf("ID %d RE %f IM %f\n", i,
+      printf("ID %d RE %f %f IM %f %f\n", i,
            static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_IM[i]));
+           static_cast<float>(buffer_tmp_RE[i]),
+           static_cast<float>(buffer_IM[i]),
+           static_cast<float>(buffer_tmp_IM[i]));
     }
   }
   __syncthreads();
 
+  // //
+  // //Perform first R16 step
+  // //
   //
-  //Perform first R16 step
+  // //TODO: Not sure if transpose is  better than using new fragments
+  // //Load 16 16-point ffts from shared mem buffer, multiply them with according
+  // //twiddle factors and store them to other shared memory buffer. During that
+  // //a transpose is also performed.
+  // #pragma unroll
+  // for(int k=0; k<8; k++){
+  //   int j = k + (8 * inter_warp_id_is_upper_16);
+  //   int buffer_array_id = (inter_warp_id_16 + 16 * j);
+  //   int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
   //
-
-  //TODO: Not sure if transpose is  better than using new fragments
-  //Load 16 16-point ffts from shared mem buffer, multiply them with according
-  //twiddle factors and store them to other shared memory buffer. During that
-  //a transpose is also performed.
-  #pragma unroll
-  for(int k=0; k<8; k++){
-    int j = k + (8 * inter_warp_id_is_upper_16);
-    int buffer_array_id = (inter_warp_id_16 + 16 * j);
-    int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
-
-    //On the fly computation of DFT matrix
-    //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
-    //and literal version
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(128.0));
-    __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
-
-    __half input_RE = buffer_RE[buffer_array_id];
-    __half input_IM = buffer_IM[buffer_array_id];
-
-    //Store modified data to buffer arrays (buffer needed due to transpose)
-    //TODO: ? remove second buffer and use collum major load better?
-    //mod_RE = RE*twid_RE - IM*twid_IM
-    buffer_tmp_RE[buffer_array_id_transposed] =
-        __hsub(__hmul(input_RE, twiddle_RE), __hmul(input_IM, twiddle_IM));
-
-    //mod_IM = RE*twid_IM + IM*twid_RE
-    buffer_tmp_IM[buffer_array_id_transposed] =
-        __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
-  }
-
-  //Load the modified data from shared mem buffer
-  wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
-  wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
-
-  //Initialize the output to zero
-  wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
-  wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0);
-
-  //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
-  //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
-  //RE(A)xIM(B) + IM(A)xRE(B)
-  wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
-                 accumulator_RE_1_frag);
-  wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
-                 accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
-                 accumulator_IM_frag);
-  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
-                 accumulator_IM_frag);
-
-  //Store results to buffer
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
-                          wmma::mem_row_major);
-  #pragma unroll
-  for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
-    buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
-                          accumulator_RE_2_frag.x[i]);
-  }
-
-  //Store results into global memory and revert transpose.
-  #pragma unroll
-  for(int k=0; k<8; k++){
-    int j = k + (8 * inter_warp_id_is_upper_16);
-    int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
-    //Global id also reverses the transpose
-    Integer global_array_id = (inter_warp_id_16 + 16 * j) +
-                          warp_global_memory_offset;
-
-    output_data_RE[global_array_id] = buffer_RE[buffer_array_id_transposed];
-    output_data_IM[global_array_id] = buffer_IM[buffer_array_id_transposed];
-  }
+  //   //On the fly computation of DFT matrix
+  //   //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
+  //   //and literal version
+  //   __half phase =
+  //       __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
+  //                     static_cast<__half>(M_PI)),
+  //              static_cast<__half>(128.0));
+  //   __half twiddle_RE = hcos(phase);
+  //   __half twiddle_IM = -hsin(phase);
+  //
+  //   __half input_RE = buffer_RE[buffer_array_id];
+  //   __half input_IM = buffer_IM[buffer_array_id];
+  //
+  //   //Store modified data to buffer arrays (buffer needed due to transpose)
+  //   //TODO: ? remove second buffer and use collum major load better?
+  //   //mod_RE = RE*twid_RE - IM*twid_IM
+  //   buffer_tmp_RE[buffer_array_id_transposed] =
+  //       __hsub(__hmul(input_RE, twiddle_RE), __hmul(input_IM, twiddle_IM));
+  //
+  //   //mod_IM = RE*twid_IM + IM*twid_RE
+  //   buffer_tmp_IM[buffer_array_id_transposed] =
+  //       __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
+  // }
+  //
+  // //Load the modified data from shared mem buffer
+  // wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
+  // wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
+  //
+  // //Initialize the output to zero
+  // wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
+  // wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
+  // wmma::fill_fragment(accumulator_IM_frag, 0.0);
+  //
+  // //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
+  // //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
+  // //RE(A)xIM(B) + IM(A)xRE(B)
+  // wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
+  //                accumulator_RE_1_frag);
+  // wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
+  //                accumulator_RE_2_frag);
+  // wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
+  //                accumulator_IM_frag);
+  // wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
+  //                accumulator_IM_frag);
+  //
+  // //Store results to buffer
+  // wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
+  //                         wmma::mem_row_major);
+  // #pragma unroll
+  // for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
+  //   buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
+  //                         accumulator_RE_2_frag.x[i]);
+  // }
+  //
+  // //Store results into global memory and revert transpose.
+  // #pragma unroll
+  // for(int k=0; k<8; k++){
+  //   int j = k + (8 * inter_warp_id_is_upper_16);
+  //   int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
+  //   //Global id also reverses the transpose
+  //   Integer global_array_id = (inter_warp_id_16 + 16 * j) +
+  //                         warp_global_memory_offset;
+  //
+  //   output_data_RE[global_array_id] = buffer_RE[buffer_array_id_transposed];
+  //   output_data_IM[global_array_id] = buffer_IM[buffer_array_id_transposed];
+  // }
 }
