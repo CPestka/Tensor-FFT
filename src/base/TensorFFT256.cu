@@ -165,16 +165,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     //                                    static_cast<__half>(fft_length));
   }
 
-  __syncthreads();
-  if (threadIdx.x == 0) {
-    for(int i=0; i<256; i++){
-      printf("ID %d RE %f IM %f\n", i,
-           static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_IM[i]));
-    }
-  }
-  __syncthreads();
-
   //Load the inputs
   __syncthreads();
   wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
@@ -214,6 +204,16 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
                           accumulator_RE_2_frag.x[i]);
   }
+
+  __syncthreads();
+  if (threadIdx.x == 0) {
+    for(int i=0; i<256; i++){
+      printf("ID %d RE %f IM %f\n", i,
+           static_cast<float>(buffer_RE[i]),
+           static_cast<float>(buffer_IM[i]));
+    }
+  }
+  __syncthreads();
 
   //
   //Perform first R16 step
