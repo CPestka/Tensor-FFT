@@ -157,9 +157,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                                        static_cast<__half>(256.0));
     buffer_IM[buffer_array_id] = __hdiv(input_data_IM[input_array_id],
                                        static_cast<__half>(256.0));
-    printf("ID %d RE %f IM %f\n", buffer_array_id,
-           static_cast<float>(buffer_RE[buffer_array_id]),
-           static_cast<float>(buffer_IM[buffer_array_id]));
+
     //For scaling in one step
     // buffer_RE[buffer_array_id] = __hdiv(input_data_RE[input_array_id],
     //                                    static_cast<__half>(fft_length));
@@ -198,6 +196,10 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
                           accumulator_RE_2_frag.x[i]);
   }
+
+  printf("ID %d RE %f IM %f\n", buffer_array_id,
+         static_cast<float>(buffer_RE[buffer_array_id]),
+         static_cast<float>(buffer_IM[buffer_array_id]));
 
   //
   //Perform first R16 step
