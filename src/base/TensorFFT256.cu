@@ -251,7 +251,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                       static_cast<__half>(M_PI)),
                static_cast<__half>(128.0));
     __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
+    __half twiddle_IM = __hmul(-1.0, hsin(phase));
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
