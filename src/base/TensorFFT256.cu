@@ -197,7 +197,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                           wmma::mem_row_major);
 
   __syncthreads();
-
   //Compute RE(A)xRE(B)-IM(A)xIM(B)
   //Special access patern for uniform operation on all elements of fragments
   #pragma unroll
@@ -205,6 +204,16 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
                           accumulator_RE_2_frag.x[i]);
   }
+
+  __syncthreads();
+  if (threadIdx.x == 0) {
+    for(int i=0; i<256; i++){
+      printf("ID %d RE %f IM %f\n", i,
+           static_cast<float>(buffer_RE[i]),
+           static_cast<float>(buffer_IM[i]));
+    }
+  }
+  __syncthreads();
 
   //
   //Perform first R16 step
@@ -273,16 +282,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
                           accumulator_RE_2_frag.x[i]);
   }
-
-  __syncthreads();
-  if (threadIdx.x == 0) {
-    for(int i=0; i<256; i++){
-      printf("ID %d RE %f IM %f\n", i,
-           static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_IM[i]));
-    }
-  }
-  __syncthreads();
 
   //Store results into global memory and revert transpose.
   #pragma unroll
