@@ -18,22 +18,22 @@
 
 
 int main(){
-  constexpr int fft_length = 16*16*16*2*2;
+  constexpr int fft_length = 16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
   //fft_length*2 amount of elements, with the RE elements making up the first
   //and the IM elements making up the second half of the array.
-  std::vector<float> weights;
-  weights.push_back(1.0);
+  std::vector<float> weights_RE { 0.0, 0.0 };
+  std::vector<float> weights_IM { 0.0, 0.0 };
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length, weights);
+      CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
 
   std::optional<std::string> error_mess;
 
   //The plan holds parameters needed for the execution of the kernels which are
   //mostly derived from the fft length.
-  std::optional<Plan<int>> possible_plan = CreatePlan(fft_length, Mode_4096);
+  std::optional<Plan<int>> possible_plan = CreatePlan(fft_length);
   Plan<int> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
