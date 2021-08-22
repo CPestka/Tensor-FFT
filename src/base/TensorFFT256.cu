@@ -188,13 +188,13 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                  accumulator_IM_2_frag);
 
   //Store IM part of the output
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
-                          wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
                           wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
                           wmma::mem_row_major);
 
   // __syncthreads();
@@ -215,7 +215,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     int buffer_array_id = inter_warp_id_16 +
                           (16 *  (k + (8 * inter_warp_id_is_upper_16)));
 
-    buffer_RE[buffer_array_id] += buffer_tmp_RE[buffer_array_id];
+    buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
     buffer_IM[buffer_array_id] += buffer_tmp_IM[buffer_array_id];
   }
 
@@ -290,13 +290,13 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                  accumulator_IM_2_frag);
 
   //Store the output
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
-                          wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
                           wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
+                          wmma::mem_row_major);
+  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
                           wmma::mem_row_major);
 
   __syncthreads();
@@ -317,7 +317,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     int buffer_array_id = inter_warp_id_16 +
                           (16 *  (k + (8 * inter_warp_id_is_upper_16)));
 
-    buffer_RE[buffer_array_id] += buffer_tmp_RE[buffer_array_id];
+    buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
     buffer_IM[buffer_array_id] += buffer_tmp_IM[buffer_array_id];
   }
 
