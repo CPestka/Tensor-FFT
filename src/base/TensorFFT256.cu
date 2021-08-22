@@ -166,7 +166,9 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   }
 
   //Load the inputs
+  __syncthreads();
   wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
+  __syncthreads();
   wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
 
   //
@@ -176,15 +178,20 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
   //RE(A)xIM(B) + IM(A)xRE(B)
+  __syncthreads();
   wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
                  accumulator_RE_1_frag);
+  __syncthreads();
   wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
                  accumulator_RE_2_frag);
+  __syncthreads();
   wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
                  accumulator_IM_frag);
+  __syncthreads();
   wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
                  accumulator_IM_frag);
 
+  __syncthreads();
   //Store IM part of the output
   wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
                           wmma::mem_row_major);
