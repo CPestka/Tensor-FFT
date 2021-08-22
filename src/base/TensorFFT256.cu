@@ -197,18 +197,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
                           wmma::mem_row_major);
 
-  // __syncthreads();
-  // if (threadIdx.x == 0) {
-  //   for(int i=0; i<256; i++){
-  //     printf("ID %d RE %f %f IM %f %f\n", i,
-  //          static_cast<float>(buffer_RE[i]),
-  //          static_cast<float>(buffer_tmp_RE[i]),
-  //          static_cast<float>(buffer_IM[i]),
-  //          static_cast<float>(buffer_tmp_IM[i]));
-  //   }
-  // }
-  // __syncthreads();
-
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
   #pragma unroll
   for(int k=0; k<8; k++){
@@ -218,16 +206,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
     buffer_IM[buffer_array_id] += buffer_tmp_IM[buffer_array_id];
   }
-
-  __syncthreads();
-  if (threadIdx.x == 0) {
-    for(int i=0; i<256; i++){
-      printf("ID %d RE %f IM %f\n", i,
-           static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_IM[i]));
-    }
-  }
-  __syncthreads();
 
   //
   //Perform first R16 step
@@ -251,7 +229,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                       static_cast<__half>(M_PI)),
                static_cast<__half>(128.0));
     __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = __hmul(-1.0, hsin(phase));
+    __half twiddle_IM = -hsin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
@@ -264,7 +242,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
 
     //mod_IM = RE*twid_IM + IM*twid_RE
     buffer_tmp_IM[buffer_array_id_transposed] =
-        __hadd(__hmul(input_RE , twiddle_IM), __hmul(input_IM, twiddle_RE));
+        __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
   }
 
   //Load the modified data from shared mem buffer
@@ -299,18 +277,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
                           wmma::mem_row_major);
 
-  __syncthreads();
-  if (threadIdx.x == 0) {
-    for(int i=0; i<256; i++){
-      printf("ID %d RE %f %f IM %f %f\n", i,
-           static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_tmp_RE[i]),
-           static_cast<float>(buffer_IM[i]),
-           static_cast<float>(buffer_tmp_IM[i]));
-    }
-  }
-  __syncthreads();
-
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
   #pragma unroll
   for(int k=0; k<8; k++){
@@ -320,16 +286,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
     buffer_IM[buffer_array_id] += buffer_tmp_IM[buffer_array_id];
   }
-
-  __syncthreads();
-  if (threadIdx.x == 0) {
-    for(int i=0; i<256; i++){
-      printf("ID %d RE %f IM %f\n", i,
-           static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_IM[i]));
-    }
-  }
-  __syncthreads();
 
   //Store results into global memory and revert transpose.
   #pragma unroll
