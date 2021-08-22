@@ -79,7 +79,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
   wmma::load_matrix_sync(dft_IM_frag, buffer_IM, 16);
 
-
   //
   //Load "shuffeld" input data for this warp
   //
@@ -158,7 +157,9 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                                        static_cast<__half>(256.0));
     buffer_IM[buffer_array_id] = __hdiv(input_data_IM[input_array_id],
                                        static_cast<__half>(256.0));
-
+    printf("ID %d RE %f IM %f\n", buffer_array_id,
+           static_cast<float>(buffer_RE[buffer_array_id]),
+           static_cast<float>(buffer_IM[buffer_array_id]));
     //For scaling in one step
     // buffer_RE[buffer_array_id] = __hdiv(input_data_RE[input_array_id],
     //                                    static_cast<__half>(fft_length));
