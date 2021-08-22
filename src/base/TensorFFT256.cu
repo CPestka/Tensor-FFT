@@ -274,7 +274,8 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   //Initialize the output to zero
   wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_1_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_2_frag, 0.0);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -297,7 +298,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                           wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
                           wmma::mem_row_major);
-                          
+
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
   #pragma unroll
   for(int k=0; k<8; k++){
