@@ -197,17 +197,17 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
                           wmma::mem_row_major);
 
-  __syncthreads();
-  if (threadIdx.x == 0) {
-    for(int i=0; i<256; i++){
-      printf("ID %d RE %f %f IM %f %f\n", i,
-           static_cast<float>(buffer_RE[i]),
-           static_cast<float>(buffer_tmp_RE[i]),
-           static_cast<float>(buffer_IM[i]),
-           static_cast<float>(buffer_tmp_IM[i]));
-    }
-  }
-  __syncthreads();
+  // __syncthreads();
+  // if (threadIdx.x == 0) {
+  //   for(int i=0; i<256; i++){
+  //     printf("ID %d RE %f %f IM %f %f\n", i,
+  //          static_cast<float>(buffer_RE[i]),
+  //          static_cast<float>(buffer_tmp_RE[i]),
+  //          static_cast<float>(buffer_IM[i]),
+  //          static_cast<float>(buffer_tmp_IM[i]));
+  //   }
+  // }
+  // __syncthreads();
 
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
   #pragma unroll
