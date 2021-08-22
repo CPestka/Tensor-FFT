@@ -195,11 +195,12 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   for(int i=0; i<accumulator_RE_1_frag.num_elements; i++){
     buffer_RE[i] = __hsub(accumulator_RE_1_frag.x[i],
                           accumulator_RE_2_frag.x[i]);
+    printf("ID %d RE %f IM %f\n", i,
+           static_cast<float>(buffer_RE[i]),
+           static_cast<float>(buffer_IM[i]));
   }
 
-  printf("ID %d RE %f IM %f\n", buffer_array_id,
-         static_cast<float>(buffer_RE[buffer_array_id]),
-         static_cast<float>(buffer_IM[buffer_array_id]));
+
 
   //
   //Perform first R16 step
