@@ -189,6 +189,8 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
                           wmma::mem_row_major);
 
+  __syncthreads()
+
   //Compute RE(A)xRE(B)-IM(A)xIM(B)
   //Special access patern for uniform operation on all elements of fragments
   #pragma unroll
