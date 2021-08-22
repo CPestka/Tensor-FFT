@@ -50,9 +50,9 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       dft_IM_frag;
 
-  On the fly computation of DFT matrix
-  TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
-  and literal version
+  //On the fly computation of DFT matrix
+  //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
+  //and literal version
   #pragma unroll
   for(int k=0; k<8; k++){
     int j = k + 8 * inter_warp_id_is_upper_16;
