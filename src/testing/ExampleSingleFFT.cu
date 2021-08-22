@@ -29,6 +29,9 @@ int main(){
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
 
+  //Write results to file
+  WriteResultsToFile("example_in.dat", fft_length, data.get());
+
   std::optional<std::string> error_mess;
 
   //The plan holds parameters needed for the execution of the kernels which are
