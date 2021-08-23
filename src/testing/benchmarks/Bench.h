@@ -7,7 +7,6 @@
 #include <optional>
 #include <string>
 #include <memory>
-#include <cassert>
 #include <type_traits>
 
 #include <cuda_fp16.h>
@@ -102,7 +101,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 
   int device_id;
   cudaGetDevice(&device_id);
-  assert((PlanWorksOnDevice(my_plan, device_id)));
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    std::cout << "Plan doesnt work on device -> configuration skiped."
+    return std::nullopt;
+  }
 
   int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
@@ -173,7 +175,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 
   int device_id;
   cudaGetDevice(&device_id);
-  assert((PlanWorksOnDevice(my_plan, device_id)));
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    std::cout << "Plan doesnt work on device -> configuration skiped."
+    return std::nullopt;
+  }
 
   int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
@@ -253,7 +258,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 
   int device_id;
   cudaGetDevice(&device_id);
-  assert((PlanWorksOnDevice(my_plan, device_id)));
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    std::cout << "Plan doesnt work on device -> configuration skiped."
+    return std::nullopt;
+  }
 
   int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 
@@ -326,7 +334,10 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 
   int device_id;
   cudaGetDevice(&device_id);
-  assert((PlanWorksOnDevice(my_plan, device_id)));
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    std::cout << "Plan doesnt work on device -> configuration skiped."
+    return std::nullopt;
+  }
 
   int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
 

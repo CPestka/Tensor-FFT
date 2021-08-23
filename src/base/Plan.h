@@ -173,7 +173,7 @@ std::optional<Plan<Integer>> CreatePlan(const Integer fft_length,
       total_amount_of_warps / my_plan.r16_warps_per_block_;
 
   my_plan.r16_shared_mem_in_bytes_ =
-      my_plan.r16_warps_per_block_ * 512 * sizeof(__half);
+      my_plan.r16_warps_per_block_ * 1024 * sizeof(__half);
 
   int tmp = 1;
   for(int i=0; i<my_plan.amount_of_r2_steps_; i++){
