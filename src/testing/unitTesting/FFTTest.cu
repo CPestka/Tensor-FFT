@@ -203,7 +203,7 @@ bool TestFullFFT(const Integer fft_length,
 
   if (((avg > avg_deviation_threshold) ||
        (sigma > sigma_deviation_threshold)) ||
-      (max_dev > max_deviation_threshold))
+      (max_dev > max_deviation_threshold)
        ){
     std::cout << "Accuracy test failed!" << std::endl
               << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
@@ -253,7 +253,7 @@ double max_dev = GetLargestDeviation(data_file_name, comparison_data_file_name);
 
 if (((avg > avg_deviation_threshold) ||
      (sigma > sigma_deviation_threshold)) ||
-    (max_dev > max_deviation_threshold))
+    (max_dev > max_deviation_threshold)
      ){
   std::cout << "Accuracy test failed!" << std::endl
             << "Avg: " << avg << " Threshold: " << avg_deviation_threshold

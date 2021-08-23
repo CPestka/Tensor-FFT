@@ -56,7 +56,7 @@ double GetLargestDeviation(const std::string file_name_1,
 
       double new_dev = fabs(tmp1_RE - tmp2_RE);
       largest_dev = (new_dev > largest_dev) ? new_dev : largest_dev;
-      new_dev = fabs(tmp1_IM - tmp2_IM)
+      new_dev = fabs(tmp1_IM - tmp2_IM);
       largest_dev = (new_dev > largest_dev) ? new_dev : largest_dev;
     }
   }
@@ -111,7 +111,7 @@ double GetLargestDeviation(const std::vector<std::string> file_name_1,
 
         double new_dev = fabs(tmp1_RE - tmp2_RE);
         largest_dev = (new_dev > largest_dev) ? new_dev : largest_dev;
-        new_dev = fabs(tmp1_IM - tmp2_IM)
+        new_dev = fabs(tmp1_IM - tmp2_IM);
         largest_dev = (new_dev > largest_dev) ? new_dev : largest_dev;
       }
     }
@@ -168,7 +168,7 @@ double GetLargestDeviation(const std::vector<std::string> file_name_1,
 
         double new_dev = fabs(tmp1_RE - tmp2_RE);
         largest_dev = (new_dev > largest_dev) ? new_dev : largest_dev;
-        new_dev = fabs(tmp1_IM - tmp2_IM)
+        new_dev = fabs(tmp1_IM - tmp2_IM);
         largest_dev = (new_dev > largest_dev) ? new_dev : largest_dev;
       }
     }
