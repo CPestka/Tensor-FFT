@@ -182,6 +182,7 @@ template <typename Integer>
 std::optional<std::string> WriteAccuracyTestResultsToFile(
     const std::vector<double> average,
     const std::vector<double> std_dev,
+    const std::vector<double> max_dev,
     const int sample_size,
     const std::vector<Integer> fft_length){
   std::ofstream myfile ("Accuracy_Test.dat");
@@ -190,7 +191,8 @@ std::optional<std::string> WriteAccuracyTestResultsToFile(
       myfile << sample_size << " "
              << fft_length[i] << " "
              << average[i] << " "
-             << std_dev[i] << "\n";
+             << std_dev[i] << " "
+             << max_dev[i] << "\n";
     }
     myfile.close();
   } else {

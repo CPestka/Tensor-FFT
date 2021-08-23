@@ -173,7 +173,8 @@ std::optional<std::string> FullAsyncFFTComputation(
 template <typename Integer>
 bool TestFullFFT(const Integer fft_length,
                  const double avg_deviation_threshold,
-                 const double sigma_deviation_threshold){
+                 const double sigma_deviation_threshold,
+                 const double max_deviation_threshold){
   std::optional<std::string> err;
 
   std::string comparison_data_file_name =
@@ -197,11 +198,19 @@ bool TestFullFFT(const Integer fft_length,
                                        data_file_name);
   double sigma = ComputeSigmaOfDeviation(comparison_data_file_name,
                                          data_file_name, avg);
-  if ((avg > avg_deviation_threshold) || (sigma > sigma_deviation_threshold)){
+  double max_dev = GetLargestDeviation(comparison_data_file_name,
+                                       data_file_name);
+
+  if (((avg > avg_deviation_threshold) ||
+       (sigma > sigma_deviation_threshold)) ||
+      (max_dev > max_deviation_threshold))
+       ){
     std::cout << "Accuracy test failed!" << std::endl
               << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
               << " Sigma: " << sigma << " Threshold: "
               << sigma_deviation_threshold << std::endl;
+              << " Max Deviation: " << max_dev << " Threshold: "
+              << max_deviation_threshold << std::endl;
     return false;
   }
 
@@ -212,7 +221,8 @@ template <typename Integer>
 bool TestFullFFTAsynch(const Integer fft_length,
                        const int amount_of_asynch_ffts,
                        const double avg_deviation_threshold,
-                       const double sigma_deviation_threshold){
+                       const double sigma_deviation_threshold,
+                       const double max_deviation_threshold){
 std::optional<std::string> err;
 
 std::string comparison_data_file_name =
@@ -239,11 +249,18 @@ if (err) {
 double avg = ComputeAverageDeviation(data_file_name, comparison_data_file_name);
 double sigma = ComputeSigmaOfDeviation(data_file_name,
                                        comparison_data_file_name, avg);
-if ((avg > avg_deviation_threshold) || (sigma > sigma_deviation_threshold)){
+double max_dev = GetLargestDeviation(data_file_name, comparison_data_file_name);
+
+if (((avg > avg_deviation_threshold) ||
+     (sigma > sigma_deviation_threshold)) ||
+    (max_dev > max_deviation_threshold))
+     ){
   std::cout << "Accuracy test failed!" << std::endl
             << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
             << " Sigma: " << sigma << " Threshold: "
             << sigma_deviation_threshold << std::endl;
+            << " Max Deviation: " << max_dev << " Threshold: "
+            << max_deviation_threshold << std::endl;
   return false;
 }
 
