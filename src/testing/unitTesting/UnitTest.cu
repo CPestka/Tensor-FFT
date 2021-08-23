@@ -13,7 +13,7 @@ int main(){
 
   constexpr double average_deviation_threshold = 0.001;
   constexpr double sigma_deviation_threshold = 0.01;
-  constexpr double max_deviation_threshold = 0.05;
+  constexpr double max_deviation_threshold = 0.5;
 
   std::vector<std::vector<float>> weights_RE;
   std::vector<std::vector<float>> weights_IM;
