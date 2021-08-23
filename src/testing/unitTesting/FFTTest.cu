@@ -206,11 +206,13 @@ bool TestFullFFT(const Integer fft_length,
       (max_dev > max_deviation_threshold)
        ){
     std::cout << "Accuracy test failed!" << std::endl
-              << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
+              << "Avg: " << avg << " Threshold: "
+              << avg_deviation_threshold
               << " Sigma: " << sigma << " Threshold: "
-              << sigma_deviation_threshold << std::endl;
+              << sigma_deviation_threshold
               << " Max Deviation: " << max_dev << " Threshold: "
-              << max_deviation_threshold << std::endl;
+              << max_deviation_threshold
+              << std::endl;
     return false;
   }
 
@@ -256,11 +258,13 @@ if (((avg > avg_deviation_threshold) ||
     (max_dev > max_deviation_threshold)
      ){
   std::cout << "Accuracy test failed!" << std::endl
-            << "Avg: " << avg << " Threshold: " << avg_deviation_threshold
+            << "Avg: " << avg << " Threshold: "
+            << avg_deviation_threshold
             << " Sigma: " << sigma << " Threshold: "
-            << sigma_deviation_threshold << std::endl;
+            << sigma_deviation_threshold
             << " Max Deviation: " << max_dev << " Threshold: "
-            << max_deviation_threshold << std::endl;
+            << max_deviation_threshold
+            << std::endl;
   return false;
 }
 
