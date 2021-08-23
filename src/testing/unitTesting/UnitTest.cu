@@ -8,8 +8,8 @@ int main(){
   constexpr int start_fft_length = 16*16;
   constexpr int end_fft_length = 16*16*16*16*16;
 
-  constexpr int runs_per_fft_length = 5;
-  constexpr int highest_harmonic = 5;
+  constexpr int runs_per_fft_length = 10;
+  constexpr int highest_harmonic = 20;
 
   constexpr double average_deviation_threshold = 0.001;
   constexpr double sigma_deviation_threshold = 0.01;
