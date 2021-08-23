@@ -21,7 +21,7 @@ std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
     converted_data[i] = static_cast<double>(data[i]);
   }
 
-  return std::move(converted_data);
+  return converted_data;
 }
 
 template<typename Integer>
@@ -35,7 +35,7 @@ std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
     converted_data[i + fft_length] = static_cast<double>(data[i].y);
   }
 
-  return std::move(converted_data);
+  return converted_data;
 }
 
 template<typename Integer>
@@ -49,7 +49,7 @@ std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
     converted_data[i + fft_length] = static_cast<double>(data[i].y);
   }
 
-  return std::move(converted_data);
+  return converted_data;
 }
 
 template<typename Integer>
