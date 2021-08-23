@@ -183,13 +183,11 @@ std::optional<std::string> WriteAccuracyTestResultsToFile(
     const std::vector<double> average,
     const std::vector<double> std_dev,
     const std::vector<double> max_dev,
-    const int sample_size,
     const std::vector<Integer> fft_length){
   std::ofstream myfile ("Accuracy_Test.dat");
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(average.size()); i++){
-      myfile << sample_size << " "
-             << fft_length[i] << " "
+      myfile << fft_length[i] << " "
              << average[i] << " "
              << std_dev[i] << " "
              << max_dev[i] << "\n";

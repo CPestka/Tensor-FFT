@@ -21,10 +21,6 @@ int main(){
   constexpr int highest_harmonic = 50;
   constexpr int seed = 42;
 
-  constexpr double average_deviation_threshold = 0.0001;
-  constexpr double sigma_deviation_threshold = 0.001;
-  constexpr double max_deviation_threshold = 0.005;
-
   std::vector<float> weights_RE =
       GetRandomWeights(highest_harmonic, seed);
   std::vector<float> weights_IM =
@@ -40,7 +36,7 @@ int main(){
   fft_length.push_back(start_fft_length);
   int j = 0;
   while (fft_length.back() <= end_fft_length) {
-    std::cout << "Testing fft length: " << fft_length << "\n";
+    std::cout << "Testing fft length: " << fft_length.back() << "\n";
 
     //Compute comparision data and check validity
     auto possible_comparission_data =
@@ -72,14 +68,14 @@ int main(){
     sigma_of_dev.push_back(ComputeSigmaOfDeviation(data.get(),
                                                    comparission_data.get(),
                                                    fft_length.back(),
-                                                   avg.back()));
+                                                   avg_dev.back()));
 
     fft_length.push_back(fft_length.back() * 2);
     j++;
   }
 
   err = WriteAccuracyTestResultsToFile(avg_dev, sigma_of_dev, max_dev,
-                                       sample_size, fft_length);
+                                       fft_length);
   if (err) {
     std::cout << err.value() << std::endl;
     return false;
