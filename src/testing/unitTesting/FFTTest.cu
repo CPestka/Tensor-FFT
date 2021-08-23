@@ -253,7 +253,7 @@ bool TestFullFFT(const Integer fft_length,
   }
   std::unique_ptr<double[]> comparission_data =
       ConvertResultsToSplitDouble(fft_length,
-                                  possible_comparission_data.value());
+                                  std::move(possible_comparission_data.value()));
 
   //Compute data and check validity
   auto possible_data =
@@ -264,7 +264,7 @@ bool TestFullFFT(const Integer fft_length,
   }
   std::unique_ptr<double[]> data =
       ConvertResultsToSplitDouble(fft_length,
-                                  possible_data.value());
+                                  std::move(possible_data.value()));
 
   double max_dev =
       GetLargestDeviation(data.get(), comparission_data.get(), fft_length);

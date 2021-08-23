@@ -49,9 +49,8 @@ int main(){
       std::cout << "Error! Failed to create comparision data." << std::endl;
       return false;
     }
-    std::unique_ptr<double[]> comparission_data =
-        ConvertResultsToSplitDouble(fft_length.back(),
-                                    possible_comparission_data.value());
+    std::unique_ptr<double[]> comparission_data = ConvertResultsToSplitDouble(
+        fft_length.back(), std::move(possible_comparission_data.value()));
 
     //Compute data and check validity
     auto possible_data =
@@ -62,7 +61,7 @@ int main(){
     }
     std::unique_ptr<double[]> data =
         ConvertResultsToSplitDouble(fft_length.back(),
-                                    possible_data.value());
+                                    std::move(possible_data.value()));
 
     max_dev.push_back(GetLargestDeviation(data.get(),
                                           comparission_data.get(),
