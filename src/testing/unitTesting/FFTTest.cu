@@ -22,6 +22,70 @@
 #include "CuFFTTest.h"
 
 template <typename Integer>
+std::optional<std::unique_ptr<__half[]>> FullSingleFFTComputation(
+    const Integer fft_length,
+    const std::vector<float> weights_RE,
+    const std::vector<float> weights_IM){
+
+  std::unique_ptr<__half[]> data =
+      CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
+
+  std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
+  Plan<Integer> my_plan;
+  if (possible_plan) {
+    my_plan = possible_plan.value();
+  } else {
+    std::cout << "Plan creation failed" << std::endl;
+    return std::nullopt;
+  }
+
+  std::optional<std::string> error_mess;
+
+  //Check if parameters of plan work given limitations on used device.
+  int device_id;
+  cudaGetDevice(&device_id);
+  if (!PlanWorksOnDevice(my_plan, device_id)) {
+    std::cout << "Error Plan doesnt work on used device." << std::endl;
+    return std::nullopt;
+  };
+
+  //Construct a DataHandler for data on GPU
+  DataHandler my_handler(fft_length);
+  error_mess = my_handler.PeakAtLastError();
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return std::nullopt;
+  }
+
+  //Copy data to gpu
+  error_mess = my_handler.CopyDataHostToDevice(data.get());
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return std::nullopt;
+  }
+
+  //Compute FFT
+  error_mess = ComputeFFT(my_plan, my_handler,
+                          GetMaxNoOptInSharedMem(device_id));
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return std::nullopt;
+  }
+
+  //Copy results back to cpu
+  error_mess = my_handler.CopyResultsDeviceToHost(
+      data.get(), my_plan.results_in_results_);
+  if (error_mess) {
+    std::cout << error_mess.value() << std::endl;
+    return std::nullopt;
+  }
+
+  cudaDeviceSynchronize();
+
+  return std::move(data);
+}
+
+template <typename Integer>
 std::optional<std::string> FullSingleFFTComputation(
     const Integer fft_length,
     const std::string file_name){
@@ -90,6 +154,7 @@ std::optional<std::string> FullSingleFFTComputation(
 
   return std::nullopt;
 }
+
 
 template <typename Integer>
 std::optional<std::string> FullAsyncFFTComputation(
@@ -168,6 +233,63 @@ std::optional<std::string> FullAsyncFFTComputation(
 
 
   return std::nullopt;
+}
+
+template <typename Integer>
+bool TestFullFFT(const Integer fft_length,
+                 const double avg_deviation_threshold,
+                 const double sigma_deviation_threshold,
+                 const double max_deviation_threshold,
+                 const std::vector<float> weights_RE,
+                 const std::vector<float> weights_IM){
+  std::optional<std::string> err;
+
+  //Compute comparision data and check validity
+  auto possible_comparission_data =
+      CreateComparisonDataDouble(fft_length, weights_RE, weights_IM);
+  if (!possible_comparission_data) {
+    std::cout << "Error! Failed to create comparision data." << std::endl;
+    return false;
+  }
+  std::unique_ptr<double[]> comparission_data =
+      ConvertResultsToSplitDouble(fft_length,
+                                  possible_comparission_data.value());
+
+  //Compute data and check validity
+  auto possible_data =
+      FullSingleFFTComputation(fft_length, weights_RE, weights_IM);
+  if (!possible_data) {
+    std::cout << "Error! Failed to create data." << std::endl;
+    return false;
+  }
+  std::unique_ptr<double[]> data =
+      ConvertResultsToSplitDouble(fft_length,
+                                  possible_data.value());
+
+  double max_dev =
+      GetLargestDeviation(data.get(), comparission_data.get(), fft_length);
+  double avg =
+      ComputeAverageDeviation(data.get(), comparission_data.get(), fft_length);
+  double sigma =
+      ComputeSigmaOfDeviation(data.get(), comparission_data.get(), fft_length,
+                              avg);
+
+  if (((avg > avg_deviation_threshold) ||
+       (sigma > sigma_deviation_threshold)) ||
+      (max_dev > max_deviation_threshold)
+       ){
+    std::cout << "Accuracy test failed!" << std::endl
+              << "Avg: " << avg << " Threshold: "
+              << avg_deviation_threshold
+              << " Sigma: " << sigma << " Threshold: "
+              << sigma_deviation_threshold
+              << " Max Deviation: " << max_dev << " Threshold: "
+              << max_deviation_threshold
+              << std::endl;
+    return false;
+  }
+
+  return true;
 }
 
 template <typename Integer>

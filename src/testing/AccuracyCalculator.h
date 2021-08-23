@@ -9,6 +9,93 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
+
+template<typename Integer>
+std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
+    std::unique_ptr<__half[]> data){
+  std::unique_ptr<double[]> converted_data =
+      std::make_unique<double[]>(2 * fft_length);
+
+  for(Integer i=0; i<(2*fft_length); i++){
+    converted_data[i] = static_cast<double>(data[i]);
+  }
+
+  return std::move(converted_data);
+}
+
+template<typename Integer>
+std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
+    std::unique_ptr<__half2[]> data){
+  std::unique_ptr<double[]> converted_data =
+      std::make_unique<double[]>(2 * fft_length);
+
+  for(Integer i=0; i<fft_length; i++){
+    converted_data[i] = static_cast<double>(data[i].x);
+    converted_data[i + fft_length] = static_cast<double>(data[i].y);
+  }
+
+  return std::move(converted_data);
+}
+
+template<typename Integer>
+std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
+    std::unique_ptr<cufftDoubleComplex[]> data){
+  std::unique_ptr<double[]> converted_data =
+      std::make_unique<double[]>(2 * fft_length);
+
+  for(Integer i=0; i<fft_length; i++){
+    converted_data[i] = static_cast<double>(data[i].x);
+    converted_data[i + fft_length] = static_cast<double>(data[i].y);
+  }
+
+  return std::move(converted_data);
+}
+
+template<typename Integer>
+double GetLargestDeviation(const double* data_1, const double* data_2,
+                           Integer fft_length){
+  double largest_dev = 0;
+
+  for(Integer i=0; i<fft_length; i++){
+    double new_dev = fabs(data_1[i] - data_2[i]);
+    largest_dev = new_dev > largest_dev ? new_dev : largest_dev;
+
+    new_dev = fabs(data_1[i + fft_length] - data_2[i + fft_length]);
+    largest_dev = new_dev > largest_dev ? new_dev : largest_dev;
+  }
+
+  return largest_dev;
+}
+
+template<typename Integer>
+double ComputeAverageDeviation(const double* data_1, const double* data_2,
+                               const Integer fft_length){
+  double cummulative_dev = 0;
+
+  for(Integer i=0; i<fft_length; i++){
+    cummulative_dev += fabs(data_1[i] - data_2[i]);
+    cummulative_dev += fabs(data_1[i + fft_length] - data_2[i + fft_length]);
+  }
+
+  return (cummulative_dev / static_cast<double>(2 * fft_length));
+}
+
+template<typename Integer>
+double ComputeSigmaOfDeviation(const double* data_1, const double* data_2,
+                               const Integer fft_length, const double average){
+  double tmp = 0;
+
+  for(Integer i=0; i<fft_length; i++){
+    double tmp_1 = fabs(fabs(data_1[i] - data_2[i]) - average);
+    tmp += (tmp_1 * tmp_1);
+    tmp_1 =
+        fabs(fabs(data_1[i + fft_length] - data_2[i + fft_length]) - average);
+    tmp += (tmp_1 * tmp_1);
+  }
+
+  return sqrt(tmp / static_cast<double>((2 * fft_length) - 1));
+}
 
 double GetLargestDeviation(const std::string file_name_1,
                            const std::string file_name_2){
