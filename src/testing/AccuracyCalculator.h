@@ -11,6 +11,11 @@
 #include <vector>
 #include <memory>
 
+#include <cufft.h>
+#include <cufftXt.h>
+#include <cuda_fp16.h>
+#include <cuComplex.h>
+
 template<typename Integer>
 std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
     std::unique_ptr<__half[]> data){
