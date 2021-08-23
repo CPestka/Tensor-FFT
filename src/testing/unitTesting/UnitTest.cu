@@ -25,6 +25,7 @@ int main(){
 
   int fft_length = start_fft_length;
   while (fft_length <= end_fft_length) {
+    std::cout << "Testing fft_length: " << fft_length << "\n";
     for(int j=0; j<runs_per_fft_length; j++){
       if (!TestFullFFT(fft_length,
                        average_deviation_threshold,
