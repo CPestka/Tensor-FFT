@@ -12,12 +12,12 @@
 #include "TestingDataCreation.h"
 
 int main(){
-  long long fft_length = 16*16*16*16*16*16*2*2*2;
+  long long fft_length = 16*16*16*16*16*16*2*2;
 
-  std::vector<float> weights;
-  weights.push_back(1.0);
-  std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2(fft_length,  weights);
+  std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 1.0, 0.9, 0.4 };
+  std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.1, 0.5, 0.9 };
+  std::unique_ptr<__half[]> data =
+      CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM);
 
   __half2* dptr_data;
   __half2* dptr_results;
