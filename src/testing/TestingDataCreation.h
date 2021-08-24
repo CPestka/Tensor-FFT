@@ -40,6 +40,7 @@ __global__ void CreateSineSuperpostionKernel(Integer fft_length,
   for(int i=0; i<RE_size; i++){
     tmp += weights_RE[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
+    tmp_1 *= 2;
   }
 
   data[thread_id] = tmp;
@@ -49,6 +50,7 @@ __global__ void CreateSineSuperpostionKernel(Integer fft_length,
   for(int i=0; i<IM_size; i++){
     tmp += weights_IM[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
+    tmp_1 *= 2;
   }
 
   data[thread_id + fft_length] = tmp;
@@ -68,6 +70,7 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
   for(int i=0; i<RE_size; i++){
     tmp += weights_RE[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
+    tmp_1 *= 2;
   }
 
   data[thread_id].x = tmp;
@@ -77,6 +80,7 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
   for(int i=0; i<IM_size; i++){
     tmp += weights_IM[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
+    tmp_1 *= 2;
   }
 
   data[thread_id].y = tmp;
@@ -96,12 +100,14 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
 
   float* dptr_weights_RE;
   cudaMalloc(&dptr_weights_RE, sizeof(float) * weights_RE.size());
-  cudaMemcpy(dptr_weights_RE, &(weights_RE[0]), sizeof(float) * weights_RE.size(),
+  cudaMemcpy(dptr_weights_RE, &(weights_RE[0]),
+             sizeof(float) * weights_RE.size(),
              cudaMemcpyHostToDevice);
 
   float* dptr_weights_IM;
   cudaMalloc(&dptr_weights_IM, sizeof(float) * weights_IM.size());
-  cudaMemcpy(dptr_weights_IM, &(weights_RE[0]), sizeof(float) * weights_IM.size(),
+  cudaMemcpy(dptr_weights_IM, &(weights_RE[0]),
+             sizeof(float) * weights_IM.size(),
              cudaMemcpyHostToDevice);
 
   cudaDeviceSynchronize();
