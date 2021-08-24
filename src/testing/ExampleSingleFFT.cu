@@ -18,7 +18,7 @@
 
 
 int main(){
-  constexpr int fft_length = 16*16*16;
+  constexpr int fft_length = 16*16*16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
