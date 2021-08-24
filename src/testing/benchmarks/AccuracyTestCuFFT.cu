@@ -34,9 +34,8 @@ int main(){
   std::optional<std::string> err;
 
   fft_length.push_back(start_fft_length);
-  int j = 0;
   while (fft_length.back() <= end_fft_length) {
-    std::cout << "Testing fft length: " << fft_length.back() << "\n";
+    std::cout << "Testing fft length: " << fft_length.back() << std::endl;
 
     //Compute comparision data and check validity
     auto possible_comparission_data =
@@ -71,7 +70,6 @@ int main(){
                                                    avg_dev.back()));
 
     fft_length.push_back(fft_length.back() * 2);
-    j++;
   }
 
   err = WriteAccuracyTestResultsToFile(avg_dev, sigma_of_dev, max_dev,
