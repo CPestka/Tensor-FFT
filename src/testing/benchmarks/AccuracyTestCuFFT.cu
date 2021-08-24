@@ -13,13 +13,12 @@
 #include "../unitTesting/FFTTest.cu"
 #include "../../base/ComputeFFT.h"
 #include "../FileWriter.h"
-#include "../Timer.h"
 
 int main(){
   constexpr int start_fft_length = 16*16;
   constexpr int end_fft_length = 16*16*16*16*2*2;
 
-  constexpr int highest_harmonic = 9;
+  constexpr int highest_harmonic = 20;
   constexpr int seed = 42;
 
   std::vector<float> weights_RE =
