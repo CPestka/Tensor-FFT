@@ -90,14 +90,12 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
       data_IM_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
   wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_1_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_2_frag;
+  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
 
   //Initialize the output to zero
   wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_1_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_2_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0);
 
   //Compute x of input_data[x] for a given "shuffeld"_input_data[thread_id],
   //where the "shuffeld" version referres to the data being reorded in the
@@ -182,19 +180,17 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                  accumulator_RE_1_frag);
   wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
                  accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_1_frag, data_IM_frag, dft_RE_frag,
-                 accumulator_IM_1_frag);
-  wmma::mma_sync(accumulator_IM_2_frag, data_RE_frag, dft_IM_frag,
-                 accumulator_IM_2_frag);
+  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
+                 accumulator_IM_frag);
+  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
+                 accumulator_IM_frag);
 
   //Store IM part of the output
   wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
                           wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
                           wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
+  wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
                           wmma::mem_row_major);
 
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
@@ -204,7 +200,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                           (16 *  (k + (8 * inter_warp_id_is_upper_16)));
 
     buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
-    buffer_IM[buffer_array_id] += buffer_tmp_IM[buffer_array_id];
   }
 
   //
@@ -252,8 +247,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   //Initialize the output to zero
   wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_1_frag, 0.0);
-  wmma::fill_fragment(accumulator_IM_2_frag, 0.0);
+  wmma::fill_fragment(accumulator_IM_frag, 0.0);
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
@@ -262,19 +256,17 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                  accumulator_RE_1_frag);
   wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
                  accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_1_frag, data_IM_frag, dft_RE_frag,
-                 accumulator_IM_1_frag);
-  wmma::mma_sync(accumulator_IM_2_frag, data_RE_frag, dft_IM_frag,
-                 accumulator_IM_2_frag);
+  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
+                 accumulator_IM_frag);
+  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
+                 accumulator_IM_frag);
 
   //Store the output
   wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
                           wmma::mem_row_major);
   wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
                           wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_1_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_tmp_IM, accumulator_IM_2_frag, 16,
+  wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
                           wmma::mem_row_major);
 
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
@@ -284,7 +276,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
                           (16 *  (k + (8 * inter_warp_id_is_upper_16)));
 
     buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
-    buffer_IM[buffer_array_id] += buffer_tmp_IM[buffer_array_id];
   }
 
   //Store results into global memory and revert transpose.
