@@ -16,7 +16,7 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*2*2;
+  constexpr int end_fft_length = 16*16*16*16*16*16*16;
 
   constexpr int highest_harmonic = 20;
   constexpr int seed = 42;
@@ -69,7 +69,7 @@ int main(){
                                                    fft_length.back(),
                                                    avg_dev.back()));
 
-    fft_length.push_back(fft_length.back() * 2);
+    fft_length.push_back(fft_length.back() * 16);
   }
 
   err = WriteAccuracyTestResultsToFile(avg_dev, sigma_of_dev, max_dev,
