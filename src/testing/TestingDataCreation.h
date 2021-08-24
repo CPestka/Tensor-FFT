@@ -83,12 +83,12 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
 //Has 2*amount_of_timesamples elements, with the RE ones in the first half
 template<typename Integer>
 std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
-    Integer amount_of_timesamples,
+    Integer fft_length,
     std::vector<float> weights_RE,
     std::vector<float> weights_IM){
-  __half* dptr_data;
+    __half* dptr_data;
 
-  cudaMalloc(&dptr_data, 2 * sizeof(__half) * amount_of_ffts);
+  cudaMalloc(&dptr_data, 2 * sizeof(__half) * fft_length);
 
   Integer amount_of_blocks = fft_length / 256;
 
@@ -112,12 +112,12 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
 //Has 2*amount_of_timesamples elements, with the RE ones in the first half
 template<typename Integer>
 std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
-    Integer amount_of_timesamples,
+    Integer fft_length,
     std::vector<float> weights_RE,
     std::vector<float> weights_IM){
-  __half2* dptr_data;
+    __half2* dptr_data;
 
-  cudaMalloc(&dptr_data, sizeof(__half2) * amount_of_ffts);
+  cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
 
   Integer amount_of_blocks = fft_length / 256;
 
@@ -141,12 +141,12 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
 //Has 2*amount_of_timesamples elements, with the RE ones in the first half
 template<typename Integer>
 std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
-    Integer amount_of_timesamples,
+    Integer fft_length,
     std::vector<float> weights_RE,
     std::vector<float> weights_IM){
-  cufftComplex* dptr_data;
+    cufftComplex* dptr_data;
 
-  cudaMalloc(&dptr_data, sizeof(cufftComplex) * amount_of_ffts);
+  cudaMalloc(&dptr_data, sizeof(cufftComplex) * fft_length);
 
   Integer amount_of_blocks = fft_length / 256;
 
@@ -171,12 +171,12 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
 //Has 2*amount_of_timesamples elements, with the RE ones in the first half
 template<typename Integer>
 std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionD2GPU(
-    Integer amount_of_timesamples,
+    Integer fft_length,
     std::vector<float> weights_RE,
     std::vector<float> weights_IM){
-  cufftDoubleComplex* dptr_data;
+    cufftDoubleComplex* dptr_data;
 
-  cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * amount_of_ffts);
+  cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
 
   Integer amount_of_blocks = fft_length / 256;
 
