@@ -16,7 +16,7 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*2*2;
+  constexpr int end_fft_length = 16*16*16*16*16*16*2*2;
 
   constexpr int highest_harmonic = 20;
   constexpr int seed = 42;
@@ -50,7 +50,7 @@ int main(){
 
     //Compute data and check validity
     auto possible_data =
-        CreateComparisonDataHalf(fft_length.back(), weights_RE, weights_IM);
+        CreateComparisonDataFloat(fft_length.back(), weights_RE, weights_IM);
     if (!possible_data) {
       std::cout << "Error! Failed to create data." << std::endl;
       return false;
