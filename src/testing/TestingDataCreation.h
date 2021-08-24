@@ -96,12 +96,12 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
 
   float* dptr_weights_RE;
   cudaMalloc(&dptr_weights_RE, sizeof(float) * weights_RE.size());
-  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * weights_RE.size(),
+  cudaMemcpy(dptr_weights_RE, &(weights_RE[0]), sizeof(float) * weights_RE.size(),
              cudaMemcpyHostToDevice);
 
   float* dptr_weights_IM;
   cudaMalloc(&dptr_weights_IM, sizeof(float) * weights_IM.size());
-  cudaMemcpy(dptr_weights_IM, &weights_RE[0], sizeof(float) * weights_IM.size(),
+  cudaMemcpy(dptr_weights_IM, &(weights_RE[0]), sizeof(float) * weights_IM.size(),
              cudaMemcpyHostToDevice);
 
   cudaDeviceSynchronize();
@@ -134,7 +134,7 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
     Integer fft_length,
     std::vector<float> weights_RE,
     std::vector<float> weights_IM){
-    __half2* dptr_data;
+  __half2* dptr_data;
 
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
 
