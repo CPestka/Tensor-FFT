@@ -28,7 +28,7 @@ std::optional<std::unique_ptr<__half[]>> FullSingleFFTComputation(
     const std::vector<float> weights_IM){
 
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM);
 
   std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
   Plan<Integer> my_plan;
@@ -92,7 +92,7 @@ std::optional<std::string> FullSingleFFTComputation(
   std::vector<float> weights_RE{ 0.0, 0.0 };
   std::vector<float> weights_IM{ 1.0, 0.0 };
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM);
 
   std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
   Plan<Integer> my_plan;
