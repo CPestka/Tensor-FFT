@@ -120,6 +120,8 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
   cudaDeviceSynchronize();
 
   cudaFree(dptr_data);
+  cudaFree(dptr_weights_RE);
+  cudaFree(dptr_weights_IM);
 
   return data;
 }
@@ -162,6 +164,8 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
   cudaDeviceSynchronize();
 
   cudaFree(dptr_data);
+  cudaFree(dptr_weights_RE);
+  cudaFree(dptr_weights_IM);
 
   return data;
 }
@@ -205,6 +209,8 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
   cudaDeviceSynchronize();
 
   cudaFree(dptr_data);
+  cudaFree(dptr_weights_RE);
+  cudaFree(dptr_weights_IM);
 
   return data;
 }
@@ -248,6 +254,8 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionD2GPU(
   cudaDeviceSynchronize();
 
   cudaFree(dptr_data);
+  cudaFree(dptr_weights_RE);
+  cudaFree(dptr_weights_IM);
 
   return data;
 }
