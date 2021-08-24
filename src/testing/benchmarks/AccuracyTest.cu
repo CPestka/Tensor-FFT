@@ -34,7 +34,7 @@ int main(){
   std::optional<std::string> err;
 
   fft_length.push_back(start_fft_length);
-  while (fft_length.back() <= end_fft_length) {
+  while (fft_length.back() <= end_fft_length || fft_length.back() <= 0) {
     std::cout << "Testing fft length: " << fft_length.back() << std::endl;
 
     //Compute comparision data and check validity
