@@ -16,7 +16,7 @@ int main(){
 
   std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 1.0, 0.9, 0.4 };
   std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.1, 0.5, 0.9 };
-  std::unique_ptr<__half[]> data =
+  std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM);
 
   __half2* dptr_data;
