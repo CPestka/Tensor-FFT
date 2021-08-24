@@ -38,8 +38,6 @@ int main(){
   while (fft_length.back() <= end_fft_length) {
     std::cout << "Testing fft length: " << fft_length.back() << std::endl;
 
-    IntervallTimer timer;
-
     //Compute comparision data and check validity
     auto possible_comparission_data =
         CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM);
@@ -48,12 +46,8 @@ int main(){
       return false;
     }
 
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
-
     std::unique_ptr<double[]> comparission_data = ConvertResultsToSplitDouble(
         fft_length.back(), std::move(possible_comparission_data.value()));
-
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
 
     //Compute data and check validity
     auto possible_data =
@@ -63,33 +57,23 @@ int main(){
       return false;
     }
 
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
-
     std::unique_ptr<double[]> data =
         ConvertResultsToSplitDouble(fft_length.back(),
                                     std::move(possible_data.value()));
-
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
 
     max_dev.push_back(GetLargestDeviation(data.get(),
                                           comparission_data.get(),
                                           fft_length.back()));
 
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
-
     avg_dev.push_back(ComputeAverageDeviation(data.get(),
                                               comparission_data.get(),
                                               fft_length.back()));
-
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
 
     sigma_of_dev.push_back(ComputeSigmaOfDeviation(data.get(),
                                                    comparission_data.get(),
                                                    fft_length.back(),
                                                    avg_dev.back()));
 
-    std::cout << timer.getTimeInMilliseconds() << std::endl;
-    
     fft_length.push_back(fft_length.back() * 2);
   }
 

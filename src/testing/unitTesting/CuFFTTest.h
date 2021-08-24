@@ -14,6 +14,7 @@
 
 #include "../FileWriter.h"
 #include "../TestingDataCreation.h"
+#include "../Timer.h"
 
 std::optional<std::string> CreateComparisonDataHalf(
     long long fft_length,
@@ -68,8 +69,13 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
     long long fft_length,
     const std::vector<float> weights_RE,
     const std::vector<float> weights_IM){
+  std::cout << "Double" << std::endl;
+  IntervallTimer timer;
+
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM);
+
+  std::cout << timer.getTimeInMilliseconds() << std::endl;
 
   __half2* dptr_data;
   __half2* dptr_results;
@@ -77,6 +83,8 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
   cudaMalloc(&dptr_results, sizeof(__half2) * fft_length);
   cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(__half2),
              cudaMemcpyHostToDevice);
+
+  std::cout << timer.getTimeInMilliseconds() << std::endl;
 
   cufftHandle plan;
   cufftResult r;
@@ -101,8 +109,12 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
     return std::nullopt;
   }
 
+  std::cout << timer.getTimeInMilliseconds() << std::endl;
+
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
              cudaMemcpyDeviceToHost);
+
+  std::cout << timer.getTimeInMilliseconds() << std::endl;
 
   cudaDeviceSynchronize();
 
