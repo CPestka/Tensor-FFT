@@ -18,7 +18,7 @@ int main(){
   std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 0.3, 0.7, 0.8 };
   std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.9, 0.1, 0.6 };
   std::unique_ptr<cufftDoubleComplex[]> data =
-      CreateSineSuperpostionDouble(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionD2GPU(fft_length, weights_RE, weights_IM);
 
   cufftDoubleComplex* dptr_data;
   cufftDoubleComplex* dptr_results;
