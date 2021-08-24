@@ -24,8 +24,8 @@ int main(){
   //Substitute your own real data here. Data is accepted as __half array with
   //fft_length*2 amount of elements, with the RE elements making up the first
   //and the IM elements making up the second half of the array.
-  std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 1.0, 0.9, 0.4 };
-  std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.1, 0.5, 0.9 };
+  std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 0.3, 0.7, 0.8 };
+  std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.9, 0.1, 0.6 };
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
 

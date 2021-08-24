@@ -15,8 +15,8 @@
 int main(){
   long long fft_length = 16*16*16;
 
-  std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 1.0, 0.9, 0.4 };
-  std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.1, 0.5, 0.9 };
+  std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 0.3, 0.7, 0.8 };
+  std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.9, 0.1, 0.6 };
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM);
 
@@ -54,6 +54,9 @@ int main(){
     std::cout << "Error! Plan execution failed." << std::endl;
     return false;
   }
+
+  cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
+             cudaMemcpyDeviceToHost);
 
   cudaDeviceSynchronize();
 
