@@ -28,14 +28,16 @@ std::vector<float> GetRandomWeights(int max_frequencies, int seed){
 
 template <typename Integer>
 __global__ void CreateSineSuperpostionKernel(Integer fft_length,
-                                             std::vector<float> weights_RE,
-                                             std::vector<float> weights_IM,
+                                             float* weights_RE,
+                                             int RE_size,
+                                             float* weights_IM,
+                                             int IM_size,
                                              __half* data){
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
 
   double tmp = 0;
   int tmp_1 = 1;
-  for(int i=0; i<static_cast<int>(weights_RE.size()); i++){
+  for(int i=0; i<RE_size; i++){
     tmp += weights_RE[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
   }
@@ -44,7 +46,7 @@ __global__ void CreateSineSuperpostionKernel(Integer fft_length,
 
   tmp = 0;
   tmp_1 = 1;
-  for(int i=0; i<static_cast<int>(weights_IM.size()); i++){
+  for(int i=0; i<IM_size; i++){
     tmp += weights_IM[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
   }
@@ -54,14 +56,16 @@ __global__ void CreateSineSuperpostionKernel(Integer fft_length,
 
 template <typename Integer, typename Float2_t>
 __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
-                                               std::vector<float> weights_RE,
-                                               std::vector<float> weights_IM,
+                                               float* weights_RE,
+                                               int RE_size,
+                                               float* weights_IM,
+                                               int IM_size,
                                                Float2_t* data){
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
 
   double tmp = 0;
   int tmp_1 = 1;
-  for(int i=0; i<static_cast<int>(weights_RE.size()); i++){
+  for(int i=0; i<RE_size; i++){
     tmp += weights_RE[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
   }
@@ -70,7 +74,7 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
 
   tmp = 0;
   tmp_1 = 1;
-  for(int i=0; i<static_cast<int>(weights_IM.size()); i++){
+  for(int i=0; i<IM_size; i++){
     tmp += weights_IM[i] * sin((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
   }
@@ -86,14 +90,27 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
     Integer fft_length,
     std::vector<float> weights_RE,
     std::vector<float> weights_IM){
-    __half* dptr_data;
+  __half* dptr_data;
 
   cudaMalloc(&dptr_data, 2 * sizeof(__half) * fft_length);
+
+  float* dptr_weights_RE;
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * weights_RE.size());
+  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * weights_RE.size(),
+             cudaMemcpyHostToDevice);
+
+  float* dptr_weights_IM;
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * weights_IM.size());
+  cudaMemcpy(dptr_weights_IM, &weights_RE[0], sizeof(float) * weights_IM.size(),
+             cudaMemcpyHostToDevice);
+
+  cudaDeviceSynchronize();
 
   Integer amount_of_blocks = fft_length / 256;
 
   CreateSineSuperpostionKernel<<<amount_of_blocks, 256>>>(
-      fft_length, weights_RE, weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, weights_RE.size(), dptr_weights_IM,
+      weights_IM.size(), dptr_data);
 
   std::unique_ptr<__half[]> data = std::make_unique<__half[]>(fft_length);
 
@@ -119,10 +136,23 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
 
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
 
+  float* dptr_weights_RE;
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * weights_RE.size());
+  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * weights_RE.size(),
+             cudaMemcpyHostToDevice);
+
+  float* dptr_weights_IM;
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * weights_IM.size());
+  cudaMemcpy(dptr_weights_IM, &weights_RE[0], sizeof(float) * weights_IM.size(),
+             cudaMemcpyHostToDevice);
+
   Integer amount_of_blocks = fft_length / 256;
 
+  cudaDeviceSynchronize();
+
   CreateSineSuperpostionKernel<<<amount_of_blocks, 256>>>(
-      fft_length, weights_RE, weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, weights_RE.size(), dptr_weights_IM,
+      weights_IM.size(), dptr_data);
 
   std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(fft_length);
 
@@ -148,10 +178,23 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
 
   cudaMalloc(&dptr_data, sizeof(cufftComplex) * fft_length);
 
+  float* dptr_weights_RE;
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * weights_RE.size());
+  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * weights_RE.size(),
+             cudaMemcpyHostToDevice);
+
+  float* dptr_weights_IM;
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * weights_IM.size());
+  cudaMemcpy(dptr_weights_IM, &weights_RE[0], sizeof(float) * weights_IM.size(),
+             cudaMemcpyHostToDevice);
+
+  cudaDeviceSynchronize();
+
   Integer amount_of_blocks = fft_length / 256;
 
   CreateSineSuperpostionKernel<<<amount_of_blocks, 256>>>(
-      fft_length, weights_RE, weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, weights_RE.size(), dptr_weights_IM,
+      weights_IM.size(), dptr_data);
 
   std::unique_ptr<cufftComplex[]> data =
       std::make_unique<cufftComplex[]>(fft_length);
@@ -178,10 +221,23 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionD2GPU(
 
   cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
 
+  float* dptr_weights_RE;
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * weights_RE.size());
+  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * weights_RE.size(),
+             cudaMemcpyHostToDevice);
+
+  float* dptr_weights_IM;
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * weights_IM.size());
+  cudaMemcpy(dptr_weights_IM, &weights_RE[0], sizeof(float) * weights_IM.size(),
+             cudaMemcpyHostToDevice);
+
   Integer amount_of_blocks = fft_length / 256;
 
+  cudaDeviceSynchronize();
+
   CreateSineSuperpostionKernel<<<amount_of_blocks, 256>>>(
-      fft_length, weights_RE, weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, weights_RE.size(), dptr_weights_IM,
+      weights_IM.size(), dptr_data);
 
   std::unique_ptr<cufftDoubleComplex[]> data =
       std::make_unique<cufftDoubleComplex[]>(fft_length);
