@@ -51,6 +51,24 @@ std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
 //by cuFFT
 template<typename Integer>
 std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
+    std::unique_ptr<cufftComplex[]> data){
+  std::unique_ptr<double[]> converted_data =
+      std::make_unique<double[]>(2 * fft_length);
+
+  for(Integer i=0; i<fft_length; i++){
+    converted_data[i] =
+        static_cast<double>(data[i].x) / static_cast<double>(fft_length);
+    converted_data[i + fft_length] =
+        static_cast<double>(data[i].y) / static_cast<double>(fft_length);
+  }
+
+  return converted_data;
+}
+
+//Also scales the results by the fft_length since packed results are obatained
+//by cuFFT
+template<typename Integer>
+std::unique_ptr<double[]> ConvertResultsToSplitDouble(Integer fft_length,
     std::unique_ptr<cufftDoubleComplex[]> data){
   std::unique_ptr<double[]> converted_data =
       std::make_unique<double[]>(2 * fft_length);

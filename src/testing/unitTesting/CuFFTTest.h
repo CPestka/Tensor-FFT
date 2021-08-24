@@ -113,6 +113,53 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
   return std::move(data);
 }
 
+std::optional<std::unique_ptr<cufftComplex[]>> CreateComparisonDataFloat(
+    long long fft_length,
+    const std::vector<float> weights_RE,
+    const std::vector<float> weights_IM){
+  std::unique_ptr<cufftComplex[]> data =
+      CreateSineSuperpostionF2(fft_length, weights_RE, weights_IM);
+
+  cufftComplex* dptr_data;
+  cufftComplex* dptr_results;
+  cudaMalloc(&dptr_data, sizeof(cufftComplex) * fft_length);
+  cudaMalloc(&dptr_results, sizeof(cufftComplex) * fft_length);
+  cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(cufftComplex),
+             cudaMemcpyHostToDevice);
+
+  cufftHandle plan;
+  cufftResult r;
+
+  r = cufftCreate(&plan);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan creation failed.\n";
+    return std::nullopt;
+  }
+
+  r = cufftPlan1d(&plan, fft_length, CUFFT_C2C, 1);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan creation failed.\n";
+    return std::nullopt;
+  }
+
+  r = cufftExecC2C(plan, dptr_data, dptr_results, CUFFT_FORWARD);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan execution failed.\n";
+    return std::nullopt;
+  }
+
+  cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(cufftComplex),
+             cudaMemcpyDeviceToHost);
+
+  cudaDeviceSynchronize();
+
+  cufftDestroy(plan);
+  cudaFree(dptr_results);
+  cudaFree(dptr_data);
+
+  return std::move(data);
+}
+
 std::optional<std::string> CreateComparisonDataDouble(
     int fft_length,
     const std::string file_name){
