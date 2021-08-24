@@ -13,7 +13,7 @@
 #include "FileWriter.h"
 
 int main(){
-  long long fft_length = 16*16*16*16*16*16*2*2;
+  long long fft_length = 16*16*16;
 
   std::vector<float> weights_RE { 1.0, 0.7, 0.5, 0.2, 1.0, 0.9, 0.4 };
   std::vector<float> weights_IM { 1.0, 0.3, 0.2, 0.4, 0.1, 0.5, 0.9 };
