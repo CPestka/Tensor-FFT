@@ -10,6 +10,7 @@
 #include <cuda.h>
 
 #include "TestingDataCreation.h"
+#include "FileWriter.h"
 
 int main(){
   long long fft_length = 16*16*16*16*16*16*2*2;
