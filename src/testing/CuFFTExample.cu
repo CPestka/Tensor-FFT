@@ -38,7 +38,7 @@ int main(){
   // r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1,
   //                         CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F, 1, &size,
   //                         CUDA_C_16F);
-  r = cufftPlan1d(&plan, fft_length, CUFFT_C2C, 0);
+  r = cufftPlan1d(&plan, fft_length, CUFFT_C2C, 1);
 
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
