@@ -53,6 +53,9 @@ int main(){
 
   cudaDeviceSynchronize();
 
+  //Write results to file
+  WriteResultsToFileHalf2("example_results.dat", fft_length, data.get());
+
   cufftDestroy(plan);
   cudaFree(dptr_results);
   cudaFree(dptr_data);
