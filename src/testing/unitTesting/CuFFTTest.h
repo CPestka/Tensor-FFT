@@ -69,8 +69,10 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
     long long fft_length,
     const std::vector<float> weights_RE,
     const std::vector<float> weights_IM){
+  IntervallTimer timer;
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM);
+  std::cout << timer.getTimeInMilliseconds() << std::endl;
 
   __half2* dptr_data;
   __half2* dptr_results;
@@ -111,6 +113,7 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
   cudaFree(dptr_results);
   cudaFree(dptr_data);
 
+  std::cout << timer.getTimeInMilliseconds() << std::endl;
   return std::move(data);
 }
 
