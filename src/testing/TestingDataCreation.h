@@ -139,6 +139,37 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2(
   return data;
 }
 
+//Creates half precission data which is a superpostion of the a_i * sin(2^i * x)
+//with x [0:1] and a_i provided by weights
+//Has amount_of_timesamples half2 elements holding one complex value each
+std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2(
+    int amount_of_timesamples,
+    std::vector<float> weights_RE,
+    std::vector<float> weights_IM){
+  std::unique_ptr<cufftComplex[]> data = std::make_unique<cufftComplex[]>(
+      amount_of_timesamples);
+
+  for(int i=0; i<amount_of_timesamples; i++){
+    float tmp = 0;
+    for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
+      tmp += (weights_RE[j] *
+              sin(2 * M_PI * std::pow(2, j) *
+                  (static_cast<double>(i) / amount_of_timesamples)));
+    }
+
+    float tmp_1 = 0;
+    for(int j=0; j<static_cast<int>(weights_IM.size()); j++){
+      tmp_1 += (weights_IM[j] *
+              sin(2 * M_PI * std::pow(2, j) *
+                  (static_cast<double>(i) / amount_of_timesamples)));
+    }
+
+    data[i].x = tmp;
+    data[i].y = tmp_1;
+  }
+  return data;
+}
+
 //Like CreateSineSuperpostionH2, but produces batch_size times the same data
 //sequential in memory
 std::unique_ptr<__half2[]> CreateSineSuperpostionH2Batch(
@@ -201,7 +232,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
       std::make_unique<cufftDoubleComplex[]>(amount_of_timesamples);
 
   for(int i=0; i<amount_of_timesamples; i++){
-    float tmp = 0;
+    double tmp = 0;
     for(int j=0; j<static_cast<int>(weights.size()); j++){
       tmp += (weights[j] *
               sin(2 * M_PI * std::pow(2, j) *
@@ -217,13 +248,14 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
 //sin(2^i * x) with x [0:1] and a_i provided by weights
 //Has amount_of_timesamples cufftComplex elements holding one complex value each
 std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionDouble(
-    int amount_of_timesamples, std::vector<float> weights_RE,
+    int amount_of_timesamples,
+    std::vector<float> weights_RE,
     std::vector<float> weights_IM){
   std::unique_ptr<cufftDoubleComplex[]> data =
       std::make_unique<cufftDoubleComplex[]>(amount_of_timesamples);
 
   for(int i=0; i<amount_of_timesamples; i++){
-    float tmp = 0;
+    double tmp = 0;
     for(int j=0; j<static_cast<int>(weights_RE.size()); j++){
       tmp += (weights_RE[j] *
               sin(2 * M_PI * std::pow(2, j) *

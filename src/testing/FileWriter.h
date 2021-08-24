@@ -109,8 +109,33 @@ std::optional<std::string> WriteResultsToFileHalf2(const std::string file_name,
     for(int i=0; i<fft_length; i++){
       float x = static_cast<double>(i)/static_cast<double>(fft_length);
       myfile << x << " "
-             << __low2float(data[i]) << " "
-             << __high2float(data[i])
+             << static_cast<double>(__low2float(data[i])) /
+                static_cast<double>(fft_length)
+             << " "
+             << static_cast<double>(__high2float(data[i])) /
+                static_cast<double>(fft_length)
+             << "\n";
+    }
+    myfile.close();
+  } else {
+    return "Error! Unable to open file.";
+  }
+  return std::nullopt;
+}
+
+//Writes results of a fft that uses __half2 to file
+template <typename Integer>
+std::optional<std::string> WriteResultsToFileFloat2(const std::string file_name,
+                                                    const Integer fft_length,
+                                                    const cufftComplex* data){
+  std::ofstream myfile (file_name);
+  if (myfile.is_open()) {
+    for(int i=0; i<fft_length; i++){
+      float x = static_cast<double>(i)/static_cast<double>(fft_length);
+      myfile << x << " "
+             << static_cast<double>(data[i].x) / static_cast<double>(fft_length)
+             << " "
+             << static_cast<double>(data[i].y) / static_cast<double>(fft_length)
              << "\n";
     }
     myfile.close();

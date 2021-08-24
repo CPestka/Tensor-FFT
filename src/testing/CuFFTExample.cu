@@ -38,6 +38,8 @@ int main(){
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1,
                           CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F, 1, &size,
                           CUDA_C_16F);
+  //r = cufftPlan1d(&plan, fft_length, CUFFT_C2C, 0);
+
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed." << std::endl;
     return false;
@@ -47,6 +49,7 @@ int main(){
              cudaMemcpyHostToDevice);
 
   r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
+  //r = cufftExecC2C(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan execution failed." << std::endl;
     return false;
