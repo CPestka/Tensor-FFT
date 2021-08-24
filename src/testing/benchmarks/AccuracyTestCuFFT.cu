@@ -13,6 +13,7 @@
 #include "../unitTesting/FFTTest.cu"
 #include "../../base/ComputeFFT.h"
 #include "../FileWriter.h"
+#include "../Timer.h"
 
 int main(){
   constexpr int start_fft_length = 16*16;
@@ -37,37 +38,66 @@ int main(){
   while (fft_length.back() <= end_fft_length) {
     std::cout << "Testing fft length: " << fft_length.back() << std::endl;
 
-    //Compute comparision data and check validity
-    auto possible_comparission_data =
-        CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM);
-    if (!possible_comparission_data) {
-      std::cout << "Error! Failed to create comparision data." << std::endl;
-      return false;
+    {
+      MillisecondsScopeTimer timer;
+      //Compute comparision data and check validity
+      auto possible_comparission_data =
+          CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM);
+      if (!possible_comparission_data) {
+        std::cout << "Error! Failed to create comparision data." << std::endl;
+        return false;
+      }
     }
-    std::unique_ptr<double[]> comparission_data = ConvertResultsToSplitDouble(
-        fft_length.back(), std::move(possible_comparission_data.value()));
+    {
+      MillisecondsScopeTimer timer;
 
-    //Compute data and check validity
-    auto possible_data =
-        CreateComparisonDataHalf(fft_length.back(), weights_RE, weights_IM);
-    if (!possible_data) {
-      std::cout << "Error! Failed to create data." << std::endl;
-      return false;
+      std::unique_ptr<double[]> comparission_data = ConvertResultsToSplitDouble(
+          fft_length.back(), std::move(possible_comparission_data.value()));
     }
-    std::unique_ptr<double[]> data =
-        ConvertResultsToSplitDouble(fft_length.back(),
-                                    std::move(possible_data.value()));
 
-    max_dev.push_back(GetLargestDeviation(data.get(),
-                                          comparission_data.get(),
-                                          fft_length.back()));
-    avg_dev.push_back(ComputeAverageDeviation(data.get(),
-                                              comparission_data.get(),
-                                              fft_length.back()));
-    sigma_of_dev.push_back(ComputeSigmaOfDeviation(data.get(),
-                                                   comparission_data.get(),
-                                                   fft_length.back(),
-                                                   avg_dev.back()));
+    {
+      MillisecondsScopeTimer timer;
+
+      //Compute data and check validity
+      auto possible_data =
+          CreateComparisonDataHalf(fft_length.back(), weights_RE, weights_IM);
+      if (!possible_data) {
+        std::cout << "Error! Failed to create data." << std::endl;
+        return false;
+      }
+    }
+
+    {
+      MillisecondsScopeTimer timer;
+
+      std::unique_ptr<double[]> data =
+          ConvertResultsToSplitDouble(fft_length.back(),
+                                      std::move(possible_data.value()));
+    }
+
+
+    {
+      MillisecondsScopeTimer timer;
+
+      max_dev.push_back(GetLargestDeviation(data.get(),
+                                            comparission_data.get(),
+                                            fft_length.back()));
+    }
+    {
+      MillisecondsScopeTimer timer;
+
+      avg_dev.push_back(ComputeAverageDeviation(data.get(),
+                                                comparission_data.get(),
+                                                fft_length.back()));
+    }
+    {
+      MillisecondsScopeTimer timer;
+
+      sigma_of_dev.push_back(ComputeSigmaOfDeviation(data.get(),
+                                                     comparission_data.get(),
+                                                     fft_length.back(),
+                                                     avg_dev.back()));
+    }
 
     fft_length.push_back(fft_length.back() * 2);
   }
