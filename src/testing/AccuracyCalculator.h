@@ -99,8 +99,6 @@ double GetLargestDeviation(const double* data_1, const double* data_2,
   return largest_dev;
 }
 
-template<typename Integer>
-double
 
 template<typename Integer>
 double ComputeAverageDeviation(const double* data_1, const double* data_2,
