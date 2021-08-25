@@ -148,7 +148,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     //   input_array_id = (2 * input_array_id) + (tmp_id % 2);
     // }
 
-    Integer input_array_id
+    Integer input_array_id;
     if (amount_of_r2_steps > 0) {
       input_array_id = 2 * (tmp_id % 2);
       tmp_id = tmp_id / 2;
