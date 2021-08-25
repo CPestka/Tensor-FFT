@@ -88,12 +88,12 @@ double GetLargestDeviation(const double* data_1, const double* data_2,
                            Integer fft_length){
   double largest_dev = 0;
 
-  for(Integer i=0; i<fft_length; i++){
+  for(Integer i=0; i<(2 * fft_length); i++){
     double new_dev = fabs(data_1[i] - data_2[i]);
     largest_dev = new_dev > largest_dev ? new_dev : largest_dev;
-
-    new_dev = fabs(data_1[i + fft_length] - data_2[i + fft_length]);
-    largest_dev = new_dev > largest_dev ? new_dev : largest_dev;
+    if (new_dev > 0.1) {
+      std::cout << "Lenght: " << fft_length << " ID: " << i << "Dev: " << new_dev << std::endl; 
+    }
   }
 
   return largest_dev;
