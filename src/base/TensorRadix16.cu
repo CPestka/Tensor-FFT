@@ -48,7 +48,7 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
 
   //4 dynamic shared memory buffers
    extern __shared__ __half buffer[];
-   int warp_shared_memory_offset = 1024 * inter_block_warp_id;
+   int warp_shared_memory_offset = 768 * inter_block_warp_id;
    __half* buffer_RE = buffer + warp_shared_memory_offset;
    __half* buffer_IM = buffer + warp_shared_memory_offset + 256;
    __half* buffer_tmp_RE = buffer + warp_shared_memory_offset + 512;
