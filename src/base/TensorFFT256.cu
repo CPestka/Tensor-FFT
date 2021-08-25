@@ -294,10 +294,10 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   __syncthreads();
   for(int i=0; i<fft_length; i++){
     if (thread_id == 0) {
-      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", thread_id, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", i, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
     }
     if (thread_id == 256) {
-      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", thread_id, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", i + 256, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
     }
   }
 }
