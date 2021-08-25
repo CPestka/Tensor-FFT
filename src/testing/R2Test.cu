@@ -48,7 +48,7 @@ int main(){
   std::swap(data_IM, results_IM);
 
   Radix2Kernel<<<1, fft_length / 2>>>(
-      data_RE, data_IM, results_RE, results_IM, 1);
+      data_RE, data_IM, results_RE, results_IM, 2);
 
 
   cudaMemcpy(data.get(), results_RE,
