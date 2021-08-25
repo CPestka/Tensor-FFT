@@ -134,39 +134,18 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
 
     Integer tmp_id = output_data_id;
 
-    // Integer input_array_id = 16 * (tmp_id % 16);
-    // tmp_id = tmp_id / 16;
-    // input_array_id += (tmp_id % 16);
-    //
-    // for(int i=0; i<amount_of_r16_steps-1; i++){
-    //   tmp_id = tmp_id / 16;
-    //   input_array_id = (16 * input_array_id) + (tmp_id % 16);
-    // }
-    //
-    // for(int i=0; i<amount_of_r2_steps; i++){
-    //   tmp_id = tmp_id / 2;
-    //   input_array_id = (2 * input_array_id) + (tmp_id % 2);
-    // }
+    Integer input_array_id = 16 * (tmp_id % 16);
+    tmp_id = tmp_id / 16;
+    input_array_id += (tmp_id % 16);
 
-    Integer input_array_id;
-    if (amount_of_r2_steps > 0) {
-      input_array_id = 2 * (tmp_id % 2);
-      tmp_id = tmp_id / 2;
-      input_array_id += (tmp_id % 2);
-    } else {
-      input_array_id = 16 * (tmp_id % 16);
+    for(int i=0; i<amount_of_r16_steps-1; i++){
       tmp_id = tmp_id / 16;
-      input_array_id += (tmp_id % 16);
+      input_array_id = (16 * input_array_id) + (tmp_id % 16);
     }
 
     for(int i=0; i<amount_of_r2_steps; i++){
       tmp_id = tmp_id / 2;
       input_array_id = (2 * input_array_id) + (tmp_id % 2);
-    }
-
-    for(int i=0; i<amount_of_r16_steps-1; i++){
-      tmp_id = tmp_id / 16;
-      input_array_id = (16 * input_array_id) + (tmp_id % 16);
     }
 
     //For unscaled results
