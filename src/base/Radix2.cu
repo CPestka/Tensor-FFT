@@ -52,6 +52,7 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   __half point1_IM = input_data_IM[memory_point1_offset];
 
   //Combine FFTs
+
   //For unscaled or scaling at once
   // output_data_RE[memory_point1_offset] =
   //     __hadd(point1_RE, modified_point2_RE);
@@ -70,7 +71,7 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
       __hmul(__hadd(point1_IM, modified_point2_IM), static_cast<__half>(0.5));
 
   output_data_RE[memory_point2_offset] =
-      __hmul(__hadd(point1_RE, modified_point2_RE), static_cast<__half>(0.5));
+      __hmul(__hsub(point1_RE, modified_point2_RE), static_cast<__half>(0.5));
   output_data_IM[memory_point2_offset] =
-      __hmul(__hadd(point1_IM, modified_point2_IM), static_cast<__half>(0.5));
+      __hmul(__hsub(point1_IM, modified_point2_IM), static_cast<__half>(0.5));
 }
