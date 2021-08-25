@@ -69,7 +69,7 @@ int main(){
                                                    fft_length.back(),
                                                    avg_dev.back()));
 
-    fft_length.push_back(fft_length.back() * 2);
+    fft_length.push_back(fft_length.back() * 16);
   }
 
   err = WriteAccuracyTestResultsToFile(avg_dev, sigma_of_dev, max_dev,
