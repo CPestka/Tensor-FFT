@@ -29,19 +29,19 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   //Compute phase = 2PI*i/fft_length = pi * (i/sub_fft_length)
   //Use float to prevent overflow of large ints memory_point1_offset and
   //sub_fft_length
-  // float tmp = static_cast<float>(memory_point1_offset) /
-  //             static_cast<float>(sub_fft_length);
-  // __half phase = __hmul(static_cast<__half>(M_PI), static_cast<__half>(tmp));
+  float tmp = static_cast<float>(memory_point1_offset) /
+              static_cast<float>(sub_fft_length);
+  __half phase = __hmul(static_cast<__half>(M_PI), static_cast<__half>(tmp));
+
+  __half twiddle_RE = hcos(phase);
+  __half twiddle_IM = -hsin(phase);
+
+  // double tmp = static_cast<double>(memory_point1_offset) /
+  //             static_cast<double>(sub_fft_length);
+  // double phase = M_PI * tmp;
   //
-  // __half twiddle_RE = hcos(phase);
-  // __half twiddle_IM = -hsin(phase);
-
-  double tmp = static_cast<double>(memory_point1_offset) /
-              static_cast<double>(sub_fft_length);
-  double phase = M_PI * tmp;
-
-  double twiddle_RE = cos(phase);
-  double twiddle_IM = -sin(phase);
+  // double twiddle_RE = cos(phase);
+  // double twiddle_IM = -sin(phase);
 
   //Fetch current data once from global memory to use it twice
   __half point2_RE = input_data_RE[memory_point2_offset];
