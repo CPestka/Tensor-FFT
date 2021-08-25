@@ -32,7 +32,7 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   // tmp float = static_cast<float>(memory_point1_offset % (sub_fft_length * 2)) /
   //             static_cast<float>(sub_fft_length);
 
-  __half phase = __hmul(static_cast<__half>(-M_PI), static_cast<__half>(tmp));
+  __half phase = __hmul(static_cast<__half>(M_PI), static_cast<__half>(tmp));
 
   __half twiddle_RE = hcos(phase);
   __half twiddle_IM = -hsin(phase);
@@ -58,7 +58,6 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   //     input_data_IM[memory_point1_offset] - modified_point2_IM;
 
   //For sequential scaling
-
   output_data_RE[memory_point1_offset] =
       __hmul(input_data_RE[memory_point1_offset] + modified_point2_RE,
              static_cast<__half>(0.5));
