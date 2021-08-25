@@ -125,7 +125,7 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
     //One radix2 kernel combines 2 subffts -> if there are N sub_ffts launch N/2
     //Kernels
     int remaining_r2_combines =
-        ExactPowerOf2<int>(fft_plan.amount_of_r2_steps_ - 1);
+        ExactPowerOf2<int>(fft_plan.amount_of_r2_steps_ - 1 - i);
 
     for(int j=0; j<remaining_r2_combines; j++){
       Integer memory_offset = j * 2 * sub_fft_length;
@@ -140,6 +140,8 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
           dptr_current_results_IM + memory_offset,
           sub_fft_length);
     }
+
+    cudaDeviceSynchronize();
 
     //Update sub_fft_length
     sub_fft_length *= 2;
@@ -252,32 +254,23 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
           fft_plan.fft_length_, sub_fft_length[i]);
 
       //Update sub_fft_length
-      sub_fft_length[i] = sub_fft_length[i] * 16;
+      sub_fft_length[i] *= 16;
 
-      //Swap ptrs to in and output
-      __half* tmp = dptr_current_input_RE[i];
-      dptr_current_input_RE[i] = dptr_current_results_RE[i];
-      dptr_current_results_RE[i] = tmp;
-      tmp = dptr_current_input_IM[i];
-      dptr_current_input_IM[i] = dptr_current_results_IM[i];
-      dptr_current_results_IM[i] = tmp;
+      std::swap(dptr_current_input_RE[i], dptr_current_results_RE[i]);
+      std::swap(dptr_current_input_IM[i], dptr_current_results_IM[i]);
     }
   }
 
   for(int i=0; i<data.amount_of_ffts_; i++){
     //Radix 2 kernels
     for(int j=0; j<fft_plan.amount_of_r2_steps_; j++){
-
-      int remaining_sub_ffts = 1;
-      for(int k=0; k<fft_plan.amount_of_r2_steps_ - j; k++){
-        remaining_sub_ffts = remaining_sub_ffts * 2;
-      }
-
+      int remaining_r2_combines =
+          ExactPowerOf2<int>(fft_plan.amount_of_r2_steps_ - 1 - i);
       int amount_of_r2_blocks = sub_fft_length[i] / fft_plan.r2_blocksize_;
 
       //One radix2 kernel combines 2 subffts -> if there are still more than 2
       //launch multiple kernels
-      for(int k=0; k<(remaining_sub_ffts/2); k++){
+      for(int k=0; k<remaining_r2_combines; k++){
         Integer memory_offset = k * 2 * sub_fft_length[i];
         Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_, 0,
                        streams[i]>>>(
@@ -289,15 +282,10 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
       }
 
       //Update sub_fft_length
-      sub_fft_length[i] = sub_fft_length[i] * 2;
+      sub_fft_length[i] *= 2;
 
-      //Swap ptrs to in and output
-      __half* tmp = dptr_current_input_RE[i];
-      dptr_current_input_RE[i] = dptr_current_results_RE[i];
-      dptr_current_results_RE[i] = tmp;
-      tmp = dptr_current_input_IM[i];
-      dptr_current_input_IM[i] = dptr_current_results_IM[i];
-      dptr_current_results_IM[i] = tmp;
+      std::swap(dptr_current_input_RE[i], dptr_current_results_RE[i]);
+      std::swap(dptr_current_input_IM[i], dptr_current_results_IM[i]);
     }
   }
 
