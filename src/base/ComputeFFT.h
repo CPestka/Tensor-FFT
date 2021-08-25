@@ -34,7 +34,7 @@
 #include "Radix2.cu"
 
 template <typename Integer>
-Integer ExactPowerOf2(int exponent){
+Integer ExactPowerOf2(const int exponent){
   if (exponent < 0) {
     std::cout << "Error! Negative exponent not allowed." << std::endl;
   }
@@ -124,7 +124,8 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
     int amount_of_r2_blocks = sub_fft_length / fft_plan.r2_blocksize_;
     //One radix2 kernel combines 2 subffts -> if there are N sub_ffts launch N/2
     //Kernels
-    int remaining_r2_combines = ExactPowerOf2(fft_plan.amount_of_r2_steps_ - 1);
+    int remaining_r2_combines =
+        ExactPowerOf2<int>(fft_plan.amount_of_r2_steps_ - 1);
 
     for(int j=0; j<remaining_r2_combines; j++){
       Integer memory_offset = j * 2 * sub_fft_length;
