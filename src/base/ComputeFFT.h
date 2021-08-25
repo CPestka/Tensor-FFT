@@ -33,7 +33,7 @@
 #include "TensorRadix16.cu"
 #include "Radix2.cu"
 
-tempalte <typename Integer>
+template <typename Integer>
 Integer ExactPowerOf2(int exponent){
   if (exponent < 0) {
     std::cout << "Error! Negative exponent not allowed." << std::endl;
