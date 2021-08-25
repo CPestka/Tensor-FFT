@@ -17,8 +17,6 @@ int main(){
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
 
-  data[1] = 0.5;
-
   WriteResultsToFile("r2_in.dat", fft_length, data.get());
 
   __half* dptr_data;
