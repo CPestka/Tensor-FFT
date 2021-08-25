@@ -100,32 +100,53 @@ double GetLargestDeviation(const double* data_1, const double* data_2,
 }
 
 template<typename Integer>
+double
+
+template<typename Integer>
 double ComputeAverageDeviation(const double* data_1, const double* data_2,
                                const Integer fft_length){
-  double cummulative_dev = 0;
+  std::unique_ptr<double[]> deviations =
+      std::make_unique<double[]>(fft_length * 2);
 
-  for(Integer i=0; i<fft_length; i++){
-    cummulative_dev += fabs(data_1[i] - data_2[i]);
-    cummulative_dev += fabs(data_1[i + fft_length] - data_2[i + fft_length]);
+  for(Integer i=0; i<(2 * fft_length); i++){
+    deviations[i] = fabs(data_1[i] - data_2[i]);
   }
 
-  return (cummulative_dev / static_cast<double>(2 * fft_length));
+  //In place cascade summation of deviations
+  Integer tmp = fft_length;
+  while (tmp != 1) {
+    for(Integer i=0; i<tmp; i++){
+      deviations[i] = deviations[i] + deviations[i + tmp];
+    }
+    //FFT length is a power of 2
+    tmp = tmp / 2;
+  }
+
+  return (deviations[0] / static_cast<double>(2 * fft_length));
 }
 
 template<typename Integer>
 double ComputeSigmaOfDeviation(const double* data_1, const double* data_2,
                                const Integer fft_length, const double average){
-  double tmp = 0;
+  std::unique_ptr<double[]> deviations =
+      std::make_unique<double[]>(fft_length * 2);
 
-  for(Integer i=0; i<fft_length; i++){
-    double tmp_1 = fabs(fabs(data_1[i] - data_2[i]) - average);
-    tmp += (tmp_1 * tmp_1);
-    tmp_1 =
-        fabs(fabs(data_1[i + fft_length] - data_2[i + fft_length]) - average);
-    tmp += (tmp_1 * tmp_1);
+  for(Integer i=0; i<(2 * fft_length); i++){
+    double tmp_1 = fabs(data_1[i] - data_2[i]) - average;
+    deviations[i] = tmp_1 * tmp_1;
   }
 
-  return sqrt(tmp / static_cast<double>((2 * fft_length) - 1));
+  //In place cascade summation of deviations
+  Integer tmp = fft_length;
+  while (tmp != 1) {
+    for(Integer i=0; i<tmp; i++){
+      deviations[i] = deviations[i] + deviations[i + tmp];
+    }
+    //FFT length is a power of 2
+    tmp = tmp / 2;
+  }
+
+  return sqrt(deviations[0] / static_cast<double>((2 * fft_length) - 1));
 }
 
 double GetLargestDeviation(const std::string file_name_1,
