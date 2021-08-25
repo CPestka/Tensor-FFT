@@ -33,8 +33,8 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
               static_cast<float>(sub_fft_length);
   __half phase = __hmul(static_cast<__half>(M_PI), static_cast<__half>(tmp));
 
-  __half twiddle_RE = static_cast<__half>(cos(phase));
-  __half twiddle_IM = static_cast<__half>(-sin(phase));
+  __half twiddle_RE = static_cast<__half>(cos(static_cast<float>(phase)));
+  __half twiddle_IM = static_cast<__half>(-sin(static_cast<float>(phase)));
 
   //Fetch current data once from global memory to use it twice
   __half point2_RE = input_data_RE[memory_point2_offset];
