@@ -40,8 +40,8 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
               static_cast<double>(sub_fft_length);
   double phase = M_PI * tmp;
 
-  double twiddle_RE = hcos(phase);
-  double twiddle_IM = -hsin(phase);
+  double twiddle_RE = cos(phase);
+  double twiddle_IM = -sin(phase);
 
   //Fetch current data once from global memory to use it twice
   __half point2_RE = input_data_RE[memory_point2_offset];
