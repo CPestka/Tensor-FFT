@@ -285,7 +285,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
     //Global id also reverses the transpose
     Integer global_array_id = (inter_warp_id_16 + 16 * j) +
-                          warp_global_memory_offset;
+                              warp_global_memory_offset;
 
     output_data_RE[global_array_id] = buffer_RE[buffer_array_id_transposed];
     output_data_IM[global_array_id] = buffer_IM[buffer_array_id_transposed];
@@ -294,10 +294,10 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
   __syncthreads();
   for(int i=0; i<fft_length; i++){
     if (thread_id == 0) {
-      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", i, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", i, static_cast<float>(output_data_RE[i]), static_cast<float>(output_data_IM[i]));
     }
     if (thread_id == 256) {
-      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", i + 256, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+      printf("ID: %d pOut_RE: %f pOut_IM: %f \n", i + 256, static_cast<float>(output_data_RE[i + 256]), static_cast<float>(output_data_IM[i + 256]));
     }
   }
 }
