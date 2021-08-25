@@ -141,8 +141,6 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
           sub_fft_length);
     }
 
-    cudaDeviceSynchronize();
-
     //Update sub_fft_length
     sub_fft_length *= 2;
 
@@ -265,7 +263,7 @@ std::optional<std::string> ComputeFFT(const Plan<Integer> &fft_plan,
     //Radix 2 kernels
     for(int j=0; j<fft_plan.amount_of_r2_steps_; j++){
       int remaining_r2_combines =
-          ExactPowerOf2<int>(fft_plan.amount_of_r2_steps_ - 1 - i);
+          ExactPowerOf2<int>(fft_plan.amount_of_r2_steps_ - 1 - j);
       int amount_of_r2_blocks = sub_fft_length[i] / fft_plan.r2_blocksize_;
 
       //One radix2 kernel combines 2 subffts -> if there are still more than 2

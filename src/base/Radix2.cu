@@ -26,12 +26,14 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
 
   //The twiddle factor for the first point is 1 -> only the second point has to
   //be modified
+  //Compute phase = -2PI*i/fft_length
+  //Use float to prevent overflow of large ints memory_point1_offset and
+  //sub_fft_length
   float tmp = static_cast<float>(memory_point1_offset) /
               static_cast<float>(sub_fft_length);
   //Modulo version for higher accuracy?
   // tmp float = static_cast<float>(memory_point1_offset % (sub_fft_length * 2)) /
   //             static_cast<float>(sub_fft_length);
-
   __half phase = __hmul(static_cast<__half>(M_PI), static_cast<__half>(tmp));
 
   __half twiddle_RE = hcos(phase);
@@ -45,30 +47,30 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   __half modified_point2_RE = (input_RE * twiddle_RE) - (input_IM * twiddle_IM);
   __half modified_point2_IM = (input_RE * twiddle_IM) + (input_IM * twiddle_RE);
 
+  //Load point 1 from global mem once to use it twice
+  __half point1_RE = input_data_RE[memory_point1_offset];
+  __half point1_IM = input_data_IM[memory_point1_offset];
+
   //Combine FFTs
   //For unscaled or scaling at once
   // output_data_RE[memory_point1_offset] =
-  //     input_data_RE[memory_point1_offset] + modified_point2_RE;
+  //     __hadd(point1_RE, modified_point2_RE);
   // output_data_IM[memory_point1_offset] =
-  //     input_data_IM[memory_point1_offset] + modified_point2_IM;
+  //     __hadd(point1_IM, modified_point2_IM);
   //
   // output_data_RE[memory_point2_offset] =
-  //     input_data_RE[memory_point1_offset] - modified_point2_RE;
+  //     __hadd(point1_RE, modified_point2_RE);
   // output_data_IM[memory_point2_offset] =
-  //     input_data_IM[memory_point1_offset] - modified_point2_IM;
+  //     __hadd(point1_IM, modified_point2_IM);
 
   //For sequential scaling
   output_data_RE[memory_point1_offset] =
-      __hmul(input_data_RE[memory_point1_offset] + modified_point2_RE,
-             static_cast<__half>(0.5));
+      __hmul(__hadd(point1_RE, modified_point2_RE), static_cast<__half>(0.5));
   output_data_IM[memory_point1_offset] =
-      __hmul(input_data_IM[memory_point1_offset] + modified_point2_IM,
-             static_cast<__half>(0.5));
+      __hmul(__hadd(point1_IM, modified_point2_IM), static_cast<__half>(0.5));
 
   output_data_RE[memory_point2_offset] =
-      __hmul(input_data_RE[memory_point1_offset] - modified_point2_RE,
-             static_cast<__half>(0.5));
+      __hmul(__hadd(point1_RE, modified_point2_RE), static_cast<__half>(0.5));
   output_data_IM[memory_point2_offset] =
-      __hmul(input_data_IM[memory_point1_offset] - modified_point2_IM,
-             static_cast<__half>(0.5));
+      __hmul(__hadd(point1_IM, modified_point2_IM), static_cast<__half>(0.5));
 }
