@@ -17,6 +17,8 @@ int main(){
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostion(fft_length, weights_RE, weights_IM);
 
+  data[1] = 0.5;
+
   WriteResultsToFile("r2_in.dat", fft_length, data.get());
 
   __half* dptr_data;
@@ -33,8 +35,12 @@ int main(){
   Radix2Kernel<<<1, fft_length / 2>>>(
       data_RE, data_IM, results_RE, results_IM, 1);
 
+
+
   cudaMemcpy(data.get(), results_RE,
              sizeof(__half) * 2 * fft_length, cudaMemcpyDeviceToHost);
+
+  cudaDeviceSynchronize();
 
   WriteResultsToFile("r2_out.dat", fft_length, data.get());
 }
