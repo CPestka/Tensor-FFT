@@ -26,7 +26,7 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
 
   //The twiddle factor for the first point is 1 -> only the second point has to
   //be modified
-  tmp float = static_cast<float>(memory_point1_offset) /
+  float tmp = static_cast<float>(memory_point1_offset) /
               static_cast<float>(sub_fft_length);
   //Modulo version for higher accuracy?
   // tmp float = static_cast<float>(memory_point1_offset % (sub_fft_length * 2)) /
