@@ -26,17 +26,14 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
 
   //The twiddle factor for the first point is 1 -> only the second point has to
   //be modified
-  __half phase =
-      __hdiv(__hmul(static_cast<__half>(-M_PI),
-                    static_cast<__half>(memory_point1_offset)), sub_fft_length);
-  //Modulo version for higher accuracy
-  /*
-  __half phase =
-      __hdiv(__hmul(static_cast<__half>(memory_point1_offset %
-                                        (sub_fft_length * 2)),
-                    static_cast<__half>(-M_PI)),
-             static_cast<__half>(8.0));
-  */
+  tmp float = static_cast<float>(memory_point1_offset) /
+              static_cast<float>(sub_fft_length);
+  //Modulo version for higher accuracy?
+  // tmp float = static_cast<float>(memory_point1_offset % (sub_fft_length * 2)) /
+  //             static_cast<float>(sub_fft_length);
+
+  __half phase = __hmul(static_cast<__half>(-M_PI), static_cast<__half>(tmp));
+
   __half twiddle_RE = hcos(phase);
   __half twiddle_IM = hsin(phase);
 

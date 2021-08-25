@@ -117,17 +117,13 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     //On the fly computation of twiddle fctors
     //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
     //and literal version (look up table of N points cos(2*PI*i/N ))
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(2 * i * j),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(combined_fft_length));
-    //Modulo version for higher accuracy
-    /*
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>((2 * i * j) % combined_fft_length),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(combined_fft_length));
-    */
+    float tmp = static_cast<float>((2 * i * j) % combined_fft_length) /
+                static_cast<float>(combined_fft_length);
+    //Modulo version for higher accuracy?
+    // float tmp = static_cast<float>(2 * i * j)  /
+    //             static_cast<float>(combined_fft_length);
+    __half phase = __hmul(static_cast<__half>(M_PI), static_cast<__half>(tmp));
+
     //TO-SELF: test __cosf vs cos accuracy and speed
     __half twiddle_RE = hcos(phase);
     __half twiddle_IM = -hsin(phase);
