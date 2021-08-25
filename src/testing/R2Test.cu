@@ -11,7 +11,7 @@
 #include "../base/Radix2.cu"
 
 int main(){
-  constexpr int fft_length = 2;
+  constexpr int fft_length = 4;
   std::vector<float> weights_RE { 1.0 };
   std::vector<float> weights_IM { 0.0 };
   std::unique_ptr<__half[]> data =
@@ -32,9 +32,16 @@ int main(){
   __half* results_RE = dptr_data + (2 * fft_length);
   __half* results_IM = dptr_data + (3 * fft_length);
 
+  Radix2Kernel<<<1, fft_length / 4>>>(
+      data_RE, data_IM, results_RE, results_IM, 1);
+  Radix2Kernel<<<1, fft_length / 4>>>(
+      data_RE + 2, data_IM + 2, results_RE + 2, results_IM + 2, 1);
+
+  std::swap(data_RE, results_RE);
+  std::swap(data_IM, results_IM);
+
   Radix2Kernel<<<1, fft_length / 2>>>(
       data_RE, data_IM, results_RE, results_IM, 1);
-
 
 
   cudaMemcpy(data.get(), results_RE,
