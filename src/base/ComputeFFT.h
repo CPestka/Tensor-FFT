@@ -20,7 +20,7 @@
 #include <vector>
 #include <optional>
 #include <string>
-#include <type_traits>
+#include <algorithm>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -32,6 +32,19 @@
 #include "TensorFFT4096.cu"
 #include "TensorRadix16.cu"
 #include "Radix2.cu"
+
+tempalte <typename Integer>
+Integer ExactPowerOf2(int exponent){
+  if (exponent < 0) {
+    std::cout << "Error! Negative exponent not allowed." << std::endl;
+  }
+
+  Integer result = 1;
+  for(int i=0; i<exponent; i++){
+    result *=2;
+  }
+  return result;
+}
 
 //Computes a sigle FFT.
 //If the GPU isnt satureted with one FFT and there are multiple FFTs to compute
@@ -100,30 +113,25 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
         fft_plan.fft_length_, sub_fft_length);
 
     //Update sub_fft_length
-    sub_fft_length = sub_fft_length * 16;
+    sub_fft_length *= 16;
 
-    //Swap ptrs to in and output
-    __half* tmp = dptr_current_input_RE;
-    dptr_current_input_RE = dptr_current_results_RE;
-    dptr_current_results_RE = tmp;
-    tmp = dptr_current_input_IM;
-    dptr_current_input_IM = dptr_current_results_IM;
-    dptr_current_results_IM = tmp;
+    std::swap(dptr_current_input_RE, dptr_current_results_RE);
+    std::swap(dptr_current_input_IM, dptr_current_results_IM);
   }
 
   //Radix 2 kernels
   for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
-    int remaining_sub_ffts = 1;
-    for(int k=0; k<fft_plan.amount_of_r2_steps_ - i; k++){
-      remaining_sub_ffts = remaining_sub_ffts * 2;
-    }
-
     int amount_of_r2_blocks = sub_fft_length / fft_plan.r2_blocksize_;
+    //One radix2 kernel combines 2 subffts -> if there are N sub_ffts launch N/2
+    //Kernels
+    int remaining_r2_combines = ExactPowerOf2(fft_plan.amount_of_r2_steps_ - 1);
 
-    //One radix2 kernel combines 2 subffts -> if there are still more than 2
-    //launch multiple kernels
-    for(int j=0; j<(remaining_sub_ffts/2); j++){
+    for(int j=0; j<remaining_r2_combines; j++){
       Integer memory_offset = j * 2 * sub_fft_length;
+      std::cout << "sub_fft_length " << sub_fft_length
+                << " rem " << remaining_r2_combines
+                << " amount_of_r2_blocks " << amount_of_r2_blocks
+                << " r2 blocksize " << fft_plan.r2_blocksize_ << std::endl;
       Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_RE + memory_offset,
           dptr_current_input_IM + memory_offset,
@@ -133,15 +141,10 @@ std::optional<std::string> ComputeFFT(Plan<Integer> &fft_plan,
     }
 
     //Update sub_fft_length
-    sub_fft_length = sub_fft_length * 2;
+    sub_fft_length *= 2;
 
-    //Swap ptrs to in and output
-    __half* tmp = dptr_current_input_RE;
-    dptr_current_input_RE = dptr_current_results_RE;
-    dptr_current_results_RE = tmp;
-    tmp = dptr_current_input_IM;
-    dptr_current_input_IM = dptr_current_results_IM;
-    dptr_current_results_IM = tmp;
+    std::swap(dptr_current_input_RE, dptr_current_results_RE);
+    std::swap(dptr_current_input_IM, dptr_current_results_IM);
   }
 
   if (cudaPeekAtLastError() != cudaSuccess){

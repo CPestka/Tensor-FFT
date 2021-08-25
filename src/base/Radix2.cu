@@ -42,8 +42,8 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   __half input_IM = input_data_IM[memory_point2_offset];
 
   //Multiply point 2 with twiddle factor
-  __half modified_point2_RE =  input_RE * twiddle_RE - input_IM * twiddle_IM;
-  __half modified_point2_IM =  input_RE * twiddle_IM + input_IM * twiddle_RE;
+  __half modified_point2_RE = (input_RE * twiddle_RE) - (input_IM * twiddle_IM);
+  __half modified_point2_IM = (input_RE * twiddle_IM) + (input_IM * twiddle_RE);
 
   //Combine FFTs
   //For unscaled or scaling at once
