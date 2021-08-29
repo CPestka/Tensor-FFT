@@ -266,7 +266,6 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     __half input_IM = buffer_IM[buffer_array_id];
 
     //Store modified data to buffer arrays (buffer needed due to transpose)
-    //TODO: ? remove second buffer and use collum major load better?
     //mod_RE = RE*twid_RE - IM*twid_IM
     buffer_tmp_RE[buffer_array_id_transposed] =
         __hsub(__hmul(input_RE, twiddle_RE), __hmul(input_IM, twiddle_IM));
