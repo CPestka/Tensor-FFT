@@ -330,6 +330,9 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //, interprete result 16x16 matrix as one of 16 rows of 256x16 a matrix with
   //row_id=inter_block_warp_id, safe 16  16x16 matrix cut out of that matrix in
   //buffer_tmp and transpose the entries.
+
+  //Each warp only fills 1/16 of a needed matrix -> wait for all 16 warps
+  __syncthreads();
   #pragma unroll
   for(int k=0; k<8; k++){
     //int i = inter_warp_id_16;
@@ -342,12 +345,13 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
                               + (1024 * inter_warp_id_16);
 
     //On the fly computation of DFT matrix
-    //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
-    //and literal version
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(i_global * j),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(2048.0));
+    //TODO: test speed and accuracy of cos,cosf,coh and literal version
+    __half phase = (static_cast<float>(i_global * j) * M_PI) /
+                   static_cast<float>(2048.0);
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(i_global * j),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(2048.0));
     __half twiddle_RE = hcos(phase);
     __half twiddle_IM = -hsin(phase);
 
@@ -369,9 +373,6 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   wmma::fill_fragment(accumulator_RE_1_frag, 0.0);
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
   wmma::fill_fragment(accumulator_IM_frag, 0.0);
-
-  //Each warp only fills 1/16 of a needed matrix -> wait for all 16 warps
-  __syncthreads();
 
   //Load the modified data from shared mem buffer
   wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
