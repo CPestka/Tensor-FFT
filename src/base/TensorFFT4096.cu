@@ -377,6 +377,9 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   wmma::fill_fragment(accumulator_RE_2_frag, 0.0);
   wmma::fill_fragment(accumulator_IM_frag, 0.0);
 
+  //Wait for the other 15 rows of 16 elements from other warps within block
+  __syncthreads();
+
   //Load the modified data from shared mem buffer
   wmma::load_matrix_sync(data_RE_frag, buffer_tmp_RE, 16);
   wmma::load_matrix_sync(data_IM_frag, buffer_tmp_IM, 16);
@@ -414,10 +417,10 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   #pragma unroll
   for(int k=0; k<8; k++){
     int j = k + (8 * inter_warp_id_is_upper_16);
-    int buffer_array_id_transposed = (j + 16 * inter_warp_id_16);
+    int buffer_array_id_transposed = j + (16 * inter_warp_id_16);
     //Global id also reverses the transpose
-    Integer global_array_id = (inter_warp_id_16 + 16 * j) +
-                          warp_global_memory_offset;
+    Integer global_array_id = inter_warp_id_16 + (16 * j) +
+                              warp_global_memory_offset;
 
     output_data_RE[global_array_id] = buffer_RE[buffer_array_id_transposed];
     output_data_IM[global_array_id] = buffer_IM[buffer_array_id_transposed];
