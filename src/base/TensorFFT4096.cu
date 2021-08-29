@@ -413,16 +413,30 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
   }
 
-  //Store results into global memory and revert transpose.
+  // //Store results into global memory and revert transpose.
+  // #pragma unroll
+  // for(int k=0; k<8; k++){
+  //   int j = k + (8 * inter_warp_id_is_upper_16);
+  //   int buffer_array_id_transposed = j + (16 * inter_warp_id_16);
+  //   //Global id also reverses the transpose
+  //   Integer global_array_id = inter_warp_id_16 + (16 * j) +
+  //                             warp_global_memory_offset;
+  //
+  //   output_data_RE[global_array_id] = buffer_RE[buffer_array_id_transposed];
+  //   output_data_IM[global_array_id] = buffer_IM[buffer_array_id_transposed];
+  // }
   #pragma unroll
   for(int k=0; k<8; k++){
+    Integer i = inter_warp_id_16 + (inter_block_warp_id * 16);
     int j = k + (8 * inter_warp_id_is_upper_16);
-    int buffer_array_id_transposed = j + (16 * inter_warp_id_16);
-    //Global id also reverses the transpose
-    Integer global_array_id = inter_warp_id_16 + (16 * j) +
-                              warp_global_memory_offset;
+    Integer global_memory_offset = i +
+                                   256 * j +
+                                   4096 * (warp_id / 16);
+    int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
-    output_data_RE[global_array_id] = buffer_RE[buffer_array_id_transposed];
-    output_data_IM[global_array_id] = buffer_IM[buffer_array_id_transposed];
+    output_data_RE[global_memory_offset] =
+        buffer_RE[buffer_matrix_memory_offset];
+    output_data_IM[global_memory_offset] =
+        buffer_IM[buffer_matrix_memory_offset];
   }
 }
