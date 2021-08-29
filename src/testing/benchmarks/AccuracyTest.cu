@@ -15,7 +15,7 @@
 #include "../FileWriter.h"
 
 int main(){
-  constexpr int start_fft_length = 16*16;
+  constexpr int start_fft_length = 16*16*16;
   constexpr int end_fft_length = 16*16*16*16*16*16*16;
 
   constexpr int highest_harmonic = 20;

@@ -36,13 +36,6 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
   __half twiddle_RE = hcos(phase);
   __half twiddle_IM = -hsin(phase);
 
-  // double tmp = static_cast<double>(memory_point1_offset) /
-  //             static_cast<double>(sub_fft_length);
-  // double phase = M_PI * tmp;
-  //
-  // double twiddle_RE = cos(phase);
-  // double twiddle_IM = -sin(phase);
-
   //Fetch current data once from global memory to use it twice
   __half point2_RE = input_data_RE[memory_point2_offset];
   __half point2_IM = input_data_IM[memory_point2_offset];
@@ -80,13 +73,4 @@ __global__ void Radix2Kernel(__half* input_data_RE, __half* input_data_IM,
       __hmul(__hsub(point1_RE, modified_point2_RE), static_cast<__half>(0.5));
   output_data_IM[memory_point2_offset] =
       __hmul(__hsub(point1_IM, modified_point2_IM), static_cast<__half>(0.5));
-
-  // for(int i=0; i<sub_fft_length; i++){
-  //   if (memory_point1_offset == i) {
-  //     printf("ID: %d tmp: %f phase: %f twid_RE: %f twid_IM %f p1_RE: %f p1_IM: %f p2_RE: %f p2_IM: %f p2Mod_RE: %f p2Mod_IM: %f p1Out_RE: %f p1Out_IM: %f p2Out_RE: %f p2Out_IM: %f \n", memory_point1_offset, tmp, static_cast<float>(phase), static_cast<float>(twiddle_RE), static_cast<float>(twiddle_IM), static_cast<float>(point1_RE), static_cast<float>(point1_IM), static_cast<float>(point2_RE), static_cast<float>(point2_IM), static_cast<float>(modified_point2_RE), static_cast<float>(modified_point2_IM), static_cast<float>(output_data_RE[memory_point1_offset]), static_cast<float>(output_data_IM[memory_point1_offset]), static_cast<float>(output_data_RE[memory_point2_offset]), static_cast<float>(output_data_RE[memory_point2_offset]));
-  //     //printf("ID: %d p1_RE: %f p1_IM: %f p2_RE: %f p2_IM: %f p2Mod_RE: %f p2Mod_IM: %f p1Out_RE: %f p1Out_IM: %f p2Out_RE: %f p2Out_IM: %f \n", memory_point1_offset, static_cast<float>(point1_RE), static_cast<float>(point1_IM), static_cast<float>(point2_RE), static_cast<float>(point2_IM), static_cast<float>(modified_point2_RE), static_cast<float>(modified_point2_IM), static_cast<float>(output_data_RE[memory_point1_offset]), static_cast<float>(output_data_IM[memory_point1_offset]), static_cast<float>(output_data_RE[memory_point2_offset]), static_cast<float>(output_data_RE[memory_point2_offset]));
-  //   }
-  //   __syncthreads();
-  // }
-
 }
