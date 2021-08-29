@@ -322,7 +322,7 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //For the second r16 step the results of 16 other warps are needed to perform
   //one 4096 length combine. This should fit in shared memory on most devcices
   //however due to a growth of 16x with each step in shared mem usage this isnt
-  //possible for further steps.
+  //possible for further steps atm.
   //Reorder and multiply with twiddle factors the results of the first r16 step
   //so the matrix to load in a fragment is linear in memory (see TensorRadix16
   //kernel for why).
@@ -330,23 +330,24 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //, interprete result 16x16 matrix as one of 16 rows of 256x16 a matrix with
   //row_id=inter_block_warp_id, safe 16  16x16 matrix cut out of that matrix in
   //buffer_tmp and transpose the entries.
-
-  //Each warp only fills 1/16 of a needed matrix -> wait for all 16 warps
+  //Each warp only fills 1/16 of a needed matrix and thus stores 16 entries each
+  //in the buffer_tmp section of ALL 16 warps. The tmp buffer is needed by the
+  //previous step -> wait for all 16 warps in this block
   __syncthreads();
   #pragma unroll
   for(int k=0; k<8; k++){
     //int i = inter_warp_id_16;
     int j = k + (8 * inter_warp_id_is_upper_16);
     //For correct phase
-    int i_global = j + (16 * inter_block_warp_id);
+    int i_global = inter_warp_id_16 + (16 * j);
 
     int buffer_array_id_old = inter_warp_id_16 + (16 * j);
-    int buffer_array_id_new = inter_block_warp_id + (16 * j)
-                              + (1024 * inter_warp_id_16);
+    int buffer_array_id_new = inter_warp_id_16 + (16 * inter_block_warp_id)
+                              + (1024 * j);
 
     //On the fly computation of DFT matrix
     //TODO: test speed and accuracy of cos,cosf,coh and literal version
-    __half phase = (static_cast<float>(i_global * j) * M_PI) /
+    __half phase = (static_cast<float>(i_global * inter_block_warp_id) * M_PI) /
                    static_cast<float>(2048.0);
     // __half phase =
     //     __hdiv(__hmul(static_cast<__half>(i_global * j),
@@ -359,6 +360,8 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     __half input_IM = buffer_IM[buffer_array_id_old];
 
     //Store modified data to buffer_tmp arrays
+    //The 1024*j of buffer_array_id_new "selects" whoes warps shared mem buffer
+    //to write to and the +512 / +768 selects the tmp_RE / tmp_IM section
     //TODO: ? remove second buffer and use collum major load better?
     //mod_RE = RE*twid_RE - IM*twid_IM
     buffer[buffer_array_id_new + 512] =
