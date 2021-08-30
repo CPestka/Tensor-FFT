@@ -172,7 +172,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
 
   Integer amount_of_blocks = fft_length / 256;
 
-  CreateSineSquareSuperpostionKernel<<<amount_of_blocks, 256>>>(
+  CreateSineSuperpostionKernel<<<amount_of_blocks, 256>>>(
       fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
 
   std::unique_ptr<__half[]> data = std::make_unique<__half[]>(2 * fft_length);
@@ -215,7 +215,7 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
 
   cudaDeviceSynchronize();
 
-  CreateSineSquareSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
+  CreateSineSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
       fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
 
   std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(fft_length);
@@ -258,7 +258,7 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
 
   Integer amount_of_blocks = fft_length / 256;
 
-  CreateSineSquareSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
+  CreateSineSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
       fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
 
   std::unique_ptr<cufftComplex[]> data =
