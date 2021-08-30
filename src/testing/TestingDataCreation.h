@@ -90,14 +90,15 @@ template <typename Integer>
 __global__ void CreateSineSuperpostionKernel(Integer fft_length,
                                              float* weights_RE,
                                              float* weights_IM,
+                                             Integer frequency_cutof,
                                              __half* data){
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   double scale_factor = 1.0;
 
   double tmp = 0;
   int tmp_1 = 0;
-  for(int i=0; i<fft_length; i++){
-    tmp += weights_RE[i] * sin((2 * M_PI * tmp_1 * thread_id)
+  for(int i=0; i<frequency_cutof; i++){
+    tmp += weights_RE[i] * sinf((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
     tmp_1++;
   }
@@ -106,8 +107,8 @@ __global__ void CreateSineSuperpostionKernel(Integer fft_length,
 
   tmp = 0;
   tmp_1 = 1;
-  for(int i=0; i<fft_length; i++){
-    tmp += weights_IM[i] * sin((2 * M_PI * tmp_1 * thread_id)
+  for(int i=0; i<frequency_cutof; i++){
+    tmp += weights_IM[i] * sinf((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
     tmp_1++;
   }
@@ -119,14 +120,15 @@ template <typename Integer, typename Float2_t>
 __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
                                                float* weights_RE,
                                                float* weights_IM,
+                                               Integer frequency_cutof,
                                                Float2_t* data){
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   double scale_factor = 1.0;
 
   double tmp = 0;
   int tmp_1 = 0;
-  for(int i=0; i<fft_length; i++){
-    tmp += weights_RE[i] * sin((2 * M_PI * tmp_1 * thread_id)
+  for(int i=0; i<frequency_cutof; i++){
+    tmp += weights_RE[i] * sinf((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
     tmp_1++;
   }
@@ -135,8 +137,8 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
 
   tmp = 0;
   tmp_1 = 1;
-  for(int i=0; i<fft_length; i++){
-    tmp += weights_IM[i] * sin((2 * M_PI * tmp_1 * thread_id)
+  for(int i=0; i<frequency_cutof; i++){
+    tmp += weights_IM[i] * sinf((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
     tmp_1++;
   }
@@ -150,8 +152,9 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
 template<typename Integer>
 std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
     Integer fft_length,
-    std::vector<float> weights_RE,
-    std::vector<float> weights_IM){
+    const std::vector<float> weights_RE,
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
   __half* dptr_data;
 
   cudaMalloc(&dptr_data, 2 * sizeof(__half) * fft_length);
@@ -173,7 +176,7 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
   Integer amount_of_blocks = fft_length / 256;
 
   CreateSineSuperpostionKernel<<<amount_of_blocks, 256>>>(
-      fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, dptr_weights_IM, frequency_cutof, dptr_data);
 
   std::unique_ptr<__half[]> data = std::make_unique<__half[]>(2 * fft_length);
 
@@ -195,8 +198,9 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
 template<typename Integer>
 std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
     Integer fft_length,
-    std::vector<float> weights_RE,
-    std::vector<float> weights_IM){
+    const std::vector<float> weights_RE,
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
   __half2* dptr_data;
 
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
@@ -216,7 +220,7 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
   cudaDeviceSynchronize();
 
   CreateSineSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
-      fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, dptr_weights_IM, frequency_cutof, dptr_data);
 
   std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(fft_length);
 
@@ -238,9 +242,10 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
 template<typename Integer>
 std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
     Integer fft_length,
-    std::vector<float> weights_RE,
-    std::vector<float> weights_IM){
-    cufftComplex* dptr_data;
+    const std::vector<float> weights_RE,
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
+  cufftComplex* dptr_data;
 
   cudaMalloc(&dptr_data, sizeof(cufftComplex) * fft_length);
 
@@ -259,7 +264,7 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
   Integer amount_of_blocks = fft_length / 256;
 
   CreateSineSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
-      fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, dptr_weights_IM, frequency_cutof, dptr_data);
 
   std::unique_ptr<cufftComplex[]> data =
       std::make_unique<cufftComplex[]>(fft_length);
@@ -282,9 +287,10 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
 template<typename Integer>
 std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionD2GPU(
     Integer fft_length,
-    std::vector<float> weights_RE,
-    std::vector<float> weights_IM){
-    cufftDoubleComplex* dptr_data;
+    const std::vector<float> weights_RE,
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
+  cufftDoubleComplex* dptr_data;
 
   cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
 
@@ -303,7 +309,7 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionD2GPU(
   cudaDeviceSynchronize();
 
   CreateSineSuperpostionKernelCU<<<amount_of_blocks, 256>>>(
-      fft_length, dptr_weights_RE, dptr_weights_IM, dptr_data);
+      fft_length, dptr_weights_RE, dptr_weights_IM, frequency_cutof, dptr_data);
 
   std::unique_ptr<cufftDoubleComplex[]> data =
       std::make_unique<cufftDoubleComplex[]>(fft_length);
