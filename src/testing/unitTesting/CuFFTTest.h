@@ -69,7 +69,7 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
     long long fft_length,
     const std::vector<float> weights_RE,
     const std::vector<float> weights_IM,
-    const Integer frequency_cutof){
+    const long long frequency_cutof){
   IntervallTimer timer;
   std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM,
@@ -123,7 +123,7 @@ std::optional<std::unique_ptr<cufftComplex[]>> CreateComparisonDataFloat(
     long long fft_length,
     const std::vector<float> weights_RE,
     const std::vector<float> weights_IM,
-    const Integer frequency_cutof){
+    const long long frequency_cutof){
   std::unique_ptr<cufftComplex[]> data =
       CreateSineSuperpostionF2GPU(fft_length, weights_RE, weights_IM,
                                   frequency_cutof);
