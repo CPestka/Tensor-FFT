@@ -68,10 +68,12 @@ std::optional<std::string> CreateComparisonDataHalf(
 std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
     long long fft_length,
     const std::vector<float> weights_RE,
-    const std::vector<float> weights_IM){
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
   IntervallTimer timer;
   std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM,
+                                  frequency_cutof);
   std::cout << timer.getTimeInMilliseconds() << std::endl;
 
   __half2* dptr_data;
@@ -120,9 +122,11 @@ std::optional<std::unique_ptr<__half2[]>> CreateComparisonDataHalf(
 std::optional<std::unique_ptr<cufftComplex[]>> CreateComparisonDataFloat(
     long long fft_length,
     const std::vector<float> weights_RE,
-    const std::vector<float> weights_IM){
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
   std::unique_ptr<cufftComplex[]> data =
-      CreateSineSuperpostionF2GPU(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionF2GPU(fft_length, weights_RE, weights_IM,
+                                  frequency_cutof);
 
   cufftComplex* dptr_data;
   cufftComplex* dptr_results;
@@ -210,10 +214,12 @@ std::optional<std::string> CreateComparisonDataDouble(
 std::optional<std::unique_ptr<cufftDoubleComplex[]>> CreateComparisonDataDouble(
     int fft_length,
     const std::vector<float> weights_RE,
-    const std::vector<float> weights_IM){
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
 
   std::unique_ptr<cufftDoubleComplex[]> data =
-      CreateSineSuperpostionD2GPU(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionD2GPU(fft_length, weights_RE, weights_IM,
+                                  frequency_cutof);
 
   cufftDoubleComplex* dptr_data;
   cufftDoubleComplex* dptr_results;

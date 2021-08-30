@@ -25,10 +25,12 @@ template <typename Integer>
 std::optional<std::unique_ptr<__half[]>> FullSingleFFTComputation(
     const Integer fft_length,
     const std::vector<float> weights_RE,
-    const std::vector<float> weights_IM){
+    const std::vector<float> weights_IM,
+    const Integer frequency_cutof){
 
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM,
+                                 frequency_cutof);
 
   std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
   Plan<Integer> my_plan;

@@ -16,9 +16,10 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*16;
+  constexpr int end_fft_length = 16*16*16*16*16 * 16*16;
 
   constexpr int highest_harmonic = end_fft_length;
+  constexpr int frequency_cutof = 16*16;
   constexpr int seed = 42;
 
   std::vector<float> weights_RE =
@@ -39,7 +40,8 @@ int main(){
 
     //Compute comparision data and check validity
     auto possible_comparission_data =
-        CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM);
+        CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM,
+                                   frequency_cutof);
     if (!possible_comparission_data) {
       std::cout << "Error! Failed to create comparision data." << std::endl;
       return false;
@@ -49,7 +51,8 @@ int main(){
 
     //Compute data and check validity
     auto possible_data =
-        FullSingleFFTComputation(fft_length.back(), weights_RE, weights_IM);
+        FullSingleFFTComputation(fft_length.back(), weights_RE, weights_IM,
+                                   frequency_cutof);
     if (!possible_data) {
       std::cout << "Error! Failed to create data." << std::endl;
       return false;
