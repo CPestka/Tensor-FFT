@@ -30,7 +30,7 @@ std::optional<std::unique_ptr<__half[]>> FullSingleFFTComputation(
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM);
 
-  std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length, Mode_4096);
+  std::optional<Plan<Integer>> possible_plan = CreatePlan(fft_length);
   Plan<Integer> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
