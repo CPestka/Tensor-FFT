@@ -5,8 +5,7 @@
 #include <string>
 #include <memory>
 #include <cassert>
-
-#include <stdint.h>
+#include <cstdint>
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
@@ -20,7 +19,7 @@
 
 
 int main(){
-  constexpr int64_t fft_length = 16*16*16*16*16 * 16*16*16;
+  constexpr std::int64_t fft_length = 16*16*16*16*16 * 16*16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
@@ -40,8 +39,8 @@ int main(){
 
   //The plan holds parameters needed for the execution of the kernels which are
   //mostly derived from the fft length.
-  std::optional<Plan<int64_t>> possible_plan = CreatePlan(fft_length);
-  Plan<int64_t> my_plan;
+  std::optional<Plan<std::int64_t>> possible_plan = CreatePlan(fft_length);
+  Plan<std::int64_t> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
   } else {
