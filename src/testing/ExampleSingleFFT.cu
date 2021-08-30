@@ -38,8 +38,8 @@ int main(){
 
   //The plan holds parameters needed for the execution of the kernels which are
   //mostly derived from the fft length.
-  std::optional<Plan<int>> possible_plan = CreatePlan(fft_length);
-  Plan<int> my_plan;
+  std::optional<Plan<long long>> possible_plan = CreatePlan(fft_length);
+  Plan<long long> my_plan;
   if (possible_plan) {
     my_plan = possible_plan.value();
   } else {
