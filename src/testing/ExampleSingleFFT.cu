@@ -21,6 +21,8 @@
 int main(){
   std::int64_t fft_length = 16*16*16*16*16 * 16*16*16;
 
+  std::cout << "Size of int64_t: " << sizeof(std::int64_t) << std::endl;
+
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
   //fft_length*2 amount of elements, with the RE elements making up the first
