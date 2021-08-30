@@ -23,7 +23,7 @@ std::optional<std::string> CreateComparisonDataHalf(
     const std::string file_name,
     const long long frequency_cutof){
   std::unique_ptr<__half2[]> data =
-      CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM,
+      CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM,
                                frequency_cutof);
 
   __half2* dptr_data;
@@ -175,7 +175,7 @@ std::optional<std::string> CreateComparisonDataDouble(
     const std::vector<float> weights_RE,
     const std::vector<float> weights_IM,
     const std::string file_name,
-    const long long frequency_cutof){
+    const int frequency_cutof){
   std::unique_ptr<cufftDoubleComplex[]> data =
       CreateSineSuperpostionD2GPU(fft_length, weights_RE, weights_IM,
                                   frequency_cutof);
@@ -219,7 +219,7 @@ std::optional<std::unique_ptr<cufftDoubleComplex[]>> CreateComparisonDataDouble(
     int fft_length,
     const std::vector<float> weights_RE,
     const std::vector<float> weights_IM,
-    const Integer frequency_cutof){
+    const int frequency_cutof){
 
   std::unique_ptr<cufftDoubleComplex[]> data =
       CreateSineSuperpostionD2GPU(fft_length, weights_RE, weights_IM,
