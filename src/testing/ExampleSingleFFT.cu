@@ -18,7 +18,7 @@
 
 
 int main(){
-  constexpr long long fft_length = 16*16*16*16*16 * 16*16*16;
+  constexpr int64_t fft_length = 16*16*16*16*16 * 16*16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
@@ -90,7 +90,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  //WriteResultsToFile("example_results.dat", fft_length, data.get());
+  WriteResultsToFile("example_results.dat", fft_length, data.get());
 
   return true;
 }
