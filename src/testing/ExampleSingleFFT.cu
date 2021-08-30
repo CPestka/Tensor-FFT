@@ -19,7 +19,7 @@
 
 
 int main(){
-  constexpr std::int64_t fft_length = 16*16*16*16*16 * 16*16*16;
+  std::int64_t fft_length = 16*16*16*16*16 * 16*16*16;
 
   //Creation of example data
   //Substitute your own real data here. Data is accepted as __half array with
