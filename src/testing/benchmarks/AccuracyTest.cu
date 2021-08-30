@@ -16,7 +16,7 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*16 * 16;
+  constexpr int end_fft_length = 16*16*16*16*16;
 
   constexpr int highest_harmonic = end_fft_length;
   constexpr int seed = 42;
