@@ -9,7 +9,7 @@
 
 int main(){
   constexpr int start_fft_length = 16*16*16;
-  constexpr int end_fft_length = 16*16*16*16*16*16*16*2;
+  constexpr int end_fft_length = 16*16*16*16*16 * 16*16*2;
 
   constexpr int sample_size = 500;
   constexpr int warmup_samples = 10;
@@ -26,7 +26,8 @@ int main(){
       //Benchmark(fft_length.back(), warmup_samples, sample_size,
       //          "TunerResults.dat");
       Benchmark(fft_length.back(), warmup_samples,
-                sample_size, Mode_4096, 16, 8, 256);
+                sample_size, fft_length.back() < 4096 ? Mode_256 : Mode_4096,
+                16, 8, 256);
     if (tmp) {
       bench_data.push_back(tmp.value());
       fft_length.push_back(fft_length.back() * 2);

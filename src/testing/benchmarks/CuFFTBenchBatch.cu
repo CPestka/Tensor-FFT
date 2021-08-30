@@ -9,7 +9,7 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*16*16*2*2*2;
+  constexpr int end_fft_length = 16*16*16*16*16 * 16*2*2*2;
 
   constexpr int sample_size = 200;
   constexpr int warmup_samples = 5;
@@ -24,7 +24,8 @@ int main(){
 
   while (fft_length.back() <= end_fft_length) {
     std::optional<BenchResult> tmp =
-        BenchmarkCuFFT(fft_length.back(), warmup_samples, sample_size, async_batch_size);
+        BenchmarkCuFFT(fft_length.back(), warmup_samples, sample_size,
+                       async_batch_size);
     if (tmp) {
       bench_data.push_back(tmp.value());
       fft_length.push_back(fft_length.back() * 2);
