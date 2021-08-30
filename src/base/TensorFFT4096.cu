@@ -339,11 +339,12 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     //int i = inter_warp_id_16;
     int j = k + (8 * inter_warp_id_is_upper_16);
     //For correct phase
-    int i_global = inter_warp_id_16 + (16 * j);
+    int i_global = j + (16 * inter_warp_id_16);
 
     int buffer_array_id_old = inter_warp_id_16 + (16 * j);
-    int buffer_array_id_new = inter_warp_id_16 + (16 * inter_block_warp_id)
-                              + (1024 * j);
+    int buffer_array_id_new = inter_block_warp_id +
+                              (16 * j) +
+                              (1024 * inter_warp_id_16);
 
     //On the fly computation of DFT matrix
     //TODO: test speed and accuracy of cos,cosf,coh and literal version
