@@ -605,7 +605,7 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
 
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionH2Batch(fft_length, async_batch_size, weights_IM);
+      CreateSineSuperpostionH2Batch(fft_length, async_batch_size, weights_RE);
 
   std::vector<double> runtime;
 
