@@ -255,7 +255,7 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     //     __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
     //                   static_cast<__half>(M_PI)),
     //            static_cast<__half>(128.0));
-    float phase = (static_cast<floatt>(inter_warp_id_16 * j) * M_PI) / 128.0;
+    float phase = (static_cast<float>(inter_warp_id_16 * j) * M_PI) / 128.0;
 
     __half twiddle_RE = cos(phase);
     __half twiddle_IM = -sin(phase);
