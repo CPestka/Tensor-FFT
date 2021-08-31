@@ -89,7 +89,8 @@ RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
   int total_amount_of_warps_tensor = fft_length / 256;
   int total_amount_of_warps_R2 = fft_length / 32;
 
-  int warp_amount = 4;
+  int warp_amount =
+      total_amount_of_warps_tensor < 4 ? total_amount_of_warps_tensor : 4;
   while ((warp_amount <= total_amount_of_warps_R2) &&
          (warp_amount <= max_warps_per_block)){
     if (warp_amount <= total_amount_of_warps_tensor) {
