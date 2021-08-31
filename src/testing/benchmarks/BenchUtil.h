@@ -90,7 +90,7 @@ RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
   int total_amount_of_warps_R2 = fft_length / 32;
 
   int warp_amount = 1;
-  while ((warp_amount <= total_amount_of_warps) &&
+  while ((warp_amount <= total_amount_of_warps_R2) &&
          (warp_amount <= max_warps_per_block)){
     if (warp_amount <= total_amount_of_warps_tensor) {
       search_space.base_fft_warps_per_block_.push_back(warp_amount);
