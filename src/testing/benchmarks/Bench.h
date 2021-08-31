@@ -103,6 +103,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   cudaGetDevice(&device_id);
   if (!PlanWorksOnDevice(my_plan, device_id)) {
     std::cout << "Plan doesnt work on device -> configuration skiped."
+              << std::endl;
     return std::nullopt;
   }
 
@@ -241,7 +242,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 //   std::unique_ptr<__half[]> data =
 //       CreateSineSuperpostionBatch(fft_length, async_batch_size,
 //                                   weights_RE, weights_IM);
-// 
+//
 //   std::vector<double> runtime;
 //
 //   std::optional<Plan<Integer>> possible_plan =
