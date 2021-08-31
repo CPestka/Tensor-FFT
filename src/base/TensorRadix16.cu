@@ -61,23 +61,23 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
   //On the fly computation of DFT matrix
   //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
   //and literal version
-  #pragma unroll
-  for(int k=0; k<8; k++){
-    int j = k + 8 * inter_warp_id_is_upper_16;
-    int buffer_array_id = inter_warp_id_16 + 16 * j;
-
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(8.0));
-    //float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
-
-    buffer_RE[buffer_array_id] = hcos(phase);
-    buffer_IM[buffer_array_id] = -hsin(phase);
-  }
+  // #pragma unroll
+  // for(int k=0; k<8; k++){
+  //   int j = k + 8 * inter_warp_id_is_upper_16;
+  //   int buffer_array_id = inter_warp_id_16 + 16 * j;
+  //
+  //   __half phase =
+  //       __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+  //                     static_cast<__half>(M_PI)),
+  //              static_cast<__half>(8.0));
+  //   //float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
+  //
+  //   buffer_RE[buffer_array_id] = hcos(phase);
+  //   buffer_IM[buffer_array_id] = -hsin(phase);
+  // }
 
   //Literal version of dft matrix.
-  //LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
+  LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
 
   //Load DFT matrix into the according fragments
   wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
@@ -116,13 +116,13 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     //Float because static_cast<__half>(combined_fft_length) overflows
     float tmp = static_cast<float>(i * j)  /
                 static_cast<float>(combined_fft_length);
-    __half phase = __hmul(__hmul(2.0, static_cast<__half>(M_PI)),
-                          static_cast<__half>(tmp));
-    //float phase = 2.0 * M_PI * tmp;
+    // __half phase = __hmul(__hmul(2.0, static_cast<__half>(M_PI)),
+    //                       static_cast<__half>(tmp));
+    float phase = 2.0 * M_PI * tmp;
 
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
+    __half twiddle_RE = cosf(phase);
+    __half twiddle_IM = -sinf(phase);
 
     //Fetch current data once from global memory to use it twice
     //For unscaled or scaling at once
