@@ -11,8 +11,8 @@ int main(){
   constexpr int start_fft_length = 16*16;
   constexpr int end_fft_length = 16*16*16*16*16 * 16*4;
 
-  constexpr int sample_size = 500;
-  constexpr int warmup_samples = 10;
+  constexpr int sample_size = 2000;
+  constexpr int warmup_samples = 50;
 
   std::vector<int> fft_length;
   fft_length.push_back(start_fft_length);
