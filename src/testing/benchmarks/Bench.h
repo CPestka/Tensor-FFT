@@ -178,6 +178,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   cudaGetDevice(&device_id);
   if (!PlanWorksOnDevice(my_plan, device_id)) {
     std::cout << "Plan doesnt work on device -> configuration skiped."
+              << std::endl;
     return std::nullopt;
   }
 
