@@ -9,7 +9,7 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*16 * 16*16*2;
+  constexpr int end_fft_length = 16*16*16*16*16 * 16*8;
 
   constexpr int sample_size = 100;
   constexpr int warmup_samples = 5;
@@ -25,7 +25,7 @@ int main(){
 
   while (fft_length.back() <= end_fft_length) {
     std::cout << "Current fft_length: " << fft_length.back() << std::endl;
-    
+
     RunParameterSearchSpace search_space =
         GetSearchSpace(fft_length.back(), device_id);
 
