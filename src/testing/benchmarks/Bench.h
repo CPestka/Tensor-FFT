@@ -224,163 +224,163 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   return tmp;
 }
 
-//Async versions of the above
-template <typename Integer>
-std::optional<RunResults> Benchmark(const Integer fft_length,
-                                    const int warmup_samples,
-                                    const int sample_size,
-                                    const int async_batch_size,
-                                    const BaseFFTMode mode,
-                                    const int base_fft_warps_per_block,
-                                    const int r16_warps_per_block,
-                                    const int r2_blocksize){
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+// //Async versions of the above
+// template <typename Integer>
+// std::optional<RunResults> Benchmark(const Integer fft_length,
+//                                     const int warmup_samples,
+//                                     const int sample_size,
+//                                     const int async_batch_size,
+//                                     const BaseFFTMode mode,
+//                                     const int base_fft_warps_per_block,
+//                                     const int r16_warps_per_block,
+//                                     const int r2_blocksize){
+//   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+//
+//   std::vector<float> weights_RE = GetRandomWeights(10, 42);
+//   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
+//   std::unique_ptr<__half[]> data =
+//       CreateSineSuperpostionBatch(fft_length, async_batch_size,
+//                                   weights_RE, weights_IM);
+// 
+//   std::vector<double> runtime;
+//
+//   std::optional<Plan<Integer>> possible_plan =
+//       CreatePlan(fft_length, mode, base_fft_warps_per_block,
+//                  r16_warps_per_block, r2_blocksize);
+//   Plan<Integer> my_plan;
+//   if (possible_plan) {
+//     my_plan = possible_plan.value();
+//   } else {
+//     std::cout << "Plan creation failed" << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   int device_id;
+//   cudaGetDevice(&device_id);
+//   if (!PlanWorksOnDevice(my_plan, device_id)) {
+//     std::cout << "Plan doesnt work on device -> configuration skiped."
+//     return std::nullopt;
+//   }
+//
+//   int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
+//
+//   std::optional<std::string> error_mess;
+//
+//   DataBatchHandler my_handler(fft_length, async_batch_size);
+//   error_mess = my_handler.PeakAtLastError();
+//   if (error_mess) {
+//     std::cout << error_mess.value() << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   for(int k=0; k<sample_size + warmup_samples; k++){
+//     error_mess = my_handler.CopyDataHostToDevice(data.get());
+//     if (error_mess) {
+//       std::cout << error_mess.value() << std::endl;
+//       return std::nullopt;
+//     }
+//
+//     cudaDeviceSynchronize();
+//
+//     IntervallTimer computation_time;
+//     error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
+//     if (error_mess) {
+//       std::cout << error_mess.value() << std::endl;
+//       return std::nullopt;
+//     }
+//
+//     cudaDeviceSynchronize();
+//
+//     if (k >= warmup_samples) {
+//       runtime.push_back(computation_time.getTimeInNanoseconds());
+//     }
+//   }
+//
+//   BenchResult results;
+//   results.average_time_ = ComputeAverage(runtime);
+//   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
+//
+//   RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
+//                     r2_blocksize, results};
+//   return tmp;
+// }
 
-  std::vector<float> weights_RE = GetRandomWeights(10, 42);
-  std::vector<float> weights_IM = GetRandomWeights(10, 4242);
-  std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length, async_batch_size,
-                                  weights_RE, weights_IM);
-
-  std::vector<double> runtime;
-
-  std::optional<Plan<Integer>> possible_plan =
-      CreatePlan(fft_length, mode, base_fft_warps_per_block,
-                 r16_warps_per_block, r2_blocksize);
-  Plan<Integer> my_plan;
-  if (possible_plan) {
-    my_plan = possible_plan.value();
-  } else {
-    std::cout << "Plan creation failed" << std::endl;
-    return std::nullopt;
-  }
-
-  int device_id;
-  cudaGetDevice(&device_id);
-  if (!PlanWorksOnDevice(my_plan, device_id)) {
-    std::cout << "Plan doesnt work on device -> configuration skiped."
-    return std::nullopt;
-  }
-
-  int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
-
-  std::optional<std::string> error_mess;
-
-  DataBatchHandler my_handler(fft_length, async_batch_size);
-  error_mess = my_handler.PeakAtLastError();
-  if (error_mess) {
-    std::cout << error_mess.value() << std::endl;
-    return std::nullopt;
-  }
-
-  for(int k=0; k<sample_size + warmup_samples; k++){
-    error_mess = my_handler.CopyDataHostToDevice(data.get());
-    if (error_mess) {
-      std::cout << error_mess.value() << std::endl;
-      return std::nullopt;
-    }
-
-    cudaDeviceSynchronize();
-
-    IntervallTimer computation_time;
-    error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
-    if (error_mess) {
-      std::cout << error_mess.value() << std::endl;
-      return std::nullopt;
-    }
-
-    cudaDeviceSynchronize();
-
-    if (k >= warmup_samples) {
-      runtime.push_back(computation_time.getTimeInNanoseconds());
-    }
-  }
-
-  BenchResult results;
-  results.average_time_ = ComputeAverage(runtime);
-  results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
-
-  RunResults tmp = {mode, base_fft_warps_per_block, r16_warps_per_block,
-                    r2_blocksize, results};
-  return tmp;
-}
-
-template <typename Integer>
-std::optional<RunResults> Benchmark(const Integer fft_length,
-                                    const int warmup_samples,
-                                    const int sample_size,
-                                    const int async_batch_size,
-                                    const std::string tuner_results_file){
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
-
-  std::vector<float> weights_RE = GetRandomWeights(10, 42);
-  std::vector<float> weights_IM = GetRandomWeights(10, 4242);
-  std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionBatch(fft_length, async_batch_size,
-                                  weights_RE, weights_IM);
-
-  std::vector<double> runtime;
-
-  std::optional<Plan<Integer>> possible_plan =
-      CreatePlan(fft_length, tuner_results_file);
-  Plan<Integer> my_plan;
-  if (possible_plan) {
-    my_plan = possible_plan.value();
-  } else {
-    std::cout << "Plan creation failed" << std::endl;
-    return std::nullopt;
-  }
-
-  int device_id;
-  cudaGetDevice(&device_id);
-  if (!PlanWorksOnDevice(my_plan, device_id)) {
-    std::cout << "Plan doesnt work on device -> configuration skiped."
-    return std::nullopt;
-  }
-
-  int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
-
-  std::optional<std::string> error_mess;
-
-  DataBatchHandler my_handler(fft_length, async_batch_size);
-  error_mess = my_handler.PeakAtLastError();
-  if (error_mess) {
-    std::cout << error_mess.value() << std::endl;
-    return std::nullopt;
-  }
-
-  for(int k=0; k<sample_size + warmup_samples; k++){
-    error_mess = my_handler.CopyDataHostToDevice(data.get());
-    if (error_mess) {
-      std::cout << error_mess.value() << std::endl;
-      return std::nullopt;
-    }
-
-    cudaDeviceSynchronize();
-
-    IntervallTimer computation_time;
-    error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
-    if (error_mess) {
-      std::cout << error_mess.value() << std::endl;
-      return std::nullopt;
-    }
-
-    cudaDeviceSynchronize();
-
-    if (k >= warmup_samples) {
-      runtime.push_back(computation_time.getTimeInNanoseconds());
-    }
-  }
-
-  BenchResult results;
-  results.average_time_ = ComputeAverage(runtime);
-  results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
-
-  RunResults tmp = {my_plan.base_fft_mode_, my_plan.base_fft_warps_per_block_,
-                    my_plan.r16_warps_per_block_, my_plan.r2_blocksize_,
-                    results};
-  return tmp;
-}
+// template <typename Integer>
+// std::optional<RunResults> Benchmark(const Integer fft_length,
+//                                     const int warmup_samples,
+//                                     const int sample_size,
+//                                     const int async_batch_size,
+//                                     const std::string tuner_results_file){
+//   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+//
+//   std::vector<float> weights_RE = GetRandomWeights(10, 42);
+//   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
+//   std::unique_ptr<__half[]> data =
+//       CreateSineSuperpostionBatch(fft_length, async_batch_size,
+//                                   weights_RE, weights_IM);
+//
+//   std::vector<double> runtime;
+//
+//   std::optional<Plan<Integer>> possible_plan =
+//       CreatePlan(fft_length, tuner_results_file);
+//   Plan<Integer> my_plan;
+//   if (possible_plan) {
+//     my_plan = possible_plan.value();
+//   } else {
+//     std::cout << "Plan creation failed" << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   int device_id;
+//   cudaGetDevice(&device_id);
+//   if (!PlanWorksOnDevice(my_plan, device_id)) {
+//     std::cout << "Plan doesnt work on device -> configuration skiped."
+//     return std::nullopt;
+//   }
+//
+//   int max_no_optin_shared_mem = GetMaxNoOptInSharedMem(device_id);
+//
+//   std::optional<std::string> error_mess;
+//
+//   DataBatchHandler my_handler(fft_length, async_batch_size);
+//   error_mess = my_handler.PeakAtLastError();
+//   if (error_mess) {
+//     std::cout << error_mess.value() << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   for(int k=0; k<sample_size + warmup_samples; k++){
+//     error_mess = my_handler.CopyDataHostToDevice(data.get());
+//     if (error_mess) {
+//       std::cout << error_mess.value() << std::endl;
+//       return std::nullopt;
+//     }
+//
+//     cudaDeviceSynchronize();
+//
+//     IntervallTimer computation_time;
+//     error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
+//     if (error_mess) {
+//       std::cout << error_mess.value() << std::endl;
+//       return std::nullopt;
+//     }
+//
+//     cudaDeviceSynchronize();
+//
+//     if (k >= warmup_samples) {
+//       runtime.push_back(computation_time.getTimeInNanoseconds());
+//     }
+//   }
+//
+//   BenchResult results;
+//   results.average_time_ = ComputeAverage(runtime);
+//   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
+//
+//   RunResults tmp = {my_plan.base_fft_mode_, my_plan.base_fft_warps_per_block_,
+//                     my_plan.r16_warps_per_block_, my_plan.r2_blocksize_,
+//                     results};
+//   return tmp;
+// }
 
 //Bench for single fft of cufft
 std::optional<BenchResult> BenchmarkCuFFTHalf(long long fft_length,
@@ -597,75 +597,75 @@ std::optional<BenchResult> BenchmarkCuFFTDouble(int fft_length,
   return results;
 }
 
-std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
-                                          const int warmup_samples,
-                                          const int sample_size,
-                                          const int async_batch_size){
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
-
-  std::vector<float> weights_RE = GetRandomWeights(10, 42);
-  std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionH2Batch(fft_length, async_batch_size, weights_RE);
-
-  std::vector<double> runtime;
-
-  __half2* dptr_data;
-  __half2* dptr_results;
-  cudaMalloc(&dptr_data, sizeof(__half2) * fft_length * async_batch_size);
-  cudaMalloc(&dptr_results, sizeof(__half2) * fft_length * async_batch_size);
-
-  cufftHandle plan;
-  cufftResult r;
-
-  r = cufftCreate(&plan);
-  if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed." << std::endl;
-    return std::nullopt;
-  }
-
-  size_t size = 0;
-  r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1,
-                          CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F,
-                          async_batch_size, &size, CUDA_C_16F);
-  if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed." << std::endl;
-    return std::nullopt;
-  }
-
-  for(int k=0; k<sample_size + warmup_samples; k++){
-    cudaMemcpy(dptr_data, data.get(),
-               fft_length * sizeof(__half2) * async_batch_size,
-               cudaMemcpyHostToDevice);
-
-    cudaDeviceSynchronize();
-
-    IntervallTimer computation_time;
-
-    r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
-    if (r != CUFFT_SUCCESS) {
-      std::cout << "Error! Plan execution failed." << std::endl;
-      return std::nullopt;
-    }
-
-    cudaDeviceSynchronize();
-
-    if (k >= warmup_samples) {
-      runtime.push_back(computation_time.getTimeInNanoseconds());
-    }
-  }
-
-  cufftDestroy(plan);
-  cudaFree(dptr_results);
-  cudaFree(dptr_data);
-
-  if (cudaPeekAtLastError() != cudaSuccess){
-    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-    return std::nullopt;
-  }
-
-  BenchResult results;
-  results.average_time_ = ComputeAverage(runtime);
-  results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
-
-  return results;
-}
+// std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
+//                                           const int warmup_samples,
+//                                           const int sample_size,
+//                                           const int async_batch_size){
+//   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+//
+//   std::vector<float> weights_RE = GetRandomWeights(10, 42);
+//   std::unique_ptr<__half[]> data =
+//       CreateSineSuperpostionH2Batch(fft_length, async_batch_size, weights_RE);
+//
+//   std::vector<double> runtime;
+//
+//   __half2* dptr_data;
+//   __half2* dptr_results;
+//   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length * async_batch_size);
+//   cudaMalloc(&dptr_results, sizeof(__half2) * fft_length * async_batch_size);
+//
+//   cufftHandle plan;
+//   cufftResult r;
+//
+//   r = cufftCreate(&plan);
+//   if (r != CUFFT_SUCCESS) {
+//     std::cout << "Error! Plan creation failed." << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   size_t size = 0;
+//   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1,
+//                           CUDA_C_16F, nullptr, 1, 1, CUDA_C_16F,
+//                           async_batch_size, &size, CUDA_C_16F);
+//   if (r != CUFFT_SUCCESS) {
+//     std::cout << "Error! Plan creation failed." << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   for(int k=0; k<sample_size + warmup_samples; k++){
+//     cudaMemcpy(dptr_data, data.get(),
+//                fft_length * sizeof(__half2) * async_batch_size,
+//                cudaMemcpyHostToDevice);
+//
+//     cudaDeviceSynchronize();
+//
+//     IntervallTimer computation_time;
+//
+//     r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
+//     if (r != CUFFT_SUCCESS) {
+//       std::cout << "Error! Plan execution failed." << std::endl;
+//       return std::nullopt;
+//     }
+//
+//     cudaDeviceSynchronize();
+//
+//     if (k >= warmup_samples) {
+//       runtime.push_back(computation_time.getTimeInNanoseconds());
+//     }
+//   }
+//
+//   cufftDestroy(plan);
+//   cudaFree(dptr_results);
+//   cudaFree(dptr_data);
+//
+//   if (cudaPeekAtLastError() != cudaSuccess){
+//     std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+//     return std::nullopt;
+//   }
+//
+//   BenchResult results;
+//   results.average_time_ = ComputeAverage(runtime);
+//   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
+//
+//   return results;
+// }
