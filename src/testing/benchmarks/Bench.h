@@ -85,7 +85,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostionHGPU(fft_length,  weights_RE, weights_IM, 10);
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+
   std::vector<double> runtime;
 
   std::optional<Plan<Integer>> possible_plan =
@@ -117,7 +117,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     std::cout << error_mess.value() << std::endl;
     return std::nullopt;
   }
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
@@ -126,7 +126,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     }
 
     cudaDeviceSynchronize();
-    std::cout << "Benchmarking fft " << fft_length << std::endl;
+
     IntervallTimer computation_time;
     error_mess = ComputeFFT(my_plan, my_handler, max_no_optin_shared_mem);
     if (error_mess) {
@@ -140,7 +140,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
       runtime.push_back(computation_time.getTimeInNanoseconds());
     }
   }
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+
   BenchResult results;
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
