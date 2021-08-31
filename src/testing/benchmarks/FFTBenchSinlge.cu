@@ -23,11 +23,11 @@ int main(){
 
   while (fft_length.back() <= end_fft_length) {
     std::optional<RunResults> tmp =
-      //Benchmark(fft_length.back(), warmup_samples, sample_size,
-      //          "TunerResults.dat");
-      Benchmark(fft_length.back(), warmup_samples,
-                sample_size, Mode_4096,
-                16, 8, 256);
+      Benchmark(fft_length.back(), warmup_samples, sample_size,
+               "TunerResults.dat");
+      // Benchmark(fft_length.back(), warmup_samples,
+      //           sample_size, Mode_4096,
+      //           16, 8, 256);
     if (tmp) {
       bench_data.push_back(tmp.value());
       fft_length.push_back(fft_length.back() * 2);
