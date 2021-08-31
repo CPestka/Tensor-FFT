@@ -61,20 +61,20 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
   //On the fly computation of DFT matrix
   //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
   //and literal version
-  // #pragma unroll
-  // for(int k=0; k<8; k++){
-  //   int j = k + 8 * inter_warp_id_is_upper_16;
-  //   int buffer_array_id = inter_warp_id_16 + 16 * j;
-  //
-  //   __half phase =
-  //       __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-  //                     static_cast<__half>(M_PI)),
-  //              static_cast<__half>(8.0));
-  //   //float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
-  //
-  //   buffer_RE[buffer_array_id] = hcos(phase);
-  //   buffer_IM[buffer_array_id] = -hsin(phase);
-  // }
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    int j = k + 8 * inter_warp_id_is_upper_16;
+    int buffer_array_id = inter_warp_id_16 + 16 * j;
+
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(8.0));
+    float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
+
+    buffer_RE[buffer_array_id] = cos(phase);
+    buffer_IM[buffer_array_id] = -sin(phase);
+  }
 
   //Literal version of dft matrix.
   LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
