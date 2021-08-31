@@ -15,7 +15,7 @@
 #include "../FileWriter.h"
 
 int main(){
-  constexpr int fft_length = 16*16*16*2;
+  constexpr int fft_length = 16*16*16*16*16;
 
   constexpr int max_frequency_cutof = fft_length;
   constexpr int min_frequency_cutof = 1;
@@ -52,8 +52,8 @@ int main(){
 
     //Compute data and check validity
     auto possible_data =
-        CreateComparisonDataHalf(fft_length, weights_RE, weights_IM,
-                                 frequency_cutof.back());
+        CreateComparisonDataFloat(fft_length, weights_RE, weights_IM,
+                                  frequency_cutof.back());
     if (!possible_data) {
       std::cout << "Error! Failed to create data." << std::endl;
       return false;
