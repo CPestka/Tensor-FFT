@@ -40,7 +40,8 @@ int main(){
 
     //Compute comparision data and check validity
     auto possible_comparission_data =
-        CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM);
+        CreateComparisonDataDouble(fft_length.back(), weights_RE, weights_IM,
+                                   frequency_cutof);
     if (!possible_comparission_data) {
       std::cout << "Error! Failed to create comparision data." << std::endl;
       return false;
@@ -51,7 +52,8 @@ int main(){
 
     //Compute data and check validity
     auto possible_data =
-        CreateComparisonDataFloat(fft_length.back(), weights_RE, weights_IM);
+        CreateComparisonDataFloat(fft_length.back(), weights_RE, weights_IM,
+                                  frequency_cutof);
     if (!possible_data) {
       std::cout << "Error! Failed to create data." << std::endl;
       return false;
