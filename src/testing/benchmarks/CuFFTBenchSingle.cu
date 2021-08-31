@@ -23,7 +23,7 @@ int main(){
 
   while (fft_length.back() <= end_fft_length) {
     std::optional<BenchResult> tmp =
-        BenchmarkCuFFT(fft_length.back(), warmup_samples, sample_size);
+        BenchmarkCuFFTDouble(fft_length.back(), warmup_samples, sample_size);
     if (tmp) {
       bench_data.push_back(tmp.value());
       fft_length.push_back(fft_length.back() * 2);

@@ -84,7 +84,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length,  weights_RE, weights_IM);
+      CreateSineSuperpostionHGPU(fft_length,  weights_RE, weights_IM, 10);
 
   std::vector<double> runtime;
 
@@ -159,7 +159,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostion(fft_length,  weights_RE, weights_IM);
+      CreateSineSuperpostionHGPU(fft_length,  weights_RE, weights_IM, 10);
 
   std::vector<double> runtime;
 
@@ -225,7 +225,6 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 }
 
 //Async versions of the above
-
 template <typename Integer>
 std::optional<RunResults> Benchmark(const Integer fft_length,
                                     const int warmup_samples,
@@ -384,15 +383,15 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 }
 
 //Bench for single fft of cufft
-std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
-                                          const int warmup_samples,
-                                          const int sample_size){
+std::optional<BenchResult> BenchmarkCuFFTHalf(long long fft_length,
+                                              const int warmup_samples,
+                                              const int sample_size){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionH2(fft_length, weights_RE, weights_IM);
+      CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM, 10);
 
   std::vector<double> runtime;
 
@@ -430,6 +429,146 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
     r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
     if (r != CUFFT_SUCCESS) {
       std::cout << "Error! Plan execution failed." << std::endl;
+      return std::nullopt;
+    }
+
+    cudaDeviceSynchronize();
+
+    if (k >= warmup_samples) {
+      runtime.push_back(computation_time.getTimeInNanoseconds());
+    }
+  }
+
+  cufftDestroy(plan);
+  cudaFree(dptr_results);
+  cudaFree(dptr_data);
+
+  if (cudaPeekAtLastError() != cudaSuccess){
+    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+    return std::nullopt;
+  }
+
+  BenchResult results;
+  results.average_time_ = ComputeAverage(runtime);
+  results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
+
+  return results;
+}
+
+//Bench for single fft of cufft
+std::optional<BenchResult> BenchmarkCuFFTFloat(long long fft_length,
+                                               const int warmup_samples,
+                                               const int sample_size){
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+
+  std::vector<float> weights_RE = GetRandomWeights(10, 42);
+  std::vector<float> weights_IM = GetRandomWeights(10, 4242);
+  std::unique_ptr<cufftComplex[]> data =
+      CreateSineSuperpostionF2GPU(fft_length, weights_RE, weights_IM, 10);
+
+  std::vector<double> runtime;
+
+  cufftComplex* dptr_data;
+  cufftComplex* dptr_results;
+  cudaMalloc(&dptr_data, sizeof(cufftComplex) * fft_length);
+  cudaMalloc(&dptr_results, sizeof(cufftComplex) * fft_length);
+
+  cufftHandle plan;
+  cufftResult r;
+
+  r = cufftCreate(&plan);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan creation failed." << std::endl;
+    return std::nullopt;
+  }
+
+  r = cufftPlan1d(&plan, fft_length, CUFFT_C2C, 1);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan creation failed.\n";
+    return std::nullopt;
+  }
+
+  for(int k=0; k<sample_size + warmup_samples; k++){
+    cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(cufftComplex),
+               cudaMemcpyHostToDevice);
+
+    cudaDeviceSynchronize();
+
+    IntervallTimer computation_time;
+
+    r = cufftExecC2C(plan, dptr_data, dptr_results, CUFFT_FORWARD);
+    if (r != CUFFT_SUCCESS) {
+      std::cout << "Error! Plan execution failed.\n";
+      return std::nullopt;
+    }
+
+    cudaDeviceSynchronize();
+
+    if (k >= warmup_samples) {
+      runtime.push_back(computation_time.getTimeInNanoseconds());
+    }
+  }
+
+  cufftDestroy(plan);
+  cudaFree(dptr_results);
+  cudaFree(dptr_data);
+
+  if (cudaPeekAtLastError() != cudaSuccess){
+    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+    return std::nullopt;
+  }
+
+  BenchResult results;
+  results.average_time_ = ComputeAverage(runtime);
+  results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
+
+  return results;
+}
+
+//Bench for single fft of cufft
+std::optional<BenchResult> BenchmarkCuFFTDouble(long long fft_length,
+                                                const int warmup_samples,
+                                                const int sample_size){
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+
+  std::vector<float> weights_RE = GetRandomWeights(10, 42);
+  std::vector<float> weights_IM = GetRandomWeights(10, 4242);
+  std::unique_ptr<cufftDoubleComplex[]> data =
+      CreateSineSuperpostionD2GPU(fft_length, weights_RE, weights_IM, 10);
+
+  std::vector<double> runtime;
+
+  cufftDoubleComplex* dptr_data;
+  cufftDoubleComplex* dptr_results;
+  cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
+  cudaMalloc(&dptr_results, sizeof(cufftDoubleComplex) * fft_length);
+
+  cufftHandle plan;
+  cufftResult r;
+
+  r = cufftCreate(&plan);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan creation failed." << std::endl;
+    return std::nullopt;
+  }
+
+  r = cufftPlan1d(&plan, fft_length, CUFFT_Z2Z, 1);
+  if (r != CUFFT_SUCCESS) {
+    std::cout << "Error! Plan creation failed.\n";
+    return std::nullopt;
+  }
+
+  for(int k=0; k<sample_size + warmup_samples; k++){
+    cudaMemcpy(dptr_data, data.get(), fft_length * sizeof(cufftDoubleComplex),
+               cudaMemcpyHostToDevice);
+
+    cudaDeviceSynchronize();
+
+    IntervallTimer computation_time;
+
+    r = cufftExecZ2Z(plan, dptr_data, dptr_results, CUFFT_FORWARD);
+    if (r != CUFFT_SUCCESS) {
+      std::cout << "Error! Plan execution failed.\n";
       return std::nullopt;
     }
 
