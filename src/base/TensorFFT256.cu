@@ -231,14 +231,14 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     //On the fly computation of DFT matrix
     //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
     //and literal version
-    // __half phase =
-    //     __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
-    //                   static_cast<__half>(M_PI)),
-    //            static_cast<__half>(128.0));
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(128.0));
     float phase = (static_cast<float>(inter_warp_id_16 * j) * M_PI) / 128.0;
 
-    __half twiddle_RE = cos(phase);
-    __half twiddle_IM = -sin(phase);
+    __half twiddle_RE = hcos(phase);
+    __half twiddle_IM = -hsin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
