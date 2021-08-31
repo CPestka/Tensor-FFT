@@ -15,7 +15,7 @@
 #include "../FileWriter.h"
 
 int main(){
-  constexpr int fft_length = 16*16*16*16*16;
+  constexpr int fft_length = 16*16*16*2;
 
   constexpr int max_frequency_cutof = fft_length;
   constexpr int min_frequency_cutof = 1;
