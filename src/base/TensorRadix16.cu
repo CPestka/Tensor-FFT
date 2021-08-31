@@ -116,13 +116,13 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     //Float because static_cast<__half>(combined_fft_length) overflows
     float tmp = static_cast<float>(i * j)  /
                 static_cast<float>(combined_fft_length);
-    __half phase = __hmul(__hmul(2.0, static_cast<__half>(M_PI)),
-                          static_cast<__half>(tmp));
-    //float phase = 2.0 * M_PI * tmp;
+    // __half phase = __hmul(__hmul(2.0, static_cast<__half>(M_PI)),
+    //                       static_cast<__half>(tmp));
+    float phase = 2.0 * M_PI * tmp;
 
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
+    __half twiddle_RE = cosf(phase);
+    __half twiddle_IM = -sinf(phase);
 
     //Fetch current data once from global memory to use it twice
     //For unscaled or scaling at once
