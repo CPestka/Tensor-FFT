@@ -86,13 +86,16 @@ RunParameterSearchSpace GetSearchSpace(const Integer fft_length, int device_id){
   cudaDeviceProp properties;
   cudaGetDeviceProperties(&properties, device_id);
   int max_warps_per_block = properties.maxThreadsPerBlock / 32;
-  int total_amount_of_warps = fft_length / 32;
-  int warp_amount = 1;
+  int total_amount_of_warps_tensor = fft_length / 256;
+  int total_amount_of_warps_R2 = fft_length / 32;
 
+  int warp_amount = 1;
   while ((warp_amount <= total_amount_of_warps) &&
          (warp_amount <= max_warps_per_block)){
-    search_space.base_fft_warps_per_block_.push_back(warp_amount);
-    search_space.r16_warps_per_block_.push_back(warp_amount);
+    if (warp_amount <= total_amount_of_warps_tensor) {
+      search_space.base_fft_warps_per_block_.push_back(warp_amount);
+      search_space.r16_warps_per_block_.push_back(warp_amount);
+    }
     search_space.r2_blocksize_.push_back(warp_amount * 32);
 
     warp_amount = (warp_amount * 2);
