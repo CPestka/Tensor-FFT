@@ -390,9 +390,9 @@ std::optional<BenchResult> BenchmarkCuFFTHalf(long long fft_length,
 
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
-  std::unique_ptr<__half[]> data =
+  std::unique_ptr<__half2[]> data =
       CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM,
-                                  static_cast<long long>(10));
+                                 static_cast<long long>(10));
 
   std::vector<double> runtime;
 
@@ -604,10 +604,8 @@ std::optional<BenchResult> BenchmarkCuFFT(long long fft_length,
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
-  std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionH2Batch(fft_length, async_batch_size,
-                                    weights_RE, weights_IM);
+      CreateSineSuperpostionH2Batch(fft_length, async_batch_size, weights_IM);
 
   std::vector<double> runtime;
 
