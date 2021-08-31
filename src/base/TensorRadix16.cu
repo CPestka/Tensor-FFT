@@ -66,12 +66,13 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     int j = k + 8 * inter_warp_id_is_upper_16;
     int buffer_array_id = inter_warp_id_16 + 16 * j;
 
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(8.0));
-    buffer_RE[buffer_array_id] = cos(static_cast<__half>(phase));
-    buffer_IM[buffer_array_id] = -sin(static_cast<__half>(phase));
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(8.0));
+    float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
+    buffer_RE[buffer_array_id] = cos(phase);
+    buffer_IM[buffer_array_id] = -sin(phase);
   }
 
   //Literal version of dft matrix.
@@ -114,12 +115,13 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     //Float because static_cast<__half>(combined_fft_length) overflows
     float tmp = static_cast<float>(i * j)  /
                 static_cast<float>(combined_fft_length);
-    __half phase = __hmul(__hmul(2.0, static_cast<__half>(M_PI)),
-                          static_cast<__half>(tmp));
+    // __half phase = __hmul(__hmul(2.0, static_cast<__half>(M_PI)),
+    //                       static_cast<__half>(tmp));
+    float phase = 2.0 * M_PI * tmp;
 
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = cos(static_cast<__half>(phase));
-    __half twiddle_IM = -sin(static_cast<__half>(phase));
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     //Fetch current data once from global memory to use it twice
     //For unscaled or scaling at once

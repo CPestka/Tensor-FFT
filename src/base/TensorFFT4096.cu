@@ -60,12 +60,14 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     int j = k + 8 * inter_warp_id_is_upper_16;
     int buffer_array_id = inter_warp_id_16 + 16 * j;
 
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(8.0));
-    buffer_RE[buffer_array_id] = cos(static_cast<__half>(phase));
-    buffer_IM[buffer_array_id] = -sin(static_cast<__half>(phase));
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(8.0));
+    float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
+
+    buffer_RE[buffer_array_id] = cos(phase);
+    buffer_IM[buffer_array_id] = -sin(phase);
   }
 
   //Literal version of dft matrix.
@@ -230,12 +232,14 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     //On the fly computation of DFT matrix
     //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
     //and literal version
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(128.0));
-    __half twiddle_RE = cos(static_cast<__half>(phase));
-    __half twiddle_IM = -sin(static_cast<__half>(phase));
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(128.0));
+    float phase = (static_cast<float>(inter_warp_id_16 * j) * M_PI) / 128.0;
+
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
@@ -296,7 +300,7 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //For the second r16 step the results of 16 other warps are needed to perform
   //one 4096 length combine. This should fit in shared memory on most devcices
   //however due to a growth of 16x with each step in shared mem usage this isnt
-  //possible for further steps atm.
+  //possible for further steps atm.static_cast<__half>(
   //Reorder and multiply with twiddle factors the results of the first r16 step
   //so the matrix to load in a fragment is linear in memory (see TensorRadix16
   //kernel for why).
@@ -322,14 +326,13 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
 
     //On the fly computation of DFT matrix
     //TODO: test speed and accuracy of cos,cosf,coh and literal version
-    __half phase = (static_cast<float>(i_global * inter_block_warp_id) * M_PI) /
-                   static_cast<float>(2048.0);
-    // __half phase =
-    //     __hdiv(__hmul(static_cast<__half>(i_global * j),
-    //                   static_cast<__half>(M_PI)),
-    //            static_cast<__half>(2048.0));
-    __half twiddle_RE = cos(static_cast<__half>(phase));
-    __half twiddle_IM = -sin(static_cast<__half>(phase));
+    // __half phase = (static_cast<float>(i_global * inter_block_warp_id) * M_PI) /
+    //                static_cast<float>(2048.0);
+    float phase = (static_cast<float>(i_global * inter_block_warp_id) * M_PI) /
+                  2048.0;
+                  
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id_old];
     __half input_IM = buffer_IM[buffer_array_id_old];

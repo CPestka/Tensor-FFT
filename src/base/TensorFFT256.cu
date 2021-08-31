@@ -58,12 +58,14 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     int j = k + 8 * inter_warp_id_is_upper_16;
     int buffer_array_id = inter_warp_id_16 + 16 * j;
 
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(8.0));
-    buffer_RE[buffer_array_id] = cos(static_cast<__half>(phase));
-    buffer_IM[buffer_array_id] = -sin(static_cast<__half>(phase));
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(8.0));
+    float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
+
+    buffer_RE[buffer_array_id] = cos(phase);
+    buffer_IM[buffer_array_id] = -sin(phase);
   }
 
   //Literal version of dft matrix.
@@ -249,12 +251,14 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
     //On the fly computation of DFT matrix
     //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
     //and literal version
-    __half phase =
-        __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
-                      static_cast<__half>(M_PI)),
-               static_cast<__half>(128.0));
-    __half twiddle_RE = hcos(static_cast<__half>(phase));
-    __half twiddle_IM = -hsin(static_cast<__half>(phase));
+    // __half phase =
+    //     __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
+    //                   static_cast<__half>(M_PI)),
+    //            static_cast<__half>(128.0));
+    float phase = (static_cast<floatt>(inter_warp_id_16 * j) * M_PI) / 128.0;
+
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
