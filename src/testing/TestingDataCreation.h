@@ -160,15 +160,15 @@ std::unique_ptr<__half[]> CreateSineSuperpostionHGPU(
   cudaMalloc(&dptr_data, 2 * sizeof(__half) * fft_length);
 
   float* dptr_weights_RE;
-  cudaMalloc(&dptr_weights_RE, sizeof(float) * fft_length);
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * frequency_cutof);
   cudaMemcpy(dptr_weights_RE, &(weights_RE[0]),
-             sizeof(float) * fft_length,
+             sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   float* dptr_weights_IM;
-  cudaMalloc(&dptr_weights_IM, sizeof(float) * fft_length);
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * frequency_cutof);
   cudaMemcpy(dptr_weights_IM, &(weights_IM[0]),
-             sizeof(float) * fft_length,
+             sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   cudaDeviceSynchronize();
@@ -206,13 +206,13 @@ std::unique_ptr<__half2[]> CreateSineSuperpostionH2GPU(
   cudaMalloc(&dptr_data, sizeof(__half2) * fft_length);
 
   float* dptr_weights_RE;
-  cudaMalloc(&dptr_weights_RE, sizeof(float) * fft_length);
-  cudaMemcpy(dptr_weights_RE, &(weights_RE[0]), sizeof(float) * fft_length,
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * frequency_cutof);
+  cudaMemcpy(dptr_weights_RE, &(weights_RE[0]), sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   float* dptr_weights_IM;
-  cudaMalloc(&dptr_weights_IM, sizeof(float) * fft_length);
-  cudaMemcpy(dptr_weights_IM, &(weights_IM[0]), sizeof(float) * fft_length,
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * frequency_cutof);
+  cudaMemcpy(dptr_weights_IM, &(weights_IM[0]), sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   Integer amount_of_blocks = fft_length / 256;
@@ -250,13 +250,13 @@ std::unique_ptr<cufftComplex[]> CreateSineSuperpostionF2GPU(
   cudaMalloc(&dptr_data, sizeof(cufftComplex) * fft_length);
 
   float* dptr_weights_RE;
-  cudaMalloc(&dptr_weights_RE, sizeof(float) * fft_length);
-  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * fft_length,
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * frequency_cutof);
+  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   float* dptr_weights_IM;
-  cudaMalloc(&dptr_weights_IM, sizeof(float) * fft_length);
-  cudaMemcpy(dptr_weights_IM, &weights_IM[0], sizeof(float) * fft_length,
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * frequency_cutof);
+  cudaMemcpy(dptr_weights_IM, &weights_IM[0], sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   cudaDeviceSynchronize();
@@ -295,13 +295,13 @@ std::unique_ptr<cufftDoubleComplex[]> CreateSineSuperpostionD2GPU(
   cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
 
   float* dptr_weights_RE;
-  cudaMalloc(&dptr_weights_RE, sizeof(float) * fft_length);
-  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * fft_length,
+  cudaMalloc(&dptr_weights_RE, sizeof(float) * frequency_cutof);
+  cudaMemcpy(dptr_weights_RE, &weights_RE[0], sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   float* dptr_weights_IM;
-  cudaMalloc(&dptr_weights_IM, sizeof(float) * fft_length);
-  cudaMemcpy(dptr_weights_IM, &weights_IM[0], sizeof(float) * fft_length,
+  cudaMalloc(&dptr_weights_IM, sizeof(float) * frequency_cutof);
+  cudaMemcpy(dptr_weights_IM, &weights_IM[0], sizeof(float) * frequency_cutof,
              cudaMemcpyHostToDevice);
 
   Integer amount_of_blocks = fft_length / 256;
