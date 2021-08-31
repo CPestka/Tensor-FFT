@@ -62,8 +62,8 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
         __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
                       static_cast<__half>(M_PI)),
                static_cast<__half>(8.0));
-    buffer_RE[buffer_array_id] = hcos(phase);
-    buffer_IM[buffer_array_id] = -hsin(phase);
+    buffer_RE[buffer_array_id] = cos(static_cast<__half>(phase));
+    buffer_IM[buffer_array_id] = -sin(static_cast<__half>(phase));
   }
 
   //Literal version of dft matrix.
@@ -253,8 +253,8 @@ __global__ void TensorFFT256(__half* input_data_RE, __half* input_data_IM,
         __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
                       static_cast<__half>(M_PI)),
                static_cast<__half>(128.0));
-    __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
+    __half twiddle_RE = hcos(static_cast<__half>(phase));
+    __half twiddle_IM = -hsin(static_cast<__half>(phase));
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
