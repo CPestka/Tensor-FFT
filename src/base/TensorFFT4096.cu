@@ -238,8 +238,8 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     //            static_cast<__half>(128.0));
     float phase = (static_cast<float>(inter_warp_id_16 * j) * M_PI) / 128.0;
 
-    __half twiddle_RE = cosf(phase);
-    __half twiddle_IM = -sinf(phase);
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
@@ -331,8 +331,8 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     float phase = (static_cast<float>(i_global * inter_block_warp_id) * M_PI) /
                   2048.0;
 
-    __half twiddle_RE = cosf(phase);
-    __half twiddle_IM = -sinf(phase);
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id_old];
     __half input_IM = buffer_IM[buffer_array_id_old];
