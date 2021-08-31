@@ -120,6 +120,7 @@ std::vector<RunConfig> GetRunConfigs(RunParameterSearchSpace search_space){
             search_space.base_fft_warps_per_block_[i];
         tmp.r16_warps_per_block_ = search_space.r16_warps_per_block_[j];
         tmp.r2_blocksize_ = search_space.r2_blocksize_[k];
+
         configs.push_back(tmp);
       }
     }

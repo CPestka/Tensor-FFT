@@ -79,7 +79,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
                                     const int base_fft_warps_per_block,
                                     const int r16_warps_per_block,
                                     const int r2_blocksize){
-  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
+  //std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
 
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
