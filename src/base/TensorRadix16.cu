@@ -121,8 +121,8 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     float phase = 2.0 * M_PI * tmp;
 
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = cosf(phase);
-    __half twiddle_IM = -sinf(phase);
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     //Fetch current data once from global memory to use it twice
     //For unscaled or scaling at once
