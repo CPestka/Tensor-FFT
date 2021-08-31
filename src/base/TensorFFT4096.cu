@@ -55,27 +55,21 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //On the fly computation of DFT matrix
   //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
   //and literal version
-  // #pragma unroll
-  // for(int k=0; k<8; k++){
-  //   int j = k + 8 * inter_warp_id_is_upper_16;
-  //   int buffer_array_id = inter_warp_id_16 + 16 * j;
-  //   //Modulo version for higher accuracy
-  //   /*
-  //   __half phase =
-  //       __hdiv(__hmul(static_cast<__half>((j * inter_warp_id_16) % 16),
-  //                     static_cast<__half>(M_PI)),
-  //              static_cast<__half>(8.0));
-  //   */
-  //   __half phase =
-  //       __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
-  //                     static_cast<__half>(M_PI)),
-  //              static_cast<__half>(8.0));
-  //   buffer_RE[buffer_array_id] = hcos(phase);
-  //   buffer_IM[buffer_array_id] = -hsin(phase);
-  // }
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    int j = k + 8 * inter_warp_id_is_upper_16;
+    int buffer_array_id = inter_warp_id_16 + 16 * j;
+    
+    __half phase =
+        __hdiv(__hmul(static_cast<__half>(j * inter_warp_id_16),
+                      static_cast<__half>(M_PI)),
+               static_cast<__half>(8.0));
+    buffer_RE[buffer_array_id] = hcos(phase);
+    buffer_IM[buffer_array_id] = -hsin(phase);
+  }
 
   //Literal version of dft matrix.
-  LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
+  //LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
 
   //Load DFT matrix into the according fragments
   wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
@@ -131,26 +125,6 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
   //(N/32)*id_1 + (N/512)*id_2 + (N/8192)*id_3
   #pragma unroll
   for(int k=0; k<8; k++){
-    // int buffer_array_id = k + 8 * inter_warp_id_is_upper_16 +
-    //                       16 * inter_warp_id_16;
-    // Integer output_data_id = buffer_array_id + warp_global_memory_offset;
-    //
-    // Integer tmp_id = output_data_id;
-    //
-    // Integer input_array_id = 16 * (tmp_id % 16);
-    // tmp_id = tmp_id / 16;
-    // input_array_id += (tmp_id % 16);
-    //
-    // for(int i=0; i<amount_of_r16_steps-1; i++){
-    //   tmp_id = tmp_id / 16;
-    //   input_array_id = (16 * input_array_id) + (tmp_id % 16);
-    // }
-    //
-    // for(int i=0; i<amount_of_r2_steps; i++){
-    //   tmp_id = tmp_id / 2;
-    //   input_array_id = (2 * input_array_id) + (tmp_id % 2);
-    // }
-
     int buffer_array_id = inter_warp_id_16 +
                           16 * (k + 8 * inter_warp_id_is_upper_16);
     Integer output_data_id = buffer_array_id + warp_global_memory_offset;
@@ -260,8 +234,8 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
         __hdiv(__hmul(static_cast<__half>(inter_warp_id_16 * j),
                       static_cast<__half>(M_PI)),
                static_cast<__half>(128.0));
-    __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id];
     __half input_IM = buffer_IM[buffer_array_id];
@@ -354,8 +328,8 @@ __global__ void TensorFFT4096(__half* input_data_RE, __half* input_data_IM,
     //     __hdiv(__hmul(static_cast<__half>(i_global * j),
     //                   static_cast<__half>(M_PI)),
     //            static_cast<__half>(2048.0));
-    __half twiddle_RE = hcos(phase);
-    __half twiddle_IM = -hsin(phase);
+    __half twiddle_RE = cos(phase);
+    __half twiddle_IM = -sin(phase);
 
     __half input_RE = buffer_RE[buffer_array_id_old];
     __half input_IM = buffer_IM[buffer_array_id_old];
