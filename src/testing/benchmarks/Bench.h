@@ -159,11 +159,12 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
 
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
   std::unique_ptr<__half[]> data =
       CreateSineSuperpostionHGPU(fft_length,  weights_RE, weights_IM, 10);
 
   std::vector<double> runtime;
-
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
   std::optional<Plan<Integer>> possible_plan =
       CreatePlan(fft_length, tuner_results_file);
   Plan<Integer> my_plan;
@@ -173,7 +174,7 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     std::cout << "Plan creation failed" << std::endl;
     return std::nullopt;
   }
-
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
   int device_id;
   cudaGetDevice(&device_id);
   if (!PlanWorksOnDevice(my_plan, device_id)) {
@@ -192,14 +193,14 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
     std::cout << error_mess.value() << std::endl;
     return std::nullopt;
   }
-
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
   for(int k=0; k<sample_size + warmup_samples; k++){
     error_mess = my_handler.CopyDataHostToDevice(data.get());
     if (error_mess) {
       std::cout << error_mess.value() << std::endl;
       return std::nullopt;
     }
-
+    std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
     cudaDeviceSynchronize();
 
     IntervallTimer computation_time;
@@ -208,18 +209,18 @@ std::optional<RunResults> Benchmark(const Integer fft_length,
       std::cout << error_mess.value() << std::endl;
       return std::nullopt;
     }
-
+    std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
     cudaDeviceSynchronize();
 
     if (k >= warmup_samples) {
       runtime.push_back(computation_time.getTimeInNanoseconds());
     }
   }
-
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
   BenchResult results;
   results.average_time_ = ComputeAverage(runtime);
   results.std_deviation_ = ComputeSigma(runtime, results.average_time_);
-
+  std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
   RunResults tmp = {my_plan.base_fft_mode_, my_plan.base_fft_warps_per_block_,
                     my_plan.r16_warps_per_block_, my_plan.r2_blocksize_,
                     results};
