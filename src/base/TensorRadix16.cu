@@ -71,8 +71,8 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     //                   static_cast<__half>(M_PI)),
     //            static_cast<__half>(8.0));
     float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
-    buffer_RE[buffer_array_id] = cos(phase);
-    buffer_IM[buffer_array_id] = -sin(phase);
+    buffer_RE[buffer_array_id] = cosf(phase);
+    buffer_IM[buffer_array_id] = -sinf(phase);
   }
 
   //Literal version of dft matrix.
@@ -120,8 +120,8 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     float phase = 2.0 * M_PI * tmp;
 
     //TO-SELF: test __cosf vs cos accuracy and speed
-    __half twiddle_RE = cos(phase);
-    __half twiddle_IM = -sin(phase);
+    __half twiddle_RE = cosf(phase);
+    __half twiddle_IM = -sinf(phase);
 
     //Fetch current data once from global memory to use it twice
     //For unscaled or scaling at once
