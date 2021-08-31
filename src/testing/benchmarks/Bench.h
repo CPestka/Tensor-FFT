@@ -391,7 +391,8 @@ std::optional<BenchResult> BenchmarkCuFFTHalf(long long fft_length,
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM, 10);
+      CreateSineSuperpostionH2GPU(fft_length, weights_RE, weights_IM,
+                                  static_cast<long long>(10));
 
   std::vector<double> runtime;
 
@@ -464,7 +465,8 @@ std::optional<BenchResult> BenchmarkCuFFTFloat(long long fft_length,
   std::vector<float> weights_RE = GetRandomWeights(10, 42);
   std::vector<float> weights_IM = GetRandomWeights(10, 4242);
   std::unique_ptr<cufftComplex[]> data =
-      CreateSineSuperpostionF2GPU(fft_length, weights_RE, weights_IM, 10);
+      CreateSineSuperpostionF2GPU(fft_length, weights_RE, weights_IM,
+                                  static_cast<long long>(10));
 
   std::vector<double> runtime;
 
@@ -526,7 +528,7 @@ std::optional<BenchResult> BenchmarkCuFFTFloat(long long fft_length,
 }
 
 //Bench for single fft of cufft
-std::optional<BenchResult> BenchmarkCuFFTDouble(long long fft_length,
+std::optional<BenchResult> BenchmarkCuFFTDouble(int fft_length,
                                                 const int warmup_samples,
                                                 const int sample_size){
   std::cout << "Benchmarking fft_length: " << fft_length << std::endl;
