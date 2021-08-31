@@ -16,9 +16,10 @@
 
 int main(){
   constexpr int start_fft_length = 16*16;
-  constexpr int end_fft_length = 16*16*16*16*16*16*16;
+  constexpr int end_fft_length = 16*16*16*16*16 * 16*16;
 
-  constexpr int highest_harmonic = 20;
+  constexpr int highest_harmonic = end_fft_length;
+  constexpr int frequency_cutof = 16*16;
   constexpr int seed = 42;
 
   std::vector<float> weights_RE =
