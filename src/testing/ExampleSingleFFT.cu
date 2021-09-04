@@ -29,8 +29,7 @@ int main(){
   // std::vector<float> weights_RE { 1.0 };
   // std::vector<float> weights_IM { 0.0 };
   std::unique_ptr<__half[]> data =
-      CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM,
-                                 weights_RE.size();
+      CreateSineSuperpostionHGPU(fft_length, weights_RE, weights_IM, 7);
 
   //Write results to file
   //WriteResultsToFile("example_in.dat", fft_length, data.get());
