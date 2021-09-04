@@ -90,7 +90,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteResultsToFile("example_results.dat", fft_length, data.get());
+  //WriteResultsToFile("example_results.dat", fft_length, data.get());
 
   return true;
 }
