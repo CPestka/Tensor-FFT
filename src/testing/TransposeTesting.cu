@@ -12,5 +12,6 @@ int main() {
   cudaMalloc(&dptr_data, 2 * sizeof(__half2) * fft_length);
   dptr_results = dptr_data + fft_length;
 
-  TransposeKernel<<fft_length/512, 512>>(dptr_data, dptr_results, fft_length, 5, 1);
+  TransposeKernel<<<fft_length/512, 512>>>(
+      dptr_data, dptr_results, fft_length, 5, 1);
 }
