@@ -33,17 +33,46 @@
 //[(((i/2)/16)/16)/16]. The according memory offset can be computed from those
 //indecies y[id_0][id_1]... In this case -> output_offset = (N/2)*id_0 +
 //(N/32)*id_1 + (N/512)*id_2 + (N/8192)*id_3
-template <typename Integer>
-__global__ void TransposeKernel(__half2* input_data, __half2* output_data,
-                                Integer fft_length, int amount_of_r16_steps,
+// template <typename Integer>
+// __global__ void TransposeKernel(__half2* input_data, __half2* output_data,
+//                                 Integer fft_length, int amount_of_r16_steps,
+//                                 int amount_of_r2_steps) {
+//   //The thread id is the id for the entry of the input array we wish to store to
+//   //the correct position in the output array
+//   Integer id = blockDim.x * blockIdx.x + threadIdx.x;
+//
+//   Integer output_id = 0;
+//   Integer current_row_length = fft_length;
+//   Integer tmp = id;
+//
+//   for(int i=0; i<amount_of_r2_steps; i++){
+//     current_row_length = current_row_length / 2;
+//     output_id += ((tmp % 2) * current_row_length);
+//     tmp = tmp / 2;
+//   }
+//
+//   for(int i=0; i<amount_of_r16_steps; i++){
+//     current_row_length = current_row_length / 16;
+//     output_id += ((tmp % 16) * current_row_length);
+//     tmp = tmp / 16;
+//   }
+//   output_id += tmp;
+//
+//   //Move input data to correct position
+//   output_data[output_id] = input_data[id];
+// }
+
+__global__ void TransposeKernel(__half* input_data_RE, __half* input_data_IM,
+                                __half* output_data_RE, __half* output_data_IM,
+                                int fft_length, int amount_of_r16_steps,
                                 int amount_of_r2_steps) {
   //The thread id is the id for the entry of the input array we wish to store to
   //the correct position in the output array
-  Integer id = blockDim.x * blockIdx.x + threadIdx.x;
+  int id = blockDim.x * blockIdx.x + threadIdx.x;
 
-  Integer output_id = 0;
-  Integer current_row_length = fft_length;
-  Integer tmp = id;
+  int output_id = 0;
+  int current_row_length = fft_length;
+  int tmp = id;
 
   for(int i=0; i<amount_of_r2_steps; i++){
     current_row_length = current_row_length / 2;
@@ -59,5 +88,6 @@ __global__ void TransposeKernel(__half2* input_data, __half2* output_data,
   output_id += tmp;
 
   //Move input data to correct position
-  output_data[output_id] = input_data[id];
+  output_data_RE[output_id] = input_data_RE[id];
+  output_data_IM[output_id] = input_data_IM[id];
 }

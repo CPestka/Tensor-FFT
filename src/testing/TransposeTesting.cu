@@ -20,7 +20,7 @@ int main() {
   __half* dptr_data_IM;
   __half* dptr_results_IM;
 
-  cudaMalloc(&dptr_data, 4 * sizeof(__half) * fft_length);
+  cudaMalloc(&dptr_data_RE, 4 * sizeof(__half) * fft_length);
   dptr_data_IM = dptr_data_RE + fft_length;
   dptr_results_RE = dptr_data_IM + fft_length;
   dptr_results_IM = dptr_results_RE + fft_length;
