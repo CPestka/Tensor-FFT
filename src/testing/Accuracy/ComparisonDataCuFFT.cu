@@ -78,18 +78,17 @@ std::unique_ptr<cufftComplex> GetComparisionFP32Data(
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed.\n";
-    return std::nullopt;
   }
 
   r = cufftPlanMany(&plan, 1, &fft_length, nullptr, 1, 1, nullptr, 1, 1,
                     CUFFT_C2C, 1);
   if (r != CUFFT_SUCCESS) {
-    return "Error! Plan creation failed.";
+    std::cout <<  "Error! Plan creation failed.";
   }
 
   r = cufftExecC2C(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    return "Error! Plan execution failed.";
+    std::cout <<  "Error! Plan execution failed.";
   }
 
   std::unique_ptr<cufftComplex> data =
@@ -112,7 +111,7 @@ std::unique_ptr<__half2> GetComparisionFP16Data(
   //Allocate device memory
   __half2* dptr_data;
   __half2* dptr_results;
-  cudaMalloc(&dptr_input_data, 2 * sizeof(__half2) * fft_length);
+  cudaMalloc(&dptr_data, 2 * sizeof(__half2) * fft_length);
   dptr_results = dptr_data + fft_length;
 
   //Produce input data based on weights
@@ -126,19 +125,18 @@ std::unique_ptr<__half2> GetComparisionFP16Data(
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed.\n";
-    return std::nullopt;
   }
 
   size_t size = 0;
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   if (r != CUFFT_SUCCESS) {
-    return "Error! Plan creation failed.";
+    std::cout <<  "Error! Plan creation failed.";
   }
 
   r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    return "Error! Plan execution failed.";
+    std::cout <<  "Error! Plan execution failed.";
   }
 
   std::unique_ptr<__half2> data = std::make_unique<__half2>(fft_length);
