@@ -44,11 +44,11 @@ __global__ void TensorRadix16(__half2* input_data,
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
   //4 dynamic shared memory buffers
-   extern __shared__ __half buffer[];
+   extern __shared__ __half shared_buffer[];
    int warp_shared_memory_offset = 768 * inter_block_warp_id;
-   __half* buffer_RE = buffer + warp_shared_memory_offset;
-   __half* buffer_IM = buffer + warp_shared_memory_offset + 256;
-   __half* buffer_tmp_RE = buffer + warp_shared_memory_offset + 512;
+   __half* buffer_RE = shared_buffer + warp_shared_memory_offset;
+   __half* buffer_IM = shared_buffer + warp_shared_memory_offset + 256;
+   __half* buffer_tmp_RE = shared_buffer + warp_shared_memory_offset + 512;
 
   wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
       dft_RE_frag;
