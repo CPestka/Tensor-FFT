@@ -41,7 +41,7 @@ template <typename Integer>
 std::optional<std::string> ComputeFFT(Plan &fft_plan,
                                       __half2* dptr_input_data,
                                       __half2* dptr_output_data,
-                                      const int max_no_optin_shared_mem =
+                                      int max_no_optin_shared_mem =
                                       32768){
   //Above a certain threshold, if more shared memory is requested it has to be
   //manualy enabled with the specific threshold depending on the used GPU.
