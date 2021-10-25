@@ -31,18 +31,17 @@ std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
     std::cout << "Error! Plan creation failed.\n";
-    return std::nullopt;
   }
 
   r = cufftPlanMany(&plan, 1, &fft_length, nullptr, 1, 1, nullptr, 1, 1,
                     CUFFT_Z2Z, 1);
   if (r != CUFFT_SUCCESS) {
-    return "Error! Plan creation failed.";
+    std::cout << "Error! Plan creation failed.";
   }
 
   r = cufftExecZ2Z(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    return "Error! Plan execution failed.";
+    std::cout << "Error! Plan execution failed.";
   }
 
   std::unique_ptr<cufftDoubleComplex> data =
@@ -65,7 +64,7 @@ std::unique_ptr<cufftComplex> GetComparisionFP32Data(
   //Allocate device memory
   cufftComplex* dptr_data;
   cufftComplex* dptr_results;
-  cudaMalloc(&dptr_input_data, 2 * sizeof(cufftComplex) * fft_length);
+  cudaMalloc(&dptr_data, 2 * sizeof(cufftComplex) * fft_length);
   dptr_results = dptr_data + fft_length;
 
   //Produce input data based on weights
