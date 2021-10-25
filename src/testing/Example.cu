@@ -7,7 +7,7 @@
 #include "../base/Plan.h"
 #include "../base/ComputeFFT.h"
 #include "WeightMaker.h"
-#include "DataMaker.h"
+#include "DataMaker.cu"
 #include "FileWriter.h"
 
 int main(){
@@ -21,7 +21,7 @@ int main(){
     std::cout << "Plan creation failed" << std::endl;
     return false;
   }
-  
+
   //Check if parameters of plan work given limitations on used device.
   int device_id;
   cudaGetDevice(&device_id);
