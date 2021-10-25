@@ -152,6 +152,7 @@ std::unique_ptr<__half2> GetComparisionFP16Data(
   return std::move(data);
 }
 
+template<typename Integer>
 std::unique_ptr<__half2> GetOurFP16Data(
     float2* dptr_weights, int amount_of_frequencies, long long fft_length,
     double normalization_factor){
@@ -180,8 +181,8 @@ std::unique_ptr<__half2> GetOurFP16Data(
       normalization_factor);
 
   //Compute the FFT on the device
-  error_mess = ComputeFFT(my_plan, dptr_input_data, dptr_output_data,
-                          GetMaxNoOptInSharedMem(device_id));
+  error_mess = ComputeFFT<Integer>(my_plan, dptr_input_data, dptr_output_data,
+                                   GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
   }
