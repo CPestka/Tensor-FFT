@@ -24,15 +24,15 @@ int main(){
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
   cudaDeviceSynchronize();
 
-  Errors err = ComputeOurVsFp64Errors(fft_length, dptr_weights,
-                                      amount_of_frequencies, 1.0);
+  Errors err = ComputeOurVsFp64Errors<int>(fft_length, dptr_weights,
+                                           amount_of_frequencies, 1.0);
 
   std::cout << "Max div: " << err.MaxDiv
             << " MAE: " << err.MeanAbsoluteError
             << " RMSE: " << err.RootMeanSquareError << std::endl;
 
   std::unique_ptr<__half2> results =
-      GetOurFP16Data(dptr_weights, amount_of_frequencies, fft_length, 1.0);
+      GetOurFP16Data<int>(dptr_weights, amount_of_frequencies, fft_length, 1.0);
 
   WriteFFTToFile("TestResults.dat", fft_length, results.get());
 
