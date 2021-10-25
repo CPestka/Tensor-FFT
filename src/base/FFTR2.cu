@@ -16,8 +16,8 @@
 //launched and the ptrs to the in/out data have to point to the beginnning of
 //the fft that is to be proccessed and not to the global start of the data.
 template <typename Integer>
-__global__ void Radix2Kernel(__half* input_data,
-                             __half* output_data,
+__global__ void Radix2Kernel(__half2* input_data,
+                             __half2* output_data,
                              Integer sub_fft_length) {
   Integer memory_point1_offset = blockDim.x * blockIdx.x + threadIdx.x;
   Integer memory_point2_offset = memory_point1_offset + sub_fft_length;
