@@ -36,7 +36,7 @@ int main(){
       std::make_unique<float2[]>(amount_of_frequencies);
   SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
   float2* dptr_weights = nullptr;
-  cudaMalloc(&dptr_weigths, sizeof(float2) * amount_of_frequencies);
+  cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
   cudaMemcpy(dptr_weigths, weights.get(),
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
 
