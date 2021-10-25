@@ -74,6 +74,6 @@ Errors ComputeFP16VsFp64Errors(long long fft_length,
       GetComparisionFP16Data(dptr_weights, amount_of_frequencies, fft_length,
                              normalization_factor);
 
-  return ComputeErrors<long long,cufftDoubleComplex,cufftComplex>(
+  return ComputeErrors<long long,cufftDoubleComplex,__half2>(
         fp64_results.get(), fp16_results.get(), fft_length);
 }
