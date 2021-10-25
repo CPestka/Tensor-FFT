@@ -6,6 +6,8 @@
 #include <string>
 #include <optional>
 
+#include "Accuracy/ComputeError.h"
+
 template <typename float2_t>
 std::optional<std::string> WriteFFTToFile(const std::string file_name,
                                           const int64_t fft_length,
