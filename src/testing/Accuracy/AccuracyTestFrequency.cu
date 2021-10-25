@@ -1,10 +1,9 @@
 //Accuracy benchmark for a varrying frequency bandwidth but with fixed length.
-#pragma once
-
 #include <vector>
 #include <memory>
 
 #include "../DataMaker.cu"
+#include "../WeightMaker.cu"
 #include "ComputeError.h"
 #include "../FileWriter.h"
 
