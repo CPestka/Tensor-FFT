@@ -37,7 +37,7 @@ int main(){
   SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
   float2* dptr_weights = nullptr;
   cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
-  cudaMemcpy(dptr_weigths, weights.get(),
+  cudaMemcpy(dptr_weights, weights.get(),
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
 
   //Allocate device memory
