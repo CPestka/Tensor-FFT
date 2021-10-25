@@ -35,7 +35,7 @@ int main(){
   std::unique_ptr<float2[]> weights =
       std::make_unique<float2[]>(amount_of_frequencies);
   SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
-  float2* dptr_weigths = nullptr;
+  float2* dptr_weights = nullptr;
   cudaMalloc(&dptr_weigths, sizeof(float2) * amount_of_frequencies);
   cudaMemcpy(dptr_weigths, weights.get(),
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
@@ -52,8 +52,8 @@ int main(){
 
   //Compute the FFT on the device
   std::optional<std::string> error_mess =
-      ComputeFFT(my_plan, dptr_input_data, dptr_output_data,
-                 GetMaxNoOptInSharedMem(device_id));
+      ComputeFFT<int>(my_plan, dptr_input_data, dptr_output_data,
+                      GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;
@@ -69,7 +69,7 @@ int main(){
   if (cudaMemcpy(results.get(),
                  my_plan.results_in_results_ ?
                      dptr_output_data : dptr_input_data,
-                 fft_length_ * sizeof(__half2),
+                 fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
        != cudaSuccess) {
      std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
