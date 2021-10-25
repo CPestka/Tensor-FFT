@@ -1,14 +1,10 @@
 //Contains the kernel that performs the radix16 steps on tensor cores
 #pragma once
 
-#include <type_traits>
-
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <cuda_fp16.h>
 #include <mma.h>
-
-#include "DFTMatrix.h"
 
 using namespace nvcuda;
 
@@ -34,9 +30,10 @@ using namespace nvcuda;
 //This kernel is, if the fft legth is long enough, called (multiple times) after
 //either TensorFFT256 or TensorFFT4096 and then followed Radix2Kernel.
 template <typename Integer>
-__global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
-                              __half* output_data_RE, __half* output_data_IM,
-                              Integer fft_length, Integer sub_fft_length) {
+__global__ void TensorRadix16(__half2* input_data,
+                              __half2* output_data,
+                              Integer fft_length,
+                              Integer sub_fft_length) {
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   Integer warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;
@@ -59,7 +56,7 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
       dft_IM_frag;
 
   //On the fly computation of DFT matrix
-  //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
+  //TODO: test speed and accuracy of cos,cosf,hcos
   //and literal version
   #pragma unroll
   for(int k=0; k<8; k++){
@@ -95,8 +92,8 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
   //matrix consists of 16 length 16 linear chuncks, which are offset in
   //respect to each other by sub_fft_length=16^m.
   //Reads are linear in inter_warp_id_16 -> Global reads of 32bytes of
-  //sequential memory. Smallest "cuda read" is 32 bytes -> no waste
-  //But TODO: ? version that takes 8 matrices -> 256bytes = largest "cuda read"
+  //sequential memory. 256 would be ideal -> possible improvement: fetch memory
+  //for 8 matrices at once.
   //Also, by swaping the indecies when loading the storing to and from the
   //fragment the fragment holds the transposed data, which is needed since the
   //data is stored in row major order in memory but is needed in collum major
@@ -111,7 +108,7 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
     //On the fly computation of twiddle fctors
-    //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
+    //TODO: test speed and accuracy of cos,cosf,hcos
     //and literal version (look up table of N points cos(2*PI*i/N ))
     //Float because static_cast<__half>(combined_fft_length) overflows
     float tmp = static_cast<float>(i * j)  /
@@ -120,20 +117,16 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
     //                       static_cast<__half>(tmp));
     float phase = 2.0 * M_PI * tmp;
 
-    //TO-SELF: test __cosf vs cos accuracy and speed
+    //TO-SELF: test cosf vs cos accuracy and speed
     __half twiddle_RE = cosf(phase);
     __half twiddle_IM = -sinf(phase);
 
-    //Fetch current data once from global memory to use it twice
-    //For unscaled or scaling at once
-    // __half input_RE = input_data_RE[global_memory_offset];
-    // __half input_IM = input_data_IM[global_memory_offset];
+    //Fetch current data
+    __half2 tmp = input_data[global_memory_offset];
 
-    //For sequential scaling
-    __half input_RE = __hdiv(input_data_RE[global_memory_offset],
-                            static_cast<__half>(16.0));
-    __half input_IM = __hdiv(input_data_IM[global_memory_offset],
-                            static_cast<__half>(16.0));
+    //Unpacking and sequential scaling
+    __half input_RE = __hdiv(tmp.x, static_cast<__half>(16.0));
+    __half input_IM = __hdiv(tmp.y, static_cast<__half>(16.0));
 
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
@@ -206,9 +199,9 @@ __global__ void TensorRadix16(__half* input_data_RE, __half* input_data_IM,
                                    (substep_id * combined_fft_length);
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
-    output_data_RE[global_memory_offset] =
-        buffer_RE[buffer_matrix_memory_offset];
-    output_data_IM[global_memory_offset] =
-        buffer_IM[buffer_matrix_memory_offset];
+    __half2 tmp {buffer_RE[buffer_matrix_memory_offset],
+                 buffer_IM[buffer_matrix_memory_offset]};
+
+    output_data[global_memory_offset] = tmp;
   }
 }
