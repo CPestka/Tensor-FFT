@@ -30,18 +30,18 @@ std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
 
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed.\n";
+    std::cout << "Error! Plan creation failed.\n" << std::endl;
   }
 
   r = cufftPlanMany(&plan, 1, &fft_length, nullptr, 1, 1, nullptr, 1, 1,
                     CUFFT_Z2Z, 1);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed.";
+    std::cout << "Error! Plan creation failed." << std::endl;
   }
 
   r = cufftExecZ2Z(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan execution failed.";
+    std::cout << "Error! Plan execution failed." << std::endl;
   }
 
   std::unique_ptr<cufftDoubleComplex> data =
@@ -59,7 +59,7 @@ std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
 }
 
 std::unique_ptr<cufftComplex> GetComparisionFP32Data(
-    float2* dptr_weights, int amount_of_frequencies, long long fft_length,
+    float2* dptr_weights, int amount_of_frequencies, int fft_length,
     double normalization_factor){
   //Allocate device memory
   cufftComplex* dptr_data;
@@ -77,18 +77,18 @@ std::unique_ptr<cufftComplex> GetComparisionFP32Data(
 
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed.\n";
+    std::cout << "Error! Plan creation failed.\n" << std::endl;
   }
 
   r = cufftPlanMany(&plan, 1, &fft_length, nullptr, 1, 1, nullptr, 1, 1,
                     CUFFT_C2C, 1);
   if (r != CUFFT_SUCCESS) {
-    std::cout <<  "Error! Plan creation failed.";
+    std::cout <<  "Error! Plan creation failed." << std::endl;
   }
 
   r = cufftExecC2C(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    std::cout <<  "Error! Plan execution failed.";
+    std::cout <<  "Error! Plan execution failed." << std::endl;
   }
 
   std::unique_ptr<cufftComplex> data =
@@ -124,19 +124,19 @@ std::unique_ptr<__half2> GetComparisionFP16Data(
 
   r = cufftCreate(&plan);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed.\n";
+    std::cout << "Error! Plan creation failed.\n" << std::endl;
   }
 
   size_t size = 0;
   r = cufftXtMakePlanMany(plan, 1, &fft_length, nullptr, 1, 1, CUDA_C_16F,
                           nullptr, 1, 1, CUDA_C_16F, 1, &size, CUDA_C_16F);
   if (r != CUFFT_SUCCESS) {
-    std::cout <<  "Error! Plan creation failed.";
+    std::cout <<  "Error! Plan creation failed." << std::endl;
   }
 
   r = cufftXtExec(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    std::cout <<  "Error! Plan execution failed.";
+    std::cout <<  "Error! Plan execution failed." << std::endl;
   }
 
   std::unique_ptr<__half2> data = std::make_unique<__half2>(fft_length);
@@ -166,7 +166,6 @@ std::unique_ptr<__half2> GetOurFP16Data(
   cudaGetDevice(&device_id);
   if (!PlanWorksOnDevice(my_plan, device_id)) {
     std::cout << "Error! Plan imcompatible with used device." << std::endl;
-    return false;
   }
 
   //Allocate device memory
@@ -185,7 +184,6 @@ std::unique_ptr<__half2> GetOurFP16Data(
                           GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
-    return false;
   }
 
   //Needed if data set smaller than 64KB and can be removed otherwise.
@@ -202,7 +200,6 @@ std::unique_ptr<__half2> GetOurFP16Data(
                  cudaMemcpyDeviceToHost)
        != cudaSuccess) {
      std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-     return false;
   }
 
   //Make sure the results have finished cpying
