@@ -7,7 +7,7 @@
 #include <optional>
 
 #include "../../base/Plan.h"
-#include "../../ComputeFFT.h"
+#include "../../base/ComputeFFT.h"
 #include "../DataMaker.cu"
 
 #include <cufft.h>
