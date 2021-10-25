@@ -69,7 +69,7 @@ int ExactLog2(const Integer x) {
   }
 }
 
-std::optional<std::string>> ConfigurePlan(
+std::optional<std::string> ConfigurePlan(
     Plan my_plan,
     int64_t fft_length,
     const int transpose_warps_per_block = 16,
@@ -100,11 +100,11 @@ std::optional<std::string>> ConfigurePlan(
 
   my_plan.transpose_config_ = {16,
                                16 * 32,
-                               fft_length / 4096,
+                               static_cast<int>(fft_length) / 4096,
                                32768};
   my_plan.base_fft_config_ = {16,
                               16 * 32,
-                              fft_length / 4096,
+                              static_cast<int>(fft_length) / 4096,
                               32768};
 
   if (!(r16_warps_per_block == 1 ||
@@ -116,7 +116,8 @@ std::optional<std::string>> ConfigurePlan(
   }
   my_plan.r16_config_ = {r16_warps_per_block,
                          r16_warps_per_block * 32,
-                         (fft_length / 256) / r16_warps_per_block,
+                         (static_cast<int>(fft_length) / 256)
+                          / r16_warps_per_block,
                          2048 * r16_warps_per_block};
 
   for(int i=0; i<my_plan.amount_of_r16_kernels_; i++){
