@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "../DataMaker.cu"
-#include "../WeightMaker.cu"
+#include "../WeightMaker.h"
 #include "ComputeError.h"
 #include "../FileWriter.h"
 
