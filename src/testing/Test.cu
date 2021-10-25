@@ -5,7 +5,7 @@
 #include "../base/Plan.h"
 #include "../base/ComputeFFT.h"
 #include "WeightMaker.h"
-#include "DataMaker.h"
+#include "DataMaker.cu"
 #include "Accuracy/ComputeError.h"
 #include "FileWriter.h"
 
