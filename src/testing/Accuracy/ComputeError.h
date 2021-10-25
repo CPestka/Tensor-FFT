@@ -17,7 +17,7 @@ struct ErrorTestDataPoint{
   int amount_of_frequencies;
   double max value;
   Errors divs;
-}
+};
 
 template<typename Integer, typename float2_t1, typename float2_t2>
 Errors ComputeErrors(float2_t1* data_1, float2_t2* data_2, Integer fft_length){

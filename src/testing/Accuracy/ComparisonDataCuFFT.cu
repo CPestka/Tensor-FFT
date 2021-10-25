@@ -196,7 +196,7 @@ std::unique_ptr<__half2> GetOurFP16Data(
   if (cudaMemcpy(results.get(),
                  my_plan.results_in_results_ ?
                      dptr_output_data : dptr_input_data,
-                 fft_length_ * sizeof(__half2),
+                 fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
        != cudaSuccess) {
      std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
@@ -205,5 +205,5 @@ std::unique_ptr<__half2> GetOurFP16Data(
   //Make sure the results have finished cpying
   cudaDeviceSynchronize();
 
-  return std::move(data);
+  return std::move(results);
 }
