@@ -1,4 +1,5 @@
 //Accuracy benchmark for a varrying length but with fixed frequency bandwidth.
+#pragma once
 
 #include <vector>
 #include <memory>

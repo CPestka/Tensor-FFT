@@ -1,5 +1,6 @@
 //Used to compute different error metrics comparing our implementation to
 //different CuFFT once.
+#pragma once
 
 #include <memory>
 

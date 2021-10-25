@@ -1,6 +1,5 @@
 //Contains the Plan struct and related functions. A plan is needed for the
 //execution of the FFT similar to the API of e.g. cufft or FFTW3
-
 #pragma once
 
 #include <iostream>
