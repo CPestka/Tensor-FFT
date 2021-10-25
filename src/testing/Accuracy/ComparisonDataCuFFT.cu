@@ -4,7 +4,10 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <optional>
 
+#include "../../base/Plan.h"
+#include "../../ComputeFFT.h"
 #include "../DataMaker.cu"
 
 #include <cufft.h>
