@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "ComparissionDataCuFFT.cu"
+#include "ComparisionDataCuFFT.cu"
 #include "ErrorUtil.h"
 
 struct Errors{
