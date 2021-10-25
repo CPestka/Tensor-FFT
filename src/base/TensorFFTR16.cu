@@ -122,11 +122,11 @@ __global__ void TensorRadix16(__half2* input_data,
     __half twiddle_IM = -sinf(phase);
 
     //Fetch current data
-    __half2 tmp = input_data[global_memory_offset];
+    __half2 tmp_point = input_data[global_memory_offset];
 
     //Unpacking and sequential scaling
-    __half input_RE = __hdiv(tmp.x, static_cast<__half>(16.0));
-    __half input_IM = __hdiv(tmp.y, static_cast<__half>(16.0));
+    __half input_RE = __hdiv(tmp_point.x, static_cast<__half>(16.0));
+    __half input_IM = __hdiv(tmp_point.y, static_cast<__half>(16.0));
 
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
