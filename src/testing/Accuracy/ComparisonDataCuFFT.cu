@@ -12,12 +12,12 @@
 #include <cuComplex.h>
 
 std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
-    float2* dptr_weights, int amount_of_frequencies, long long fft_length,
+    float2* dptr_weights, int amount_of_frequencies, int fft_length,
     double normalization_factor){
   //Allocate device memory
   cufftDoubleComplex* dptr_data;
   cufftDoubleComplex* dptr_results;
-  cudaMalloc(&dptr_input_data, 2 * sizeof(cufftDoubleComplex) * fft_length);
+  cudaMalloc(&dptr_data, 2 * sizeof(cufftDoubleComplex) * fft_length);
   dptr_results = dptr_data + fft_length;
 
   //Produce input data based on weights
