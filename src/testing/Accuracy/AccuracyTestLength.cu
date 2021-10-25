@@ -59,7 +59,7 @@ int main(){
 
   double normalization_factor =
       GetNormalizationFactor<int>(normalize_to, weights.get(),
-                                  amount_of_frequencies);
+                                  amount_of_frequencies, fft_length);
 
   std::vector<int64_t> fft_lengths;
   std::vector<Errors> errors;

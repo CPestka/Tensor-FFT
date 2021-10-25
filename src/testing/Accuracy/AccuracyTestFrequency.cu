@@ -68,7 +68,7 @@ int main(){
 
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to, weights.get(),
-                                    frequency_increment * i);
+                                    frequency_increment * i, fft_length);
 
     fft_lengths.push_back(fft_length);
     amount_of_frequencies_vec.push_back(frequency_increment * i);
