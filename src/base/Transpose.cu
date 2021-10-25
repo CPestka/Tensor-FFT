@@ -30,9 +30,11 @@ __global__ void Transposer(__half2* input_data, __half2* output_data,
   int second_to_last_dim_quadrant_id = blockIdx.x % 4;
   Integer data_offset = (blockIdx.x / 4) * 64;
 
-  extern __shared__ __half2 shared_buffer[];
-  __half2* input_buffer = shared_buffer;
-  __half2* output_buffer = shared_buffer + 4096;
+  //Numbering of the name of the shared mem buffer is in different kernels is
+  //due to stupid limitations in cuda :)
+  extern __shared__ __half2 shared_buffer1[];
+  __half2* input_buffer = shared_buffer1;
+  __half2* output_buffer = shared_buffer1 + 4096;
 
   //The sequence of these rows is: 16 rows with stride (i * fft_length / 16)
   //with acending i [0,15]. 4 of these sequences of 16 rows are stored in
