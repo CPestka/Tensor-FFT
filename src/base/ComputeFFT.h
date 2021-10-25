@@ -30,6 +30,10 @@
 #include <cuda_fp16.h>
 
 #include "Plan.h"
+#include "Transpose.cu"
+#include "TensorFFT4KBase.cu"
+#include "TensorFFTR16.cu"
+#include "FFTR2.cu"
 
 //Computes a sigle FFT.
 //Uses default stream -> no cudaDeviceSynchronize() calls between computation

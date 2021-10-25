@@ -26,13 +26,13 @@ double MaxDiv(float2_t1* data_1, float2_t2* data_2, Integer fft_length){
     double tmp_1 = static_cast<double>(data_1[i].x);
     double tmp_2 = static_cast<double>(data_2[i].x);
     double div = fabs(tmp_1 - tmp_2);
-    current_largest_div = div > current_largest_div) ?
+    current_largest_div = (div > current_largest_div) ?
                           div : current_largest_div;
 
     tmp_1 = static_cast<double>(data_1[i].y);
     tmp_2 = static_cast<double>(data_2[i].y);
     div = fabs(tmp_1 - tmp_2);
-    current_largest_div = div > current_largest_div) ?
+    current_largest_div = (div > current_largest_div) ?
                           div : current_largest_div;
   }
 
