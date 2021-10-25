@@ -66,14 +66,14 @@ __global__ void Transposer(__half2* input_data, __half2* output_data,
     Integer current_offset = 0;
 
     for(int k=0; k<amount_of_r2_steps; k++){
-      current_stride_length = current_stride_length / 2;
-      current_offset += (current_stride_length * (current_id % 2));
+      current_stride = current_stride / 2;
+      current_offset += (current_stride * (current_id % 2));
       current_id = current_id / 2;
     }
 
     for(int k=0; k<amount_of_r16_steps-1; k++){
-      current_stride_length = current_stride_length / 16;
-      current_offset += (current_stride_length * (current_id % 16));
+      current_stride = current_stride / 16;
+      current_offset += (current_stride * (current_id % 16));
       current_id = current_id / 16;
     }
 

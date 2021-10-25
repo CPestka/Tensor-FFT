@@ -98,7 +98,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
     return cudaGetErrorString(cudaPeekAtLastError());
   }
 
-  std::swap(dptr_current_input_data, dptr_current_results_data);
+  std::swap(dptr_current_input_data, dptr_current_output_data);
 
   //Launch radix16 kernels
   for(int i = 0; i<fft_plan.amount_of_r16_kernels_; i++){
