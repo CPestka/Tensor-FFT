@@ -120,10 +120,10 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
   //Radix 2 kernels
   for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
     Integer current_subfft_length =
-        fft_plan.sub_fft_length[fft_plan.amount_of_r16_kernels_ + i];
+        fft_plan.sub_fft_length_[fft_plan.amount_of_r16_kernels_ + i];
     int amount_of_r2_blocks = current_subfft_length / fft_plan.r2_blocksize_;
 
-    for(int j=0; j<my_plan.amount_of_r2_kernels_per_r2_step_[i]; j++){
+    for(int j=0; j<fft_plan.amount_of_r2_kernels_per_r2_step_[i]; j++){
       Integer memory_offset = j * 2 * current_subfft_length;
       Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_data + memory_offset,
