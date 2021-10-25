@@ -15,7 +15,7 @@ struct Errors{
 struct ErrorTestDataPoint{
   int64_t fft_length;
   int amount_of_frequencies;
-  double max value;
+  double max_value;
   Errors divs;
 };
 
@@ -29,6 +29,7 @@ Errors ComputeErrors(float2_t1* data_1, float2_t2* data_2, Integer fft_length){
   return results;
 }
 
+template<typename Integer>
 Errors ComputeOurVsFp64Errors(long long fft_length,
                               float2* dptr_weights,
                               int amount_of_frequencies,
@@ -38,8 +39,8 @@ Errors ComputeOurVsFp64Errors(long long fft_length,
                              normalization_factor);
 
   std::unique_ptr<__half2> our_results =
-       GetOurFP16Data(dptr_weights, amount_of_frequencies, fft_length,
-                      normalization_factor);
+       GetOurFP16Data<Integer>(dptr_weights, amount_of_frequencies, fft_length,
+                               normalization_factor);
 
   return ComputeErrors<long long,cufftDoubleComplex,__half2>(
         fp64_results.get(), our_results.get(), fft_length);
