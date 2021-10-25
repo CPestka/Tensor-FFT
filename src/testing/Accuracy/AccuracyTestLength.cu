@@ -1,6 +1,4 @@
 //Accuracy benchmark for a varrying length but with fixed frequency bandwidth.
-#pragma once
-
 #include <vector>
 #include <memory>
 
@@ -58,9 +56,7 @@ int main(){
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
   cudaDeviceSynchronize();
 
-  double normalization_factor =
-      GetNormalizationFactor<int>(normalize_to, weights.get(),
-                                  amount_of_frequencies, fft_length);
+
 
   std::vector<int64_t> fft_lengths;
   std::vector<Errors> errors;
@@ -68,6 +64,9 @@ int main(){
 
   for(int i=fft_length_max_log2; i<=fft_length_min_log2; i++){
     fft_lengths.push_back(ExactPowerOf2(i));
+    double normalization_factor =
+        GetNormalizationFactor<int>(normalize_to, weights.get(),
+                                    amount_of_frequencies, fft_lengths.back());
     errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
         dptr_weights, amount_of_frequencies, normalization_factor));
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
