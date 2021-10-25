@@ -1,4 +1,5 @@
 //Used for the creation of comparission data via CuFFT with varrying precissions
+#pragma once
 
 #include <vector>
 #include <memory>
