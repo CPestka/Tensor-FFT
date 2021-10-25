@@ -128,7 +128,7 @@ std::optional<std::string> ConfigurePlan(
     }
   }
   for(int i=0; i<my_plan.amount_of_r2_steps_; i++){
-    if (i == 0 && my_plan.amount_of_r16_kernels_ ==) {
+    if ((i == 0) && (my_plan.amount_of_r16_kernels_ == 0)) {
       my_plan.sub_fft_length_.push_back(4096);
     } else {
       my_plan.sub_fft_length_.push_back(my_plan.sub_fft_length_.back() * 2);
@@ -181,7 +181,7 @@ bool PlanWorksOnDevice(const Plan my_plan, const int device_id){
         static_cast<int>(properties.sharedMemPerBlockOptin)) ||
        (my_plan.base_fft_config_.shared_mem_in_bytes_ >
         static_cast<int>(properties.sharedMemPerBlockOptin))) ||
-       (my_plan.r16_gridsize_.shared_mem_in_bytes_ >
+       (my_plan.r16_config_.shared_mem_in_bytes_ >
          static_cast<int>(properties.sharedMemPerBlockOptin))) {
     std::cout << "Error! One or more kernels exceeds max shared memory per"
               << " block."
