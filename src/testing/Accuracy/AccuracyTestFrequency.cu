@@ -24,7 +24,7 @@ template <typename Integer>
 double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
                               int amount_of_frequencies, Integer fft_length){
   cufftDoubleComplex* dptr_data;
-  cudaMalloc(&dptr_input_data, sizeof(cufftDoubleComplex) * fft_length);
+  cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
   //Produce input data based on weights
   SineSupperposition<cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies, 1.0);
@@ -73,8 +73,8 @@ int main(){
     fft_lengths.push_back(fft_length);
     amount_of_frequencies_vec.push_back(frequency_increment * i);
 
-    errors.push_back(ComputeOurVsFp64Errors(fft_lengths.back(), dptr_weights,
-        frequency_increment * i, normalization_factor));
+    errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
+        dptr_weights, frequency_increment * i, normalization_factor));
 
   }
 

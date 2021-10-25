@@ -67,8 +67,8 @@ int main(){
 
   for(int i=fft_length_max_log2; i<=fft_length_min_log2; i++){
     fft_lengths.push_back(ExactPowerOf2(i));
-    errors.push_back(ComputeOurVsFp64Errors(fft_lengths.back(), dptr_weights,
-        amount_of_frequencies, normalization_factor));
+    errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
+        dptr_weights, amount_of_frequencies, normalization_factor));
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
   }
 
