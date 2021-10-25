@@ -36,7 +36,7 @@ std::optional<std::string> WriteAccuracyToFile(
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(fft_length.size()); i++){
       myfile << fft_length[i] << " "
-             << normalize_to << " "
+             << normalized_to << " "
              << amount_of_frequencies[i] << " "
              << errors[i].MaxDiv << " "
              << errors[i].MeanAbsoluteError << " "

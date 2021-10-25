@@ -8,12 +8,12 @@ double MaxValue(float2_t* data, Integer fft_length){
   double current_largest = 0;
   for(Integer i=0; i<fft_length; i++){
     double tmp = static_cast<double>(data[i].x);
-    current_largest = (fabs(tmp) > current_largest_div) ?
-                      fabs(tmp) : current_largest_div;
+    current_largest = (fabs(tmp) > current_largest) ?
+                      fabs(tmp) : current_largest;
 
     tmp = static_cast<double>(data[i].y);
-    current_largest = (fabs(tmp) > current_largest_div) ?
-                      fabs(tmp) : current_largest_div;
+    current_largest = (fabs(tmp) > current_largest) ?
+                      fabs(tmp) : current_largest;
   }
 
   return current_largest;
