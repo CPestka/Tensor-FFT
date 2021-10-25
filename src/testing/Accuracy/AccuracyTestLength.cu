@@ -5,7 +5,8 @@
 #include <memory>
 
 #include "../DataMaker.cu"
-#include "../ComputeError.h"
+#include "../WeightMaker.h"
+#include "ComputeError.h"
 #include "../FileWriter.h"
 
 template <typename Integer>
