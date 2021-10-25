@@ -14,8 +14,8 @@ int main(){
   //int amount_of_frequencies = 256;
   int amount_of_frequencies = 5;
 
-  std::unique_ptr<float2> weights =
-      std::make_unique<float2>(amount_of_frequencies);
+  std::unique_ptr<float2[]> weights =
+      std::make_unique<float2[]>(amount_of_frequencies);
   //SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
   SetDummyWeights(weights.get());
   float2* dptr_weights = nullptr;
@@ -31,7 +31,7 @@ int main(){
             << " MAE: " << err.MeanAbsoluteError
             << " RMSE: " << err.RootMeanSquareError << std::endl;
 
-  std::unique_ptr<__half2> results =
+  std::unique_ptr<__half2[]> results =
       GetOurFP16Data<int>(dptr_weights, amount_of_frequencies, fft_length, 1.0);
 
   WriteFFTToFile("TestResults.dat", fft_length, results.get());

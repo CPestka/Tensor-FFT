@@ -11,7 +11,7 @@
 #include <cuda_fp16.h>
 #include <cuComplex.h>
 
-std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
+std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
     float2* dptr_weights, int amount_of_frequencies, int fft_length,
     double normalization_factor){
   //Allocate device memory
@@ -44,8 +44,8 @@ std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
     std::cout << "Error! Plan execution failed." << std::endl;
   }
 
-  std::unique_ptr<cufftDoubleComplex> data =
-      std::make_unique<cufftDoubleComplex>(fft_length);
+  std::unique_ptr<cufftDoubleComplex[]> data =
+      std::make_unique<cufftDoubleComplex[]>(fft_length);
 
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(cufftDoubleComplex),
              cudaMemcpyDeviceToHost);
@@ -58,7 +58,7 @@ std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
   return std::move(data);
 }
 
-std::unique_ptr<cufftComplex> GetComparisionFP32Data(
+std::unique_ptr<cufftComplex[]> GetComparisionFP32Data(
     float2* dptr_weights, int amount_of_frequencies, int fft_length,
     double normalization_factor){
   //Allocate device memory
@@ -91,8 +91,8 @@ std::unique_ptr<cufftComplex> GetComparisionFP32Data(
     std::cout <<  "Error! Plan execution failed." << std::endl;
   }
 
-  std::unique_ptr<cufftComplex> data =
-      std::make_unique<cufftComplex>(fft_length);
+  std::unique_ptr<cufftComplex[]> data =
+      std::make_unique<cufftComplex[]>(fft_length);
 
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(cufftComplex),
              cudaMemcpyDeviceToHost);
@@ -105,7 +105,7 @@ std::unique_ptr<cufftComplex> GetComparisionFP32Data(
   return std::move(data);
 }
 
-std::unique_ptr<__half2> GetComparisionFP16Data(
+std::unique_ptr<__half2[]> GetComparisionFP16Data(
     float2* dptr_weights, int amount_of_frequencies, long long fft_length,
     double normalization_factor){
   //Allocate device memory
@@ -139,7 +139,7 @@ std::unique_ptr<__half2> GetComparisionFP16Data(
     std::cout <<  "Error! Plan execution failed." << std::endl;
   }
 
-  std::unique_ptr<__half2> data = std::make_unique<__half2>(fft_length);
+  std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(fft_length);
 
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
              cudaMemcpyDeviceToHost);
@@ -153,7 +153,7 @@ std::unique_ptr<__half2> GetComparisionFP16Data(
 }
 
 template<typename Integer>
-std::unique_ptr<__half2> GetOurFP16Data(
+std::unique_ptr<__half2[]> GetOurFP16Data(
     float2* dptr_weights, int amount_of_frequencies, long long fft_length,
     double normalization_factor){
   Plan my_plan;
@@ -191,7 +191,7 @@ std::unique_ptr<__half2> GetOurFP16Data(
   cudaDeviceSynchronize();
 
   //Allocate mem on host for results
-  std::unique_ptr<__half2> results = std::make_unique<__half2>(fft_length);
+  std::unique_ptr<__half2[]> results = std::make_unique<__half2[]>(fft_length);
 
   //Copy results back
   if (cudaMemcpy(results.get(),

@@ -30,8 +30,8 @@ int main(){
 
   //Get weights for data creation
   int amount_of_frequencies = 10;
-  std::unique_ptr<float2> weights =
-      std::make_unique<float2>(amount_of_frequencies);
+  std::unique_ptr<float2[]> weights =
+      std::make_unique<float2[]>(amount_of_frequencies);
   SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
   float2* dptr_weigths = nulölptr;
   cudaMalloc(&dptr_weigths, sizeof(float2) * amount_of_frequencies);
@@ -60,7 +60,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Allocate mem on host for results
-  std::unique_ptr<__half2> results = std::make_unique<__half2>(fft_length);
+  std::unique_ptr<__half2[]> results = std::make_unique<__half2[]>(fft_length);
 
   //Copy results back
   if (cudaMemcpy(results.get(),

@@ -29,8 +29,8 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
   SineSupperposition<cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies, 1.0);
 
-  std::unique_ptr<cufftDoubleComplex> data =
-      std::make_unique<cufftDoubleComplex>(fft_length);
+  std::unique_ptr<cufftDoubleComplex[]> data =
+      std::make_unique<cufftDoubleComplex[]>(fft_length);
 
   cudaMemcpy(data.get(), dptr_data, fft_length * sizeof(cufftDoubleComplex),
              cudaMemcpyDeviceToHost);
@@ -53,8 +53,8 @@ int main(){
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
 
-  std::unique_ptr<float2> weights =
-      std::make_unique<float2>(max_frequencies);
+  std::unique_ptr<float2[]> weights =
+      std::make_unique<float2[]>(max_frequencies);
   float2* dptr_weights = nullptr;
   cudaMalloc(&dptr_weights, sizeof(float2) * max_frequencies);
 

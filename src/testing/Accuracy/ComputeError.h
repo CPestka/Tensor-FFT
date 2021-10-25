@@ -34,11 +34,11 @@ Errors ComputeOurVsFp64Errors(long long fft_length,
                               float2* dptr_weights,
                               int amount_of_frequencies,
                               double normalization_factor){
-  std::unique_ptr<cufftDoubleComplex> fp64_results =
+  std::unique_ptr<cufftDoubleComplex[]> fp64_results =
       GetComparisionFP64Data(dptr_weights, amount_of_frequencies, fft_length,
                              normalization_factor);
 
-  std::unique_ptr<__half2> our_results =
+  std::unique_ptr<__half2[]> our_results =
        GetOurFP16Data<Integer>(dptr_weights, amount_of_frequencies, fft_length,
                                normalization_factor);
 
@@ -50,11 +50,11 @@ Errors ComputeFP32VsFp64Errors(long long fft_length,
                                float2* dptr_weights,
                                int amount_of_frequencies,
                                double normalization_factor){
-  std::unique_ptr<cufftDoubleComplex> fp64_results =
+  std::unique_ptr<cufftDoubleComplex[]> fp64_results =
       GetComparisionFP64Data(dptr_weights, amount_of_frequencies, fft_length,
                              normalization_factor);
 
-  std::unique_ptr<cufftComplex> fp32_results =
+  std::unique_ptr<cufftComplex[]> fp32_results =
       GetComparisionFP32Data(dptr_weights, amount_of_frequencies, fft_length,
                              normalization_factor);
 
@@ -66,11 +66,11 @@ Errors ComputeFP16VsFp64Errors(long long fft_length,
                                float2* dptr_weights,
                                int amount_of_frequencies,
                                double normalization_factor){
-  std::unique_ptr<cufftDoubleComplex> fp64_results =
+  std::unique_ptr<cufftDoubleComplex[]> fp64_results =
       GetComparisionFP64Data(dptr_weights, amount_of_frequencies, fft_length,
                              normalization_factor);
 
-  std::unique_ptr<__half2> fp16_results =
+  std::unique_ptr<__half2[]> fp16_results =
       GetComparisionFP16Data(dptr_weights, amount_of_frequencies, fft_length,
                              normalization_factor);
 
