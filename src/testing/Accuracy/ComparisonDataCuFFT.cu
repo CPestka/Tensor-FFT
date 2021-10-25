@@ -55,7 +55,7 @@ std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
   cufftDestroy(plan);
   cudaFree(dptr_data);
 
-  return std::move(data);
+  return data;
 }
 
 std::unique_ptr<cufftComplex[]> GetComparisionFP32Data(
@@ -102,7 +102,7 @@ std::unique_ptr<cufftComplex[]> GetComparisionFP32Data(
   cufftDestroy(plan);
   cudaFree(dptr_data);
 
-  return std::move(data);
+  return data;
 }
 
 std::unique_ptr<__half2[]> GetComparisionFP16Data(
@@ -149,7 +149,7 @@ std::unique_ptr<__half2[]> GetComparisionFP16Data(
   cufftDestroy(plan);
   cudaFree(dptr_data);
 
-  return std::move(data);
+  return data;
 }
 
 template<typename Integer>
@@ -206,5 +206,5 @@ std::unique_ptr<__half2[]> GetOurFP16Data(
   //Make sure the results have finished cpying
   cudaDeviceSynchronize();
 
-  return std::move(results);
+  return results;
 }
