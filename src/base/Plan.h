@@ -74,7 +74,7 @@ std::optional<Plan> MakePlan(
     const int transpose_warps_per_block = 16,
     const int r16_warps_per_block = 16,
     const int r2_blocksize = 1024){
-  Plan my_plan
+  Plan my_plan;
 
   if (!IsPowerOf2(fft_length)) {
     std::cout << "Error! Input size has to be a power of 2!" << std::endl;
