@@ -125,7 +125,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
 
     for(int j=0; j<fft_plan.amount_of_r2_kernels_per_r2_step_[i]; j++){
       Integer memory_offset = j * 2 * current_subfft_length;
-      Radix2Kernel<<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
+      Radix2Kernel<Integer><<<amount_of_r2_blocks, fft_plan.r2_blocksize_>>>(
           dptr_current_input_data + memory_offset,
           dptr_current_output_data + memory_offset,
           current_subfft_length);
