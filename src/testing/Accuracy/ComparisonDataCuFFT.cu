@@ -162,7 +162,6 @@ std::unique_ptr<__half2[]> GetOurFP16Data(
     my_plan = possible_plan.value();
   } else {
     std::cout << "Plan creation failed" << std::endl;
-    return false;
   }
 
   //Check if parameters of plan work given limitations on used device.
