@@ -6,6 +6,11 @@
 
 #include "../DataMaker.cu"
 
+#include <cufft.h>
+#include <cufftXt.h>
+#include <cuda_fp16.h>
+#include <cuComplex.h>
+
 std::unique_ptr<cufftDoubleComplex> GetComparisionFP64Data(
     float2* dptr_weights, int amount_of_frequencies, long long fft_length,
     double normalization_factor){
