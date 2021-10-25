@@ -24,7 +24,7 @@ template <typename Integer>
 double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
                               int amount_of_frequencies, Integer fft_length){
   cufftDoubleComplex* dptr_data;
-  cudaMalloc(&dptr_input_data, sizeof(cufftDoubleComplex) * fft_length);
+  cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
   //Produce input data based on weights
   SineSupperposition<cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies, 1.0);
@@ -63,7 +63,7 @@ int main(){
   std::vector<int> amount_of_frequencies_vec;
 
   for(int i=fft_length_max_log2; i<=fft_length_min_log2; i++){
-    fft_lengths.push_back(ExactPowerOf2(i));
+    fft_lengths.push_back(ExactPowerOf2<int>(i));
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to, weights.get(),
                                     amount_of_frequencies, fft_lengths.back());
@@ -72,7 +72,7 @@ int main(){
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
   }
 
-  WriteAccuracyToFile("AccuracyTest.dat", fft_lengths, normalize_to, errors,
+  WriteAccuracyToFile("AccuracyTest.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);
