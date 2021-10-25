@@ -27,7 +27,6 @@ std::optional<std::string> WriteFFTToFile(const std::string file_name,
   return std::nullopt;
 }
 
-template <typename float2_t>
 std::optional<std::string> WriteAccuracyToFile(
     const std::string file_name,
     const double normalized_to,
