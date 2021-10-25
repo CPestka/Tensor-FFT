@@ -98,7 +98,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
     return cudaGetErrorString(cudaPeekAtLastError());
   }
 
-  std::swap(dptr_current_input, dptr_current_results);
+  std::swap(dptr_current_input_data, dptr_current_results_data);
 
   //Launch radix16 kernels
   for(int i = 0; i<fft_plan.amount_of_r16_kernels_; i++){
@@ -120,7 +120,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
   //Radix 2 kernels
   for(int i=0; i<fft_plan.amount_of_r2_steps_; i++){
     Integer current_subfft_length =
-        my_plan.sub_fft_length[my_plan.amount_of_r16_kernels_ + i];
+        fft_plan.sub_fft_length[fft_plan.amount_of_r16_kernels_ + i];
     int amount_of_r2_blocks = current_subfft_length / fft_plan.r2_blocksize_;
 
     for(int j=0; j<my_plan.amount_of_r2_kernels_per_r2_step_[i]; j++){
