@@ -13,13 +13,15 @@
 int main(){
   int fft_length = 16*16*16;
 
+  std::optional<Plan> possible_plan = MakePlan(fft_length);
   Plan my_plan;
-  std::optional<std::string> error_mess = ConfigurePlan(my_plan, fft_length);
-
-  if (error_mess) {
-    std::cout << error_mess.value() << std::endl;
+  if (possible_plan) {
+    my_plan = possible_plan.value();
+  } else {
+    std::cout << "Plan creation failed" << std::endl;
+    return false;
   }
-
+  
   //Check if parameters of plan work given limitations on used device.
   int device_id;
   cudaGetDevice(&device_id);
@@ -49,8 +51,9 @@ int main(){
       fft_length, dptr_input_data, dptr_weights, amount_of_frequencies);
 
   //Compute the FFT on the device
-  error_mess = ComputeFFT(my_plan, dptr_input_data, dptr_output_data,
-                          GetMaxNoOptInSharedMem(device_id));
+  std::optional<std::string> error_mess =
+      ComputeFFT(my_plan, dptr_input_data, dptr_output_data,
+                 GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
     return false;

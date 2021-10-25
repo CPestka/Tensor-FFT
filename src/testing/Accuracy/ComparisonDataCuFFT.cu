@@ -156,10 +156,13 @@ template<typename Integer>
 std::unique_ptr<__half2[]> GetOurFP16Data(
     float2* dptr_weights, int amount_of_frequencies, long long fft_length,
     double normalization_factor){
+  std::optional<Plan> possible_plan = MakePlan(fft_length);
   Plan my_plan;
-  std::optional<std::string> error_mess = ConfigurePlan(my_plan, fft_length);
-  if (error_mess) {
-    std::cout << error_mess.value() << std::endl;
+  if (possible_plan) {
+    my_plan = possible_plan.value();
+  } else {
+    std::cout << "Plan creation failed" << std::endl;
+    return false;
   }
 
   //Check if parameters of plan work given limitations on used device.
@@ -181,8 +184,9 @@ std::unique_ptr<__half2[]> GetOurFP16Data(
       normalization_factor);
 
   //Compute the FFT on the device
-  error_mess = ComputeFFT<Integer>(my_plan, dptr_input_data, dptr_output_data,
-                                   GetMaxNoOptInSharedMem(device_id));
+  std::optional<std::string> error_mess =
+      ComputeFFT<Integer>(my_plan, dptr_input_data, dptr_output_data,
+                          GetMaxNoOptInSharedMem(device_id));
   if (error_mess) {
     std::cout << error_mess.value() << std::endl;
   }

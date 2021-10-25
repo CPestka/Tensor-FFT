@@ -69,20 +69,24 @@ int ExactLog2(const Integer x) {
   }
 }
 
-std::optional<std::string> ConfigurePlan(
-    Plan my_plan,
+std::optional<Plan> MakePlan(
     int64_t fft_length,
     const int transpose_warps_per_block = 16,
     const int r16_warps_per_block = 16,
     const int r2_blocksize = 1024){
+  Plan my_plan
+
   if (!IsPowerOf2(fft_length)) {
-    return "Error! Input size has to be a power of 2!";
+    std::cout << "Error! Input size has to be a power of 2!" << std::endl;
+    return std::nullopt;
   }
 
   int log2_of_fft_lenght = ExactLog2(fft_length);
 
   if (log2_of_fft_lenght < 12) {
-    return "Error! Input size has to be larger than 4096 i.e. 16^3";
+    std::cout << "Error! Input size has to be larger than 4096 i.e. 16^3"
+              << std::endl;
+    return std::nullopt;
   }
   my_plan.fft_length_ = fft_length;
 
@@ -112,7 +116,8 @@ std::optional<std::string> ConfigurePlan(
         r16_warps_per_block == 4 ||
         r16_warps_per_block == 8 ||
         r16_warps_per_block == 16)) {
-    return "Error! r16_warps_per_block_ != {1,2,4,8,16}.";
+    std::cout << "Error! r16_warps_per_block_ != {1,2,4,8,16}." << std::endl;
+    return std::nullopt;
   }
   my_plan.r16_config_ = {r16_warps_per_block,
                          r16_warps_per_block * 32,
@@ -143,11 +148,12 @@ std::optional<std::string> ConfigurePlan(
   }
 
   if (r2_blocksize > 4096) {
-    return "Error. r2_blocksize > 4096.";
+    std::cout << "Error. r2_blocksize > 4096." << std::endl;
+    return std::nullopt;
   }
   my_plan.r2_blocksize_ = r2_blocksize;
 
-  return std::nullopt;
+  return my_plan;
 }
 
 bool PlanWorksOnDevice(const Plan my_plan, const int device_id){
