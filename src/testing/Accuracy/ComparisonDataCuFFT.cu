@@ -25,7 +25,7 @@ std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
   dptr_results = dptr_data + fft_length;
 
   //Produce input data based on weights
-  SineSupperposition<cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
+  SineSupperposition<int,cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies,
       normalization_factor);
 
