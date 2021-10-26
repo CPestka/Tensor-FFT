@@ -14,17 +14,17 @@ __global__ void SineSupperposition(Integer fft_length,
                                    float2* weights,
                                    int amount_of_weights,
                                    double normalization_factor = 1.0){
-  Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
+  Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x + 1;
 
   double y_RE = 0;
   double y_IM = 0;
-  double x = static_cast<double>(fft_length) / static_cast<double>(thread_id);
+  double x = static_cast<double>(thread_id) / static_cast<double>(fft_length);
   double two_pi = 2 * static_cast<double>(M_PI);
 
   for(int i=0; i<amount_of_weights; i++){
     double tmp = sin(two_pi * x * (i+1));
-    y_RE += weights[i].x * tmp;
-    y_IM += weights[i].y * tmp;
+    y_RE += (weights[i].x * tmp);
+    y_IM += (weights[i].y * tmp);
   }
 
   y_RE = y_RE / normalization_factor;
