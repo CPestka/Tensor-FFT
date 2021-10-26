@@ -15,6 +15,14 @@
 #include <cuda_fp16.h>
 #include <cuComplex.h>
 
+template<typename Integer, typename float2_t>
+void ScaleResults(Integer fft_length, float2_t* data){
+  for(Integer i=0; i<fft_length; i++){
+    data[i].x = data[i].x / fft_length;
+    data[i].y = data[i].y / fft_length;
+  }
+}
+
 std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
     float2* dptr_weights, int amount_of_frequencies, int fft_length,
     double normalization_factor){
@@ -55,6 +63,8 @@ std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
              cudaMemcpyDeviceToHost);
 
   cudaDeviceSynchronize();
+
+  ScaleResults<int, cufftDoubleComplex>(fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_data);
@@ -103,6 +113,8 @@ std::unique_ptr<cufftComplex[]> GetComparisionFP32Data(
 
   cudaDeviceSynchronize();
 
+  ScaleResults<int, cufftComplex>(fft_length, data.get());
+
   cufftDestroy(plan);
   cudaFree(dptr_data);
 
@@ -145,10 +157,14 @@ std::unique_ptr<__half2[]> GetComparisionFP16Data(
 
   std::unique_ptr<__half2[]> data = std::make_unique<__half2[]>(fft_length);
 
+
+
   cudaMemcpy(data.get(), dptr_results, fft_length * sizeof(__half2),
              cudaMemcpyDeviceToHost);
 
   cudaDeviceSynchronize();
+
+  ScaleResults<long long, __half2>(fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_data);
