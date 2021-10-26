@@ -31,10 +31,12 @@ int main(){
   }
 
   //Get weights for data creation
-  int amount_of_frequencies = 10;
+  //int amount_of_frequencies = 10;
+  int amount_of_frequencies = 5;
   std::unique_ptr<float2[]> weights =
       std::make_unique<float2[]>(amount_of_frequencies);
-  SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
+  //SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
+  SetDummyWeightsRE1(weights.get());
   float2* dptr_weights = nullptr;
   cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
   cudaMemcpy(dptr_weights, weights.get(),
