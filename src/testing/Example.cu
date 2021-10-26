@@ -23,7 +23,7 @@ int main(){
   }
 
   std::cout << my_plan.amount_of_r16_steps_ << "\n"
-            << my_plan.amount_of_2_steps_ << "\n"
+            << my_plan.amount_of_r2_steps_ << "\n"
             << my_plan.amount_of_r16_kernels_ << "\n"
             << my_plan.results_in_results_ << "\n"
             << my_plan.transpose_config_.warps_per_block_ << "\n"
