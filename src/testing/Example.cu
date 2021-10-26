@@ -113,13 +113,13 @@ int main(){
   //Write results to file
   WriteFFTToFile<__half2>("example_results.dat", fft_length, results.get());
 
-  std::unique_ptr<cufftDoubleComplex[]> comp_data =
+  std::unique_ptr<__half2[]> comp_data =
       GetComparisionFP16Data(dptr_weights, amount_of_frequencies, fft_length,
                              1.0);
 
   //Write results to file
-  WriteFFTToFile<cufftDoubleComplex>("example_cu_results.dat", fft_length,
-                                     comp_data.get());
+  WriteFFTToFile<__half2>("example_cu_results.dat", fft_length,
+                          comp_data.get());
 
   cudaFree(dptr_weights);
   cudaFree(dptr_input_data);
