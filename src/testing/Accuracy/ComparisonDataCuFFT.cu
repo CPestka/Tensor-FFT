@@ -18,8 +18,10 @@
 template<typename Integer, typename float2_t>
 void ScaleResults(Integer fft_length, float2_t* data){
   for(Integer i=0; i<fft_length; i++){
-    data[i].x = data[i].x / fft_length;
-    data[i].y = data[i].y / fft_length;
+    data[i].x = static_cast<double>(data[i].x) /
+                static_cast<double>(fft_length);
+    data[i].y = static_cast<double>(data[i].y) /
+                static_cast<double>(fft_length);
   }
 }
 
