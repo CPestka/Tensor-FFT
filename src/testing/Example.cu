@@ -82,7 +82,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteFFTToFile("example_input.dat", fft_length, results.get());
+  WriteFFTToFile<__half2>("example_input.dat", fft_length, results.get());
 
   //Compute the FFT on the device
   std::optional<std::string> error_mess =
@@ -111,14 +111,15 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteFFTToFile("example_results.dat", fft_length, results.get());
+  WriteFFTToFile<__half2>("example_results.dat", fft_length, results.get());
 
   std::unique_ptr<cufftDoubleComplex[]> comp_data =
       GetComparisionFP16Data(dptr_weights, amount_of_frequencies, fft_length,
                              1.0);
 
   //Write results to file
-  WriteFFTToFile("example_cu_results.dat", fft_length, comp_data.get());
+  WriteFFTToFile<cufftDoubleComplex>("example_cu_results.dat", fft_length,
+                                     comp_data.get());
 
   cudaFree(dptr_weights);
   cudaFree(dptr_input_data);
