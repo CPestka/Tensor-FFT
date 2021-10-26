@@ -72,7 +72,7 @@ std::unique_ptr<cufftComplex[]> GetComparisionFP32Data(
   dptr_results = dptr_data + fft_length;
 
   //Produce input data based on weights
-  SineSupperposition<cufftComplex><<<fft_length / 1024, 1024>>>(
+  SineSupperposition<int,cufftComplex><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies,
       normalization_factor);
 
@@ -119,7 +119,7 @@ std::unique_ptr<__half2[]> GetComparisionFP16Data(
   dptr_results = dptr_data + fft_length;
 
   //Produce input data based on weights
-  SineSupperposition<__half2><<<fft_length / 1024, 1024>>>(
+  SineSupperposition<long long,__half2><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies,
       normalization_factor);
 
@@ -158,7 +158,7 @@ std::unique_ptr<__half2[]> GetComparisionFP16Data(
 
 template<typename Integer>
 std::unique_ptr<__half2[]> GetOurFP16Data(
-    float2* dptr_weights, int amount_of_frequencies, long long fft_length,
+    float2* dptr_weights, int amount_of_frequencies, Integer fft_length,
     double normalization_factor){
   std::optional<Plan> possible_plan = MakePlan(fft_length);
   Plan my_plan;
@@ -182,7 +182,7 @@ std::unique_ptr<__half2[]> GetOurFP16Data(
   dptr_output_data = dptr_input_data + fft_length;
 
   //Produce input data based on weights
-  SineSupperposition<__half2><<<fft_length / 1024, 1024>>>(
+  SineSupperposition<Integer,__half2><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_input_data, dptr_weights, amount_of_frequencies,
       normalization_factor);
 
