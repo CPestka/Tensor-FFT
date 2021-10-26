@@ -48,9 +48,31 @@ int main(){
   cudaMalloc(&dptr_input_data, 2 * sizeof(__half2) * fft_length);
   dptr_output_data = dptr_input_data + fft_length;
 
+  //Allocate mem on host for results
+  std::unique_ptr<__half2[]> results = std::make_unique<__half2[]>(fft_length);
+
   //Produce input data based on weights
   SineSupperposition<__half2><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_input_data, dptr_weights, amount_of_frequencies);
+
+  //Needed if data set smaller than 64KB and can be removed otherwise.
+  cudaDeviceSynchronize();
+
+  //Copy results back
+  if (cudaMemcpy(results.get(),
+                 dptr_input_data,
+                 fft_length * sizeof(__half2),
+                 cudaMemcpyDeviceToHost)
+       != cudaSuccess) {
+     std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+     return false;
+  }
+
+  //Needed if data set smaller than 64KB and can be removed otherwise.
+  cudaDeviceSynchronize();
+
+  //Write results to file
+  WriteFFTToFile("example_input.dat", fft_length, results.get());
 
   //Compute the FFT on the device
   std::optional<std::string> error_mess =
@@ -63,9 +85,6 @@ int main(){
 
   //Needed if data set smaller than 64KB and can be removed otherwise.
   cudaDeviceSynchronize();
-
-  //Allocate mem on host for results
-  std::unique_ptr<__half2[]> results = std::make_unique<__half2[]>(fft_length);
 
   //Copy results back
   if (cudaMemcpy(results.get(),
