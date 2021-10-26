@@ -49,6 +49,9 @@ int main(){
   cudaMemcpy(dptr_weights, weights.get(),
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
 
+  //Needed if data set smaller than 64KB and can be removed otherwise.
+  cudaDeviceSynchronize();
+
   //Allocate device memory
   __half2* dptr_input_data = nullptr;
   __half2* dptr_output_data = nullptr;
@@ -59,7 +62,7 @@ int main(){
   std::unique_ptr<__half2[]> results = std::make_unique<__half2[]>(fft_length);
 
   //Produce input data based on weights
-  SineSupperposition<__half2><<<fft_length / 1024, 1024>>>(
+  SineSupperposition<int,__half2><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_input_data, dptr_weights, amount_of_frequencies);
 
   //Needed if data set smaller than 64KB and can be removed otherwise.
