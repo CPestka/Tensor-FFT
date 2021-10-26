@@ -68,13 +68,13 @@ void SetDummyWeightsRE(float2* weights){
 void SetDummyWeightsRE1(float2* weights){
   weights[0].x = 1.0;
   weights[0].y = 0.0;
-  weights[1].x = 0.0;
+  weights[1].x = 1.0;
   weights[1].y = 0.0;
-  weights[2].x = 0.0;
+  weights[2].x = 1.0;
   weights[2].y = 0.0;
-  weights[3].x = 0.0;
+  weights[3].x = 1.0;
   weights[3].y = 0.0;
-  weights[4].x = 0.0;
+  weights[4].x = 1.0;
   weights[4].y = 0.0;
 }
 
