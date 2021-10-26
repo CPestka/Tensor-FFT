@@ -22,6 +22,23 @@ int main(){
     return false;
   }
 
+  std::cout << my_plan.amount_of_r16_steps_ << "\n"
+            << my_plan.amount_of_2_steps_ << "\n"
+            << my_plan.amount_of_r16_kernels_ << "\n"
+            << my_plan.results_in_results_ << "\n"
+            << my_plan.transpose_config_.warps_per_block_ << "\n"
+            << my_plan.transpose_config_.blocksize_ << "\n"
+            << my_plan.transpose_config_.gridsize_ << "\n"
+            << my_plan.transpose_config_.shared_mem_in_bytes_ << "\n"
+            << my_plan.base_fft_config_.warps_per_block_ << "\n"
+            << my_plan.base_fft_config_.blocksize_ << "\n"
+            << my_plan.base_fft_config_.gridsize_ << "\n"
+            << my_plan.base_fft_config_.shared_mem_in_bytes_ << "\n"
+            << my_plan.r16_config_.warps_per_block_ << "\n"
+            << my_plan.r16_config_.blocksize_ << "\n"
+            << my_plan.r16_config_.gridsize_ << "\n"
+            << my_plan.r16_config_.shared_mem_in_bytes_ << "\n";
+
   //Check if parameters of plan work given limitations on used device.
   int device_id;
   cudaGetDevice(&device_id);
@@ -37,12 +54,6 @@ int main(){
       std::make_unique<float2[]>(amount_of_frequencies);
   //SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
   SetDummyWeightsRE1(weights.get());
-
-  std::cout << weights[0].x << " " << weights[0].y << "\n"
-            << weights[1].x << " " << weights[1].y << "\n"
-            << weights[2].x << " " << weights[2].y << "\n"
-            << weights[3].x << " " << weights[3].y << "\n"
-            << weights[4].x << " " << weights[4].y << "\n";
 
   float2* dptr_weights = nullptr;
   cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
