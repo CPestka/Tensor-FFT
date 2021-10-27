@@ -120,7 +120,7 @@ std::optional<Plan> MakePlan(
     std::cout << "Error! r16_warps_per_block_ != {1,2,4,8,16}." << std::endl;
     return std::nullopt;
   }
-  if (r16_warps_per_block < (fft_length / 256)) {
+  if (r16_warps_per_block > (fft_length / 256)) {
     std::cout << "Error more warps per block for r16 kernel than total warps!"
               << std::endl;
     return std::nullopt;
