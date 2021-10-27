@@ -49,12 +49,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
                                       32768){
   //Above a certain threshold, if more shared memory is requested it has to be
   //manualy enabled with the specific threshold depending on the used GPU.
-  if (fft_plan.transpose_config_.shared_mem_in_bytes_ >
-      max_no_optin_shared_mem){
-    cudaFuncSetAttribute(Transposer<Integer>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         fft_plan.transpose_config_.shared_mem_in_bytes_);
-  }
+
   if (fft_plan.base_fft_config_.shared_mem_in_bytes_ >
       max_no_optin_shared_mem){
     cudaFuncSetAttribute(TensorFFT4096<Integer>,
@@ -68,14 +63,33 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
                          fft_plan.r16_config_.shared_mem_in_bytes_);
   }
 
-  Transposer<Integer><<<fft_plan.transpose_config_.gridsize_,
-                        fft_plan.transpose_config_.blocksize_,
-                        fft_plan.transpose_config_.shared_mem_in_bytes_>>>(
-      dptr_input_data,
-      dptr_output_data,
-      static_cast<Integer>(fft_plan.fft_length_),
-      fft_plan.amount_of_r16_steps_,
-      fft_plan.amount_of_r2_steps_);
+  if (fft_plan.fft_length_ == 4096) {
+    if (fft_plan.transpose_config_.shared_mem_in_bytes_ >
+        max_no_optin_shared_mem){
+      cudaFuncSetAttribute(Transposer4k,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           fft_plan.transpose_config_.shared_mem_in_bytes_);
+    }
+    Transposer4k<<<1,512,fft_plan.transpose_config_.shared_mem_in_bytes_>>>(
+        dptr_input_data,
+        dptr_output_data);
+  } else {
+    if (fft_plan.transpose_config_.shared_mem_in_bytes_ >
+        max_no_optin_shared_mem){
+      cudaFuncSetAttribute(Transposer<Integer>,
+                           cudaFuncAttributeMaxDynamicSharedMemorySize,
+                           fft_plan.transpose_config_.shared_mem_in_bytes_);
+    }
+    Transposer<Integer><<<fft_plan.transpose_config_.gridsize_,
+                          fft_plan.transpose_config_.blocksize_,
+                          fft_plan.transpose_config_.shared_mem_in_bytes_>>>(
+        dptr_input_data,
+        dptr_output_data,
+        static_cast<Integer>(fft_plan.fft_length_),
+        fft_plan.amount_of_r16_steps_,
+        fft_plan.amount_of_r2_steps_);
+  }
+
 
   if (cudaPeekAtLastError() != cudaSuccess){
     return cudaGetErrorString(cudaPeekAtLastError());

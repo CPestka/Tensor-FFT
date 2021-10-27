@@ -130,3 +130,40 @@ __global__ void TransposeKernel(__half2* input_data,
   //Move input data to correct position
   output_data[output_id] = input_data[id];
 }
+
+//For the case of fft_length=4096
+//blocksize == 512
+//gridsize == 1
+__global__ void Transposer4k(__half2* input_data, __half2* output_data){
+  //Numbering of the name of the shared mem buffer is in different kernels is
+  //due to stupid limitations in cuda :)
+  extern __shared__ __half2 shared_buffer4[];
+  __half2* input_buffer = shared_buffer4;
+  __half2* output_buffer = shared_buffer4 + 4096;
+
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    int i = threadIdx.x + (512 * k);
+    input_buffer[i] = input_data[i];
+  }
+
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    int i = threadIdx.x + (512 * k);
+    int j = (i % 16) * 256 + (((i / 16) % 16) * 16) + (i / 256);
+
+    output_buffer[j] = input_buffer[i];
+  }
+
+  #pragma unroll
+  for(int k=0; k<8; k++){
+    int i = threadIdx.x + (512 * k);
+    output_data[i] = output_buffer[i];
+  }
+}
+
+template <typename Integer>
+__global__ void ShortTransposer(__half2* input_data, __half2* output_data,
+                                Integer fft_length, int amount_of_r2_steps){
+
+}

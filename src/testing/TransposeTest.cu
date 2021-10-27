@@ -11,7 +11,7 @@
 #include "FileWriter.h"
 
 int main(){
-  int fft_length = 16*16*16*16;
+  int fft_length = 16*16*16;
 
   //Get weights for data creation
   //int amount_of_frequencies = 10;
@@ -62,8 +62,9 @@ int main(){
   //Write results to file
   WriteFFTToFile<__half2>("example_input.dat", fft_length, results1.get());
 
-  Transposer<int><<<fft_length / 4096, 512, 32768>>>(
-      dptr_input_data, dptr_output_data, fft_length, 3, 0);
+  // Transposer<int><<<fft_length / 4096, 512, 32768>>>(
+  //     dptr_input_data, dptr_output_data, fft_length, 3, 0);
+  Transposer4k<<<1, 512, 32768>>>(dptr_input_data, dptr_output_data);
 
   //Needed if data set smaller than 64KB and can be removed otherwise.
   cudaDeviceSynchronize();
@@ -85,7 +86,7 @@ int main(){
   WriteFFTToFile<__half2>("example_trans.dat", fft_length, results2.get());
 
   TransposeKernel<<<fft_length / 512, 512>>>(
-      dptr_input_data, dptr_output_data, fft_length, 3, 0);
+      dptr_input_data, dptr_output_data, fft_length, 2, 0);
 
   //Needed if data set smaller than 64KB and can be removed otherwise.
   cudaDeviceSynchronize();
