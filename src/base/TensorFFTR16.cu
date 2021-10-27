@@ -199,8 +199,9 @@ __global__ void TensorRadix16(__half2* input_data,
                                    (substep_id * combined_fft_length);
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
-    __half2 tmp {buffer_RE[buffer_matrix_memory_offset],
-                 buffer_IM[buffer_matrix_memory_offset]};
+    __half2 tmp;
+    tmp.x = buffer_RE[buffer_matrix_memory_offset];
+    tmp.y = buffer_IM[buffer_matrix_memory_offset];
 
     output_data[global_memory_offset] = tmp;
   }
