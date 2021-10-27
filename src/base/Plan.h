@@ -103,11 +103,11 @@ std::optional<Plan> MakePlan(
 
   my_plan.transpose_config_ = {16,
                                16 * 32,
-                               static_cast<int>(fft_length) / 4096,
+                               fft_length / static_cast<int64_t>(4096),
                                32768};
   my_plan.base_fft_config_ = {16,
                               16 * 32,
-                              static_cast<int>(fft_length) / 256,
+                              fft_length / static_cast<int64_t>(4096),
                               32768};
 
   if (!(r16_warps_per_block == 1 ||
@@ -118,11 +118,16 @@ std::optional<Plan> MakePlan(
     std::cout << "Error! r16_warps_per_block_ != {1,2,4,8,16}." << std::endl;
     return std::nullopt;
   }
+  if (r16_warps_per_block < (fft_length / 256)) {
+    std::cout << "Error more warps per block for r16 kernel than total warps!"
+              << std::endl;
+    return std::nullopt;
+  }
   my_plan.r16_config_ = {r16_warps_per_block,
                          r16_warps_per_block * 32,
-                         (static_cast<int>(fft_length) / 256)
-                          / r16_warps_per_block,
-                         2048 * r16_warps_per_block};
+                         (fft_length / static_cast<int64_t>(256))
+                          / static_cast<int64_t>(r16_warps_per_block),
+                         1536 * r16_warps_per_block};
 
   for(int i=0; i<my_plan.amount_of_r16_kernels_; i++){
     if (i == 0) {
