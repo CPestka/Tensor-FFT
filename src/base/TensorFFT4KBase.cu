@@ -103,6 +103,14 @@ __global__ void TensorFFT4096(__half2* input_data,
     buffer_IM[buffer_array_id] = __hdiv(tmp.y, static_cast<__half>(4096.0));
   }
 
+  __syncthreads();
+  if (thread_id == 0) {
+    for(int i=0; i<256; i++){
+      printf("i = %d RE: %f IM: %f"i, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+    }
+  }
+  __syncthreads();
+
   //Load the inputs
   wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
   wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
