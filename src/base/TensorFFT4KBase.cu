@@ -106,7 +106,7 @@ __global__ void TensorFFT4096(__half2* input_data,
   __syncthreads();
   if (thread_id == 0) {
     for(int i=0; i<256; i++){
-      printf("i = %d RE: %f IM: %f"i, static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+      printf("i = %d RE: %f IM: %f",i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
     }
   }
   __syncthreads();
