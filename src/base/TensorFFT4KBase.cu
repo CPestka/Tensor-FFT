@@ -329,8 +329,9 @@ __global__ void TensorFFT4096(__half2* input_data,
                                    (4096 * (warp_id / 16));
     int buffer_matrix_memory_offset = j + (16 * inter_warp_id_16);
 
-    __half2 tmp {buffer_RE[buffer_matrix_memory_offset],
-                 buffer_IM[buffer_matrix_memory_offset]};
+    __half2 tmp;
+    tmp.x = buffer_RE[buffer_matrix_memory_offset];
+    tmp.y = buffer_IM[buffer_matrix_memory_offset];
 
     output_data[global_memory_offset] = tmp;
   }
