@@ -31,13 +31,13 @@ __global__ void TensorFFT4096(__half2* input_data,
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
   //4 dynamic shared memory buffers
-  extern __shared__ __half shared_buffer[];
-  int warp_shared_memory_offset = 1024 * inter_block_warp_id;
-  Integer warp_global_memory_offset = 256 * warp_id;
-  __half* buffer_RE = shared_buffer + warp_shared_memory_offset;
-  __half* buffer_IM = shared_buffer + warp_shared_memory_offset + 256;
-  __half* buffer_tmp_RE = shared_buffer + warp_shared_memory_offset + 512;
-  __half* buffer_tmp_IM = shared_buffer + warp_shared_memory_offset + 768;
+   extern __shared__ __half shared_buffer[];
+   int warp_shared_memory_offset = 1024 * inter_block_warp_id;
+   Integer warp_global_memory_offset = 256 * warp_id;
+   __half* buffer_RE = shared_buffer + warp_shared_memory_offset;
+   __half* buffer_IM = shared_buffer + warp_shared_memory_offset + 256;
+   __half* buffer_tmp_RE = shared_buffer + warp_shared_memory_offset + 512;
+   __half* buffer_tmp_IM = shared_buffer + warp_shared_memory_offset + 768;
 
   //
   //Setup DFT Matrix
@@ -50,7 +50,8 @@ __global__ void TensorFFT4096(__half2* input_data,
       dft_IM_frag;
 
   //On the fly computation of DFT matrix
-  //TODO: test speed and accuracy of cos,cosf,coh and literal version
+  //TODO: test speed and accuracy of cos,cosf,coh (and modulo version of those)
+  //and literal version
   #pragma unroll
   for(int k=0; k<8; k++){
     int j = k + 8 * inter_warp_id_is_upper_16;
@@ -65,9 +66,6 @@ __global__ void TensorFFT4096(__half2* input_data,
     buffer_RE[buffer_array_id] = cosf(phase);
     buffer_IM[buffer_array_id] = -sinf(phase);
   }
-
-  //Literal version of dft matrix.
-  //LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
 
   //Load DFT matrix into the according fragments
   wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
@@ -103,14 +101,6 @@ __global__ void TensorFFT4096(__half2* input_data,
     buffer_IM[buffer_array_id] = __hdiv(tmp.y, static_cast<__half>(4096.0));
   }
 
-  __syncthreads();
-  if (thread_id == 0) {
-    for(int i=0; i<256; i++){
-      printf("i = %d RE: %f IM: %f \n",i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
-    }
-  }
-  __syncthreads();
-
   //Load the inputs
   wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
   wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
@@ -139,7 +129,7 @@ __global__ void TensorFFT4096(__half2* input_data,
   wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
                           wmma::mem_row_major);
 
-  //RE = RE_1 - RE_2, IM = IM_1 + IM_2
+  //RE = RE_1 + RE_2, IM = IM_1 + IM_2
   #pragma unroll
   for(int k=0; k<8; k++){
     int buffer_array_id = inter_warp_id_16 +
