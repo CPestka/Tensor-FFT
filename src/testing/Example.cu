@@ -108,9 +108,17 @@ int main(){
   cudaDeviceSynchronize();
 
   //Copy results back
+  // if (cudaMemcpy(results.get(),
+  //                my_plan.results_in_results_ ?
+  //                    dptr_output_data : dptr_input_data,
+  //                fft_length * sizeof(__half2),
+  //                cudaMemcpyDeviceToHost)
+  //      != cudaSuccess) {
+  //    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+  //    return false;
+  // }
   if (cudaMemcpy(results.get(),
-                 my_plan.results_in_results_ ?
-                     dptr_output_data : dptr_input_data,
+                 dptr_output_data,
                  fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
        != cudaSuccess) {
