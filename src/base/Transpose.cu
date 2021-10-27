@@ -137,9 +137,9 @@ __global__ void TransposeKernel(__half2* input_data,
 __global__ void Transposer4k(__half2* input_data, __half2* output_data){
   //Numbering of the name of the shared mem buffer is in different kernels is
   //due to stupid limitations in cuda :)
-  extern __shared__ __half2 shared_buffer4[];
-  __half2* input_buffer = shared_buffer4;
-  __half2* output_buffer = shared_buffer4 + 4096;
+  extern __shared__ __half2 shared_buffer1[];
+  __half2* input_buffer = shared_buffer1;
+  __half2* output_buffer = shared_buffer1 + 4096;
 
   #pragma unroll
   for(int k=0; k<8; k++){

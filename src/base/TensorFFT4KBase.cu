@@ -31,13 +31,13 @@ __global__ void TensorFFT4096(__half2* input_data,
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
   //4 dynamic shared memory buffers
-  extern __shared__ __half shared_buffer2[];
+  extern __shared__ __half shared_buffer[];
   int warp_shared_memory_offset = 1024 * inter_block_warp_id;
   Integer warp_global_memory_offset = 256 * warp_id;
-  __half* buffer_RE = shared_buffer2 + warp_shared_memory_offset;
-  __half* buffer_IM = shared_buffer2 + warp_shared_memory_offset + 256;
-  __half* buffer_tmp_RE = shared_buffer2 + warp_shared_memory_offset + 512;
-  __half* buffer_tmp_IM = shared_buffer2 + warp_shared_memory_offset + 768;
+  __half* buffer_RE = shared_buffer + warp_shared_memory_offset;
+  __half* buffer_IM = shared_buffer + warp_shared_memory_offset + 256;
+  __half* buffer_tmp_RE = shared_buffer + warp_shared_memory_offset + 512;
+  __half* buffer_tmp_IM = shared_buffer + warp_shared_memory_offset + 768;
 
   //
   //Setup DFT Matrix
@@ -274,11 +274,11 @@ __global__ void TensorFFT4096(__half2* input_data,
     //to write to and the +512 / +768 selects the tmp_RE / tmp_IM section
     //TODO: ? remove second buffer and use collum major load better?
     //mod_RE = RE*twid_RE - IM*twid_IM
-    shared_buffer2[buffer_array_id_new + 512] =
+    shared_buffer[buffer_array_id_new + 512] =
         __hsub(__hmul(input_RE, twiddle_RE), __hmul(input_IM, twiddle_IM));
 
     //mod_IM = RE*twid_IM + IM*twid_RE
-    shared_buffer2[buffer_array_id_new + 768] =
+    shared_buffer[buffer_array_id_new + 768] =
         __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
   }
 
