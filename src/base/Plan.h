@@ -107,7 +107,7 @@ std::optional<Plan> MakePlan(
                                32768};
   my_plan.base_fft_config_ = {16,
                               16 * 32,
-                              static_cast<int>(fft_length) / 4096,
+                              static_cast<int>(fft_length) / 256,
                               32768};
 
   if (!(r16_warps_per_block == 1 ||
