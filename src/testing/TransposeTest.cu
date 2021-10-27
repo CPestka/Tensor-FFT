@@ -107,8 +107,9 @@ int main(){
   WriteFFTToFile<__half2>("example_trans_old.dat", fft_length, results2.get());
 
   for(int i=0; i<fft_length;i++){
-    if (results1[i].x != results2[i].x && results1[i].y != results2[i].y) {
-      std::cout << "Error at " << i << std::endl; 
+    if (static_cast<double>(results1[i].x) != static_cast<double>(results2[i].x) &&
+        static_cast<double>(results1[i].y) != static_cast<double>(results2[i].y)) {
+      std::cout << "Error at " << i << std::endl;
     }
   }
 
