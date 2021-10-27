@@ -36,7 +36,9 @@ int main(){
   dptr_output_data = dptr_input_data + fft_length;
 
   //Allocate mem on host for results
-  std::unique_ptr<__half2[]> results = std::make_unique<__half2[]>(fft_length);
+  std::unique_ptr<__half2[]> results1 = std::make_unique<__half2[]>(fft_length);
+  //Allocate mem on host for results
+  std::unique_ptr<__half2[]> results2 = std::make_unique<__half2[]>(fft_length);
 
   //Produce input data based on weights
   SineSupperposition<int,__half2><<<fft_length / 1024, 1024>>>(
@@ -45,7 +47,7 @@ int main(){
   //Needed if data set smaller than 64KB and can be removed otherwise.
   cudaDeviceSynchronize();
 
-  if (cudaMemcpy(results.get(),
+  if (cudaMemcpy(results1.get(),
                  dptr_input_data,
                  fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
@@ -58,7 +60,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteFFTToFile<__half2>("example_input.dat", fft_length, results.get());
+  WriteFFTToFile<__half2>("example_input.dat", fft_length, results1.get());
 
   Transposer<int><<<fft_length / 4096, 512, 32768>>>(
       dptr_input_data, dptr_output_data, fft_length, 3, 0);
@@ -67,7 +69,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Copy results back
-  if (cudaMemcpy(results.get(),
+  if (cudaMemcpy(results2.get(),
                  dptr_output_data,
                  fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
@@ -80,7 +82,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteFFTToFile<__half2>("example_trans.dat", fft_length, results.get());
+  WriteFFTToFile<__half2>("example_trans.dat", fft_length, results2.get());
 
   TransposeKernel<<<fft_length / 512, 512>>>(
       dptr_input_data, dptr_output_data, fft_length, 3, 0);
@@ -89,7 +91,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Copy results back
-  if (cudaMemcpy(results.get(),
+  if (cudaMemcpy(results2.get(),
                  dptr_output_data,
                  fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
@@ -102,7 +104,13 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteFFTToFile<__half2>("example_trans_old.dat", fft_length, results.get());
+  WriteFFTToFile<__half2>("example_trans_old.dat", fft_length, results2.get());
+
+  for(int i=0; i<fft_length;i++){
+    if (results1[i].x != results2[i].x && results1[i].y != results2[i].y) {
+      std::cout << "Error at " << i << std::endl; 
+    }
+  }
 
   cudaFree(dptr_weights);
   cudaFree(dptr_input_data);
