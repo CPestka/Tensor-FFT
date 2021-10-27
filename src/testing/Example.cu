@@ -118,7 +118,7 @@ int main(){
   //    return false;
   // }
   if (cudaMemcpy(results.get(),
-                 dptr_output_data,
+                 dptr_input_data,
                  fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
        != cudaSuccess) {
