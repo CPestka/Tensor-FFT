@@ -103,7 +103,7 @@ __global__ void TensorFFT4096(__half2* input_data,
 
   __syncthreads();
   for(int k=0; k<16; k++){
-    if (inter_warp_id == 0 || warp_id == k) {
+    if ((inter_warp_id == 0) && (warp_id == k)) {
       for(int i=0; i<256; i++){
         printf("warp_id = %d i = %d RE: %f IM: %f \n",k ,i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
       }
