@@ -101,6 +101,17 @@ __global__ void TensorFFT4096(__half2* input_data,
     buffer_IM[buffer_array_id] = __hdiv(tmp.y, static_cast<__half>(4096.0));
   }
 
+  for(int k=0; k<16; k++){
+    __syncthreads();
+    if (inter_warp_id == 0 || warp_id == k) {
+      for(int i=0; i<256; i++){
+        printf("warp_id = %d i = %d RE: %f IM: %f \n",k ,i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+      }
+    }
+   __syncthreads();
+  }
+
+
   //Load the inputs
   wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
   wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
@@ -129,7 +140,7 @@ __global__ void TensorFFT4096(__half2* input_data,
   wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
                           wmma::mem_row_major);
 
-  //RE = RE_1 + RE_2, IM = IM_1 + IM_2
+  //RE = RE_1 - RE_2, IM = IM_1 + IM_2
   #pragma unroll
   for(int k=0; k<8; k++){
     int buffer_array_id = inter_warp_id_16 +
