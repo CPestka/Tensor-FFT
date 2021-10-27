@@ -101,15 +101,15 @@ __global__ void TensorFFT4096(__half2* input_data,
     buffer_IM[buffer_array_id] = __hdiv(tmp.y, static_cast<__half>(4096.0));
   }
 
+  __syncthreads();
   for(int k=0; k<16; k++){
-    __syncthreads();
-    if (inter_warp_id == 0 || warp_id == k) {
-      for(int i=0; i<256; i++){
+    for(int i=0; i<256; i++){
+      if (inter_warp_id == 0 || warp_id == k) {
         printf("warp_id = %d i = %d RE: %f IM: %f \n",k ,i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
       }
     }
-   __syncthreads();
   }
+  __syncthreads();
 
 
   //Load the inputs
