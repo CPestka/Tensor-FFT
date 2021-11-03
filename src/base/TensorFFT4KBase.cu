@@ -18,9 +18,7 @@ using namespace nvcuda;
 template <typename Integer>
 __global__ void TensorFFT4096(__half2* input_data,
                               __half2* output_data,
-                              Integer fft_length,
-                              int amount_of_r16_steps,
-                              int amount_of_r2_steps){
+                              Integer fft_length){
   Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
   Integer warp_id = thread_id / 32;
   int inter_warp_id = thread_id % 32;

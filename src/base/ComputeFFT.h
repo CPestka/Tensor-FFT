@@ -104,9 +104,7 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
                            fft_plan.base_fft_config_.shared_mem_in_bytes_>>>(
       dptr_current_input_data,
       dptr_current_output_data,
-      static_cast<Integer>(fft_plan.fft_length_),
-      fft_plan.amount_of_r16_steps_,
-      fft_plan.amount_of_r2_steps_);
+      static_cast<Integer>(fft_plan.fft_length_));
 
   if (cudaPeekAtLastError() != cudaSuccess){
     return cudaGetErrorString(cudaPeekAtLastError());
