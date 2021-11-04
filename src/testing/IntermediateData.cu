@@ -4,8 +4,6 @@
 #include <optional>
 #include <string>
 #include <memory>
-#include <cassert>
-#include <cinttypes>
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
@@ -13,9 +11,7 @@
 
 #include "TestingDataCreation.h"
 #include "FileWriter.h"
-#include "Timer.h"
-#include "../base/ComputeFFT.h"
-#include "../base/Plan.h"
+#include "../base/TensorFFT4096_2.cu"
 
 int main(){
   constexpr int fft_length = 16*16*16;
@@ -35,7 +31,7 @@ int main(){
   __half* dptr_out_RE;
   __half* dptr_out_IM;
 
-  cudaMalloc(&dptr_in_RE; sizeof(__half) * 4 * fft_length);
+  cudaMalloc((void*)&dptr_in_RE; sizeof(__half) * 4 * fft_length);
   dptr_in_IM = dptr_in_RE + fft_length;
   dptr_out_RE = dptr_in_IM + fft_length;
   dptr_out_IM = dptr_out_RE + fft_length;
