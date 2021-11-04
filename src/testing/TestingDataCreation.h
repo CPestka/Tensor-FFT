@@ -106,7 +106,7 @@ __global__ void CreateSineSuperpostionKernel(Integer fft_length,
   data[thread_id] = (tmp * scale_factor);
 
   tmp = 0;
-  tmp_1 = 1;
+  tmp_1 = 0;
   for(int i=0; i<frequency_cutof; i++){
     tmp += weights_IM[i] * sinf((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
@@ -136,7 +136,7 @@ __global__ void CreateSineSuperpostionKernelCU(Integer fft_length,
   data[thread_id].x = (tmp * scale_factor);
 
   tmp = 0;
-  tmp_1 = 1;
+  tmp_1 = 0;
   for(int i=0; i<frequency_cutof; i++){
     tmp += weights_IM[i] * sinf((2 * M_PI * tmp_1 * thread_id)
                                / static_cast<double>(fft_length));
