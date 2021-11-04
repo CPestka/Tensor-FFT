@@ -66,6 +66,8 @@ __global__ void Transposer(__half2* input_data, __half2* output_data,
     }
   }
 
+  __syncthreads();
+
   //Transpose buffer matrix
   //Note: not sure if this way is good in terms of bank conflicts. Solve that
   //later.
@@ -74,6 +76,8 @@ __global__ void Transposer(__half2* input_data, __half2* output_data,
     output_buffer[threadIdx.x + (i * 512)] =
         input_buffer[inter_block_row_id + (8 * i) + 64 * inter_row_id];
   }
+
+  __syncthreads();
 
   #pragma unroll
   for(int i=0; i<8; i++){
