@@ -22,7 +22,7 @@ __global__ void SineSupperposition(Integer fft_length,
   double two_pi = 2 * static_cast<double>(M_PI);
 
   for(int i=0; i<amount_of_weights; i++){
-    double tmp = sin(two_pi * x * (i+1));
+    double tmp = sin(two_pi * x * i);
     y_RE += (weights[i].x * tmp);
     y_IM += (weights[i].y * tmp);
   }
