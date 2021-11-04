@@ -110,7 +110,11 @@ int main(){
   for(int i=0; i<fft_length;i++){
     if ((static_cast<double>(results1[i].x) != static_cast<double>(results2[i].x)) ||
         (static_cast<double>(results1[i].y) != static_cast<double>(results2[i].y))) {
-      std::cout << "Error at " << i << std::endl;
+      std::cout << "Error at " << i << "\n"
+                << "RE_1: " (static_cast<double>(results1[i].x)
+                << " RE_2: " (static_cast<double>(results2[i].x)
+                << " IM_1: " (static_cast<double>(results1[i].y)
+                << " IM_2: " (static_cast<double>(results2[i].y) << std::endl;
     }
   }
 
