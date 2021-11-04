@@ -14,7 +14,7 @@ __global__ void SineSupperposition(Integer fft_length,
                                    float2* weights,
                                    int amount_of_weights,
                                    double normalization_factor = 1.0){
-  Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x + 1;
+  Integer thread_id = blockDim.x * blockIdx.x + threadIdx.x;
 
   double y_RE = 0;
   double y_IM = 0;
