@@ -31,7 +31,7 @@ int main(){
   __half* dptr_out_RE;
   __half* dptr_out_IM;
 
-  cudaMalloc((void*)&dptr_in_RE, sizeof(__half) * 4 * fft_length);
+  cudaMalloc((void**)&dptr_in_RE, sizeof(__half) * 4 * fft_length);
   dptr_in_IM = dptr_in_RE + fft_length;
   dptr_out_RE = dptr_in_IM + fft_length;
   dptr_out_IM = dptr_out_RE + fft_length;
