@@ -70,7 +70,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Copy results back
-  if (cudaMemcpy(results2.get(),
+  if (cudaMemcpy(results1.get(),
                  dptr_output_data,
                  fft_length * sizeof(__half2),
                  cudaMemcpyDeviceToHost)
@@ -83,7 +83,7 @@ int main(){
   cudaDeviceSynchronize();
 
   //Write results to file
-  WriteFFTToFile<__half2>("example_trans.dat", fft_length, results2.get());
+  WriteFFTToFile<__half2>("example_trans.dat", fft_length, results1.get());
 
   TransposeKernel<<<fft_length / 512, 512>>>(
       dptr_input_data, dptr_output_data, fft_length, 2, 0);
