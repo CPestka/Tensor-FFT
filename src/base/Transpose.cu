@@ -150,20 +150,18 @@ __global__ void Transposer4k(__half2* input_data, __half2* output_data){
   #pragma unroll
   for(int k=0; k<8; k++){
     int i = threadIdx.x + (512 * k);
-    int j = (i % 16) * 256 + (((i / 16) % 16) * 16) + (i / 256);
+    int j = ((i % 16) * 256) +
+            (((i / 16) % 16) * 16) +
+            (i / 256);
 
     output_buffer[j] = input_buffer[i];
   }
+
+  __syncthreads();
 
   #pragma unroll
   for(int k=0; k<8; k++){
     int i = threadIdx.x + (512 * k);
     output_data[i] = output_buffer[i];
   }
-}
-
-template <typename Integer>
-__global__ void ShortTransposer(__half2* input_data, __half2* output_data,
-                                Integer fft_length, int amount_of_r2_steps){
-
 }
