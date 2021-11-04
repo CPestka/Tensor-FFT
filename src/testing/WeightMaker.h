@@ -41,6 +41,19 @@ void SetRandomWeightsIM(float2* weights, int max_frequencies, int seed){
 
 void SetDummyWeights(float2* weights){
   weights[0].x = 1.0;
+  weights[0].y = 0.0;
+  weights[1].x = 0.2;
+  weights[1].y = 0.7;
+  weights[2].x = 0.0;
+  weights[2].y = 0.0;
+  weights[3].x = 0.0;
+  weights[3].y = 0.0;
+  weights[4].x = 0.0;
+  weights[4].y = 0.0;
+}
+
+void SetDummyWeights2(float2* weights){
+  weights[0].x = 1.0;
   weights[0].y = 0.2;
   weights[1].x = 0.5;
   weights[1].y = 0.7;
