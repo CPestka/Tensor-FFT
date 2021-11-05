@@ -11,7 +11,7 @@
 #include "FileWriter.h"
 
 int main(){
-  int fft_length = 16*16*16;
+  int fft_length = 16*16*16*16*2;
 
   //Get weights for data creation
   //int amount_of_frequencies = 10;
