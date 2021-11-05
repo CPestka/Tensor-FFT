@@ -323,16 +323,16 @@ __global__ void TensorFFT4096(__half2* input_data,
     buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
   }
 
-  __syncthreads();
-  for(int k=0; k<16; k++){
-    if ((inter_warp_id == 0) && (warp_id == k)) {
-      for(int i=0; i<256; i++){
-        printf("warp_id = %d i = %d RE: %f IM: %f \n",k ,i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
-      }
-    }
-    __syncthreads();
-  }
-  __syncthreads();
+  // __syncthreads();
+  // for(int k=0; k<16; k++){
+  //   if ((inter_warp_id == 0) && (warp_id == k)) {
+  //     for(int i=0; i<256; i++){
+  //       printf("warp_id = %d i = %d RE: %f IM: %f \n",k ,i , static_cast<float>(buffer_RE[i]), static_cast<float>(buffer_IM[i]));
+  //     }
+  //   }
+  //   __syncthreads();
+  // }
+  // __syncthreads();
 
   //Store the results in the appropriately reordered way into the output array
   //The data is stored back the way it was intialy the i.e. a 16^mx16 linear=
