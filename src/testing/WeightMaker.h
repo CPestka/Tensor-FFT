@@ -44,12 +44,12 @@ void SetDummyWeights(float2* weights){
   weights[0].y = 0.0;
   weights[1].x = 0.2;
   weights[1].y = 0.7;
-  weights[2].x = 0.0;
-  weights[2].y = 0.0;
-  weights[3].x = 0.0;
-  weights[3].y = 0.0;
-  weights[4].x = 0.0;
-  weights[4].y = 0.0;
+  weights[2].x = 0.3;
+  weights[2].y = 0.9;
+  weights[3].x = 0.1;
+  weights[3].y = 0.4;
+  weights[4].x = 0.4;
+  weights[4].y = 0.6;
 }
 
 void SetDummyWeights2(float2* weights){

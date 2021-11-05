@@ -114,7 +114,6 @@ std::optional<std::string> ComputeFFT(Plan &fft_plan,
 
   //Launch radix16 kernels
   for(int i = 0; i<fft_plan.amount_of_r16_kernels_; i++){
-    std::cout << "sub: " << fft_plan.sub_fft_length_[i] << std::endl;
     TensorRadix16<Integer><<<fft_plan.r16_config_.gridsize_,
                              fft_plan.r16_config_.blocksize_,
                              fft_plan.r16_config_.shared_mem_in_bytes_>>>(
