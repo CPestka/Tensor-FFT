@@ -10,7 +10,7 @@
 #include "FileWriter.h"
 
 int main(){
-  int fft_length = 16*16*16;
+  int fft_length = 16*16*16*16;
   //int amount_of_frequencies = 256;
   int amount_of_frequencies = 5;
 
