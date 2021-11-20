@@ -69,8 +69,8 @@ int main(){
                cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
 
-    __half2 dptr_data;
-    __half2 dptr_results;
+    __half2* dptr_data;
+    __half2* dptr_results;
     cudaMalloc((void**)(&dptr_data), static_cast<int>(sizeof(__half2) * current_fft_length));
     cudaMalloc((void**)(&dptr_results), static_cast<int>(sizeof(__half2) * current_fft_length));
 
