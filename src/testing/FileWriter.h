@@ -49,3 +49,20 @@ std::optional<std::string> WriteAccuracyToFile(
   }
   return std::nullopt;
 }
+
+std::optional<std::string> WriteBenchResultsToFIle(
+    const std::string file_name,
+    const std::vector<BatchResult> data){
+  std::ofstream myfile (file_name);
+  if (myfile.is_open()) {
+    for(int i=0; i<static_cast<int>(data.size()); i++){
+      myfile << data[i].fft_length_ << " "
+             << data[i].Average_ << " "
+             << data[i].RMS_ << "\n";
+    }
+    myfile.close();
+  } else {
+    return "Error! Unable to open file.";
+  }
+  return std::nullopt;
+}
