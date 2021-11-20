@@ -7,7 +7,7 @@
 #include <optional>
 
 #include "Accuracy/ComputeError.h"
-#include "OurBench.cu"
+#include "benchmarks/OurBench.cu"
 
 template <typename float2_t>
 std::optional<std::string> WriteFFTToFile(const std::string file_name,
