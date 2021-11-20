@@ -15,6 +15,7 @@
 #include "../FileWriter.h"
 #include "../../base/Plan.h"
 #include "../../base/ComputeFFT.h"
+#include "../Timer.h"
 
 struct BatchResult{
   double Average_;
@@ -73,9 +74,6 @@ int main(){
     cudaMalloc((void**)(&dptr_data), static_cast<int>(sizeof(__half2) * current_fft_length));
     cudaMalloc((void**)(&dptr_results), static_cast<int>(sizeof(__half2) * current_fft_length));
 
-    SineSupperposition<__half2><<<current_fft_length / 1024, 1024>>>(
-        current_fft_length, dptr_data, dptr_weights, max_frequencies, 1.0);
-
     std::optional<Plan> possible_plan = MakePlan(current_fft_length);
     Plan my_plan;
     if (possible_plan) {
@@ -90,7 +88,7 @@ int main(){
     for(int i=0; i<total_samples; i++){
       double runtime;
 
-      SineSupperposition<__half2><<<current_fft_length / 1024, 1024>>>(
+      SineSupperposition<int,__half2><<<current_fft_length / 1024, 1024>>>(
           current_fft_length, dptr_data, dptr_weights, max_frequencies, 1.0);
 
       cudaDeviceSynchronize();
