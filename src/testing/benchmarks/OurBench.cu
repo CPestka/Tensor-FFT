@@ -8,8 +8,8 @@
 #include "../DataMaker.cu"
 #include "../WeightMaker.h"
 #include "../FileWriter.h"
-#include "../base/Plan.h"
-#include "../base/ComputeFFT.h"
+#include "../../base/Plan.h"
+#include "../../base/ComputeFFT.h"
 
 struct BatchResult{
   double Average_;
