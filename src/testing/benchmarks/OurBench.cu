@@ -46,10 +46,10 @@ double GetRMS(std::vector<double> data, double average){
 int main(){
   constexpr int min_fft_length = 16*16*16;
   constexpr int max_fft_length = 16*16*16*16*16 * 16*16;
-  constexpr int max_frequencies = 10;
-  constexpr int samples = 100;
-  constexpr int warmup_samples = 10;
-  constexpr int total_samples = samples + warmup_samples;
+  int max_frequencies = 10;
+  int samples = 100;
+  int warmup_samples = 10;
+  int total_samples = samples + warmup_samples;
 
   std::vector<BatchResult> results;
 
@@ -89,7 +89,7 @@ int main(){
       double runtime;
 
       SineSupperposition<int,__half2><<<current_fft_length / 1024, 1024>>>(
-          current_fft_length, dptr_data, dptr_weights, max_frequencies, 1.0);
+          static_cast<int>(current_fft_length), dptr_data, dptr_weights, max_frequencies, 1.0);
 
       cudaDeviceSynchronize();
 
