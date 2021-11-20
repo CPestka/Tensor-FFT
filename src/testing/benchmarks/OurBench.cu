@@ -70,8 +70,8 @@ int main(){
 
     __half2 dptr_data;
     __half2 dptr_results;
-    cudaMalloc((void)(&dptr_data), sizeof(__half2) * current_fft_length);
-    cudaMalloc((void)(&dptr_results), sizeof(__half2) * current_fft_length);
+    cudaMalloc((void*)(&dptr_data), sizeof(__half2) * current_fft_length);
+    cudaMalloc((void*)(&dptr_results), sizeof(__half2) * current_fft_length);
 
     SineSupperposition<__half2><<<current_fft_length / 1024, 1024>>>(
         current_fft_length, dptr_data, dptr_weights, max_frequencies, 1.0);
