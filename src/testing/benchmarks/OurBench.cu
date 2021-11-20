@@ -41,8 +41,8 @@ int main(){
   constexpr int min_fft_length = 16*16*16;
   constexpr int max_fft_length = 16*16*16*16*16 * 16*16;
   int max_frequencies = 10;
-  int samples = 100;
-  int warmup_samples = 10;
+  int samples = 1000;
+  int warmup_samples = 20;
   int total_samples = samples + warmup_samples;
 
   std::vector<BatchResult> results;
