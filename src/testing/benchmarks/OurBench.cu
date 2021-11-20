@@ -17,12 +17,6 @@
 #include "../../base/ComputeFFT.h"
 #include "../Timer.h"
 
-struct BatchResult{
-  double Average_;
-  double RMS_;
-  int fft_length_;
-};
-
 double GetAverage(std::vector<double> data){
   double tmp = 0;
   for(int i=0; i<static_cast<int>(data.size()); i++){
@@ -121,7 +115,7 @@ int main(){
 
   std::cout << "Finished Benchmark" << std::endl;
 
-  WriteBenchResultsToFIle("BenchOur.dat", results);
+  WriteBenchResultsToFile("BenchOur.dat", results);
 
   return true;
 }

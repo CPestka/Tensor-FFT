@@ -7,7 +7,12 @@
 #include <optional>
 
 #include "Accuracy/ComputeError.h"
-#include "benchmarks/OurBench.cu"
+
+struct BatchResult{
+  double Average_;
+  double RMS_;
+  int fft_length_;
+};
 
 template <typename float2_t>
 std::optional<std::string> WriteFFTToFile(const std::string file_name,
@@ -51,7 +56,7 @@ std::optional<std::string> WriteAccuracyToFile(
   return std::nullopt;
 }
 
-std::optional<std::string> WriteBenchResultsToFIle(
+std::optional<std::string> WriteBenchResultsToFile(
     const std::string file_name,
     const std::vector<BatchResult> data){
   std::ofstream myfile (file_name);
