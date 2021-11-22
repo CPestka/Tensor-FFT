@@ -31,7 +31,7 @@ Errors ComputeErrors(float2_t1* data_1, float2_t2* data_2, Integer fft_length){
 }
 
 template<typename Integer>
-Errors ComputeOurVsFp64Errors(long long fft_length,
+Errors ComputeOurVsFp64Errors(int fft_length,
                               float2* dptr_weights,
                               int amount_of_frequencies,
                               double normalization_factor){
@@ -40,7 +40,8 @@ Errors ComputeOurVsFp64Errors(long long fft_length,
                              normalization_factor);
 
   std::unique_ptr<__half2[]> our_results =
-       GetOurFP16Data<Integer>(dptr_weights, amount_of_frequencies, fft_length,
+       GetOurFP16Data<Integer>(dptr_weights, amount_of_frequencies,
+                               static_cast<long long>(fft_length),
                                normalization_factor);
 
   return ComputeErrors<long long,cufftDoubleComplex,__half2>(

@@ -128,11 +128,6 @@ int main(){
       GetComparisionFP16Data(dptr_weights, amount_of_frequencies, fft_length,
                              1.0);
 
-  std::cout << "beep" << std::endl;
-  std::unique_ptr<cufftDoubleComplex[]> comp_data1 =
-      GetComparisionFP64Data(dptr_weights, amount_of_frequencies, fft_length,
-                             1.0);
-  std::cout << "beep" << std::endl;
   //Write results to file
   WriteFFTToFile<__half2>("example_cu_results.dat", fft_length,
                           comp_data.get());
