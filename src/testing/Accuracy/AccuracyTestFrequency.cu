@@ -52,9 +52,10 @@ int main(){
   std::vector<int> amount_of_frequencies_vec;
 
   std::unique_ptr<float2[]> weights =
-      std::make_unique<float2[]>(max_frequencies);
+      std::make_unique<float2[]>(ExactPowerOf2<int>(max_frequencies_log2));
   float2* dptr_weights = nullptr;
-  cudaMalloc(&dptr_weights, sizeof(float2) * max_frequencies);
+  cudaMalloc(&dptr_weights, sizeof(float2) *
+                            ExactPowerOf2<int>(max_frequencies_log2));
 
   for(int i=1; i<=max_frequencies_log2; i++){
     fft_lengths.push_back(fft_length);
