@@ -105,8 +105,9 @@ int main(){
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
 
     for(int i=0; i<5; i++){
-      Errors test_err = ComputeOurVsFp64Errors<int>(fft_lengths[i], dptr_weights, amount_of_frequencies, 1.0);
-      std::cout << test_err.MaxDiv << std::endl;
+      errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths[i], dptr_weights,
+                                                   amount_of_frequencies, 1.0));
+      std::cout << errors.back().MaxDiv << std::endl;
     }
 
     return true;
