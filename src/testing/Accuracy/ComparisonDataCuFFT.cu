@@ -40,8 +40,6 @@ std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
       normalization_factor);
 
   cudaDeviceSynchronize();
-  std::cout << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-  cudaDeviceSynchronize();
 
   cufftHandle plan;
   cufftResult r;
