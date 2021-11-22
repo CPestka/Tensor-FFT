@@ -42,8 +42,8 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 }
 
 int main(){
-  int fft_length = 16*16*16*16*16;
-  int max_frequencies_log2 = 20;
+  int fft_length = 16*16*16*16*16 * 16*16;
+  int max_frequencies_log2 = 28;
 
   double normalize_to = 1.0;
 
