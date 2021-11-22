@@ -37,13 +37,13 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 
   cudaDeviceSynchronize();
 
-  return (normalization_target /
-          MaxValue<Integer,cufftDoubleComplex>(data.get(), fft_length));
+  return (MaxValue<Integer,cufftDoubleComplex>(data.get(), fft_length) /
+          normalization_target);
 }
 
 int main(){
-  int fft_length = 16*16*16*16;
-  int max_frequencies_log2 = 16;
+  int fft_length = 16*16*16*16*16;
+  int max_frequencies_log2 = 20;
 
   double normalize_to = 1.0;
 

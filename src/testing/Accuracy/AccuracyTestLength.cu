@@ -39,8 +39,8 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 
   cudaFree(dptr_data);
 
-  return (normalization_target /
-          MaxValue<Integer,cufftDoubleComplex>(data.get(), fft_length));
+  return (MaxValue<Integer,cufftDoubleComplex>(data.get(), fft_length) /
+          normalization_target);
 }
 
 int main(){
