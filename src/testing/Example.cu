@@ -9,7 +9,6 @@
 #include "WeightMaker.h"
 #include "DataMaker.cu"
 #include "FileWriter.h"
-#include "Accuracy/ComputeError.h"
 
 int main(){
   int fft_length = 16*16*16;
@@ -128,8 +127,6 @@ int main(){
   std::unique_ptr<__half2[]> comp_data =
       GetComparisionFP16Data(dptr_weights, amount_of_frequencies, fft_length,
                              1.0);
-
-  Errors er_er = ComputeOurVsFp64Errors<int>(fft_length, dptr_weights, amount_of_frequencies, 1.0);
 
   //Write results to file
   WriteFFTToFile<__half2>("example_cu_results.dat", fft_length,
