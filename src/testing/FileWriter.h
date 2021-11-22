@@ -36,7 +36,7 @@ std::optional<std::string> WriteFFTToFile(const std::string file_name,
 std::optional<std::string> WriteAccuracyToFile(
     const std::string file_name,
     const double normalized_to,
-    const std::vector<int64_t> fft_length,
+    const std::vector<int> fft_length,
     const std::vector<Errors> errors,
     const std::vector<int> amount_of_frequencies){
   std::ofstream myfile (file_name);
