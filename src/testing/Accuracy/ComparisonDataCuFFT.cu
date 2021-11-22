@@ -50,12 +50,12 @@ std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
   r = cufftPlanMany(&plan, 1, &fft_length, nullptr, 1, 1, nullptr, 1, 1,
                     CUFFT_Z2Z, 1);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan creation failed." << std::endl;
+    std::cout << "Error! cufftPlan creation failed." << std::endl;
   }
 
   r = cufftExecZ2Z(plan, dptr_data, dptr_results, CUFFT_FORWARD);
   if (r != CUFFT_SUCCESS) {
-    std::cout << "Error! Plan execution failed." << std::endl;
+    std::cout << "Error! cufftPlan execution failed." << std::endl;
   }
 
   std::unique_ptr<cufftDoubleComplex[]> data =
