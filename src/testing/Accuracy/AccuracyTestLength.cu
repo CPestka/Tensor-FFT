@@ -56,9 +56,7 @@ int main(){
              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
   cudaDeviceSynchronize();
 
-
-
-  std::vector<int64_t> fft_lengths;
+  std::vector<int> fft_lengths;
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
 
