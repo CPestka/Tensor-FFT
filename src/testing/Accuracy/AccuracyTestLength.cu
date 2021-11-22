@@ -26,7 +26,7 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
   cufftDoubleComplex* dptr_data;
   cudaMalloc(&dptr_data, sizeof(cufftDoubleComplex) * fft_length);
   //Produce input data based on weights
-  SineSupperposition<cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
+  SineSupperposition<int,cufftDoubleComplex><<<fft_length / 1024, 1024>>>(
       fft_length, dptr_data, dptr_weights, amount_of_frequencies, 1.0);
 
   std::unique_ptr<cufftDoubleComplex[]> data =
@@ -42,8 +42,8 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 }
 
 int main(){
-  int fft_length_min_log2 = 12;
-  int fft_length_max_log2 = 28;
+  int fft_length_min_log16 = 3;
+  int fft_length_max_log16 = 7;
   int amount_of_frequencies = 256;
   double normalize_to = 1.0;
 
@@ -62,8 +62,8 @@ int main(){
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
 
-  for(int i=fft_length_max_log2; i<=fft_length_min_log2; i++){
-    fft_lengths.push_back(ExactPowerOf2<int>(i));
+  for(int i=fft_length_max_log16; i<=fft_length_min_log16; i++){
+    fft_lengths.push_back(ExactPowerOf2<int>(i*4));
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to, weights.get(),
                                     amount_of_frequencies, fft_lengths.back());
