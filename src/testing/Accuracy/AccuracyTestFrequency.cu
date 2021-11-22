@@ -44,7 +44,7 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 int main(){
   int fft_length = 16*16*16*16*16;
   int max_frequencies = fft_length;
-  int frequency_steps = 256;
+  int frequency_steps = 32;
   int frequency_increment = fft_length / frequency_steps;
 
   double normalize_to = 1.0;
@@ -74,6 +74,8 @@ int main(){
 
     errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
         dptr_weights, frequency_increment * i, normalization_factor));
+
+    std::cout << frequency_increment * i << std::endl;
 
   }
 
