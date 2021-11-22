@@ -11,7 +11,7 @@
 #include "FileWriter.h"
 
 int main(){
-  int fft_length = 16*16*16*16*16 * 16;
+  int fft_length = 16*16*16;
 
   std::optional<Plan> possible_plan = MakePlan(fft_length);
   Plan my_plan;
