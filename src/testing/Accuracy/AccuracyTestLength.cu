@@ -93,14 +93,21 @@ int main(){
                sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
 
-    // std::unique_ptr<cufftDoubleComplex[]> tmp = GetComparisionFP64Data(
-    //     float2* dptr_weights, int amount_of_frequencies, int fft_length,
-    //     double normalization_factor)
-    //
-    // std::cout << "beep" << std::endl;
+    std::vector<int> fft_lengths;
+    fft_lengths.push_back(16*16*16);
+    fft_lengths.push_back(16*16*16*16);
+    fft_lengths.push_back(16*16*16*16*16);
+    fft_lengths.push_back(16*16*16*16*16 * 16);
+    fft_lengths.push_back(16*16*16*16*16 * 16*16);
 
-    Errors test_err = ComputeOurVsFp64Errors<int>(4096, dptr_weights, amount_of_frequencies, 1.0);
+    std::vector<Errors> errors;
+    std::vector<int> amount_of_frequencies_vec;
+    amount_of_frequencies_vec.push_back(amount_of_frequencies);
 
-    std::cout << test_err.MaxDiv << std::endl;
+    for(int i=0; i<5; i++){
+      Errors test_err = ComputeOurVsFp64Errors<int>(fft_lengths[i], dptr_weights, amount_of_frequencies, 1.0);
+      std::cout << test_err.MaxDiv << std::endl;
+    }
+
     return true;
 }
