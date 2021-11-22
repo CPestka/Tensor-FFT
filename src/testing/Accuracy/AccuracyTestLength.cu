@@ -64,6 +64,7 @@ int main(){
 
   for(int i=fft_length_max_log16; i<=fft_length_min_log16; i++){
     fft_lengths.push_back(ExactPowerOf2<int>(i*4));
+    std::cout << fft_lengths.back() << std::endl;
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to, weights.get(),
                                     amount_of_frequencies, fft_lengths.back());
