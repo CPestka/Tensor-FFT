@@ -178,6 +178,7 @@ template<typename Integer>
 std::unique_ptr<__half2[]> GetOurFP16Data(
     float2* dptr_weights, int amount_of_frequencies, Integer fft_length,
     double normalization_factor){
+  std::cout << "Beep " << fft_length << std::endl;
   std::optional<Plan> possible_plan = MakePlan(fft_length);
   Plan my_plan;
   if (possible_plan) {
