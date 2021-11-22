@@ -58,7 +58,6 @@ int main(){
   float2* dptr_weights = nullptr;
   cudaMalloc(&dptr_weights, sizeof(float2) * max_frequencies);
 
-
   for(int i=1; i<=frequency_steps; i++){
     SetRandomWeights(weights.get(), frequency_increment * i, 42*42);
     cudaMemcpy(dptr_weights, weights.get(),
@@ -67,7 +66,7 @@ int main(){
     cudaDeviceSynchronize();
 
     double normalization_factor =
-        GetNormalizationFactor<int>(normalize_to, weights.get(),
+        GetNormalizationFactor<int>(normalize_to, dptr_weights,
                                     frequency_increment * i, fft_length);
 
     fft_lengths.push_back(fft_length);
@@ -78,7 +77,7 @@ int main(){
 
   }
 
-  WriteAccuracyToFile("AccuracyTest.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_our_nu.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);

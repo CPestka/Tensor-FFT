@@ -78,39 +78,3 @@ int main(){
 
   cudaFree(dptr_weights);
 }
-
-// int main(){
-//     int amount_of_frequencies = 256;
-//     double normalize_to = 1.0;
-//
-//     std::unique_ptr<float2[]> weights =
-//         std::make_unique<float2[]>(amount_of_frequencies);
-//     SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
-//
-//     float2* dptr_weights;
-//     cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
-//     cudaMemcpy(dptr_weights, weights.get(),
-//                sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
-//     cudaDeviceSynchronize();
-//
-//     std::vector<int> fft_lengths;
-//     fft_lengths.push_back(16*16*16);
-//     fft_lengths.push_back(16*16*16*16);
-//     fft_lengths.push_back(16*16*16*16*16);
-//     fft_lengths.push_back(16*16*16*16*16 * 16);
-//     fft_lengths.push_back(16*16*16*16*16 * 16*16);
-//
-//     std::vector<Errors> errors;
-//     std::vector<int> amount_of_frequencies_vec;
-//     amount_of_frequencies_vec.push_back(amount_of_frequencies);
-//
-//     double normalization_factor = GetNormalizationFactor<int>(normalize_to, dptr_weights)
-//
-//     for(int i=0; i<5; i++){
-//       errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths[i], dptr_weights,
-//                                                    amount_of_frequencies, 1.0));
-//       std::cout << errors.back().MaxDiv << std::endl;
-//     }
-//
-//     return true;
-// }
