@@ -42,7 +42,7 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 }
 
 int main(){
-  int fft_length = 16*16*16*16*16 * 16*16;
+  int fft_length = 16*16*16*16*16 * 16;
   int max_frequencies = fft_length;
   int frequency_steps = 32;
   int frequency_increment = fft_length / frequency_steps;
