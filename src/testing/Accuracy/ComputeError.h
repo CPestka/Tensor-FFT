@@ -44,7 +44,7 @@ Errors ComputeOurVsFp64Errors(int fft_length,
                                static_cast<long long>(fft_length),
                                normalization_factor);
 
-  return ComputeErrors<long long,cufftDoubleComplex,__half2>(
+  return ComputeErrors<int,cufftDoubleComplex,__half2>(
         fp64_results.get(), our_results.get(), fft_length);
 }
 
