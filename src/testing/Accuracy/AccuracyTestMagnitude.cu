@@ -44,10 +44,14 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 }
 
 int main(){
-  int fft_length_min_log16 = 3;
-  int fft_length_max_log16 = 7;
+  int fft_length = 16*16*16*16*16;
   int amount_of_frequencies = 256;
   std::vector<double> normalize_to;
+
+  normalize_to.push_back(1.0/static_cast<double>(ExactPowerOf2<int>(15)));
+  for(int i=0; i<30;i++){
+    normalize_to.push_back(2*normalize_to.back());
+  }
 
   std::unique_ptr<float2[]> weights =
       std::make_unique<float2[]>(amount_of_frequencies);
@@ -62,19 +66,19 @@ int main(){
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
 
-  for(int i=fft_length_min_log16; i<=fft_length_max_log16; i++){
-    normalize_to.push_back(1.0);
+  for(int i=0; i<static_cast<int>(normalize_to.size()); i++){
     fft_lengths.push_back(ExactPowerOf2<int>(i*4));
+    amount_of_frequencies_vec.push_back(amount_of_frequencies);
+
     std::cout << fft_lengths.back() << std::endl;
     double normalization_factor =
-        GetNormalizationFactor<int>(normalize_to, dptr_weights,
+        GetNormalizationFactor<int>(normalize_to[i], dptr_weights,
                                     amount_of_frequencies, fft_lengths.back());
     errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
         dptr_weights, amount_of_frequencies, normalization_factor));
-    amount_of_frequencies_vec.push_back(amount_of_frequencies);
   }
 
-  WriteAccuracyToFile("AccuracyTest.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_Mag.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);

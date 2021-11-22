@@ -45,8 +45,7 @@ int main(){
   int fft_length = 16*16*16*16*16 * 16;
   int max_frequencies_log2 = 24;
 
-  double normalize_to = 1.0;
-
+  std::vector<double> normalize_to;
   std::vector<int> fft_lengths;
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
@@ -58,6 +57,7 @@ int main(){
                             ExactPowerOf2<int>(max_frequencies_log2));
 
   for(int i=1; i<=max_frequencies_log2; i++){
+    normalize_to.push_back(1.0);
     fft_lengths.push_back(fft_length);
     amount_of_frequencies_vec.push_back(ExactPowerOf2<int>(i));
     std::cout << amount_of_frequencies_vec.back() << std::endl;

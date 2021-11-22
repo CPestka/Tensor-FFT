@@ -35,7 +35,7 @@ std::optional<std::string> WriteFFTToFile(const std::string file_name,
 
 std::optional<std::string> WriteAccuracyToFile(
     const std::string file_name,
-    const double normalized_to,
+    const std::vector<double> normalized_to,
     const std::vector<int> fft_length,
     const std::vector<Errors> errors,
     const std::vector<int> amount_of_frequencies){
@@ -43,7 +43,7 @@ std::optional<std::string> WriteAccuracyToFile(
   if (myfile.is_open()) {
     for(int i=0; i<static_cast<int>(fft_length.size()); i++){
       myfile << fft_length[i] << " "
-             << normalized_to << " "
+             << normalized_to[i] << " "
              << amount_of_frequencies[i] << " "
              << errors[i].MaxDiv << " "
              << errors[i].MeanAbsoluteError << " "
