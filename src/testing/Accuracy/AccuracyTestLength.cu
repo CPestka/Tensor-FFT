@@ -68,7 +68,6 @@ int main(){
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to, weights.get(),
                                     amount_of_frequencies, fft_lengths.back());
-    std::cout << "norm" << std::endl;
     errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
         dptr_weights, amount_of_frequencies, normalization_factor));
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
