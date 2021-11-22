@@ -37,42 +37,64 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 
   cudaDeviceSynchronize();
 
+  cudaFree(dptr_data);
+
   return (normalization_target /
           MaxValue<Integer,cufftDoubleComplex>(data.get(), fft_length));
 }
 
+// int main(){
+//   int fft_length_min_log16 = 3;
+//   int fft_length_max_log16 = 7;
+//   int amount_of_frequencies = 256;
+//   double normalize_to = 1.0;
+//
+//   std::unique_ptr<float2[]> weights =
+//       std::make_unique<float2[]>(amount_of_frequencies);
+//   SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
+//   float2* dptr_weights = nullptr;
+//   cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
+//   cudaMemcpy(dptr_weights, weights.get(),
+//              sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
+//   cudaDeviceSynchronize();
+//
+//   std::vector<int> fft_lengths;
+//   std::vector<Errors> errors;
+//   std::vector<int> amount_of_frequencies_vec;
+//
+//   for(int i=fft_length_min_log16; i<=fft_length_max_log16; i++){
+//     fft_lengths.push_back(ExactPowerOf2<int>(i*4));
+//     std::cout << fft_lengths.back() << std::endl;
+//     double normalization_factor =
+//         GetNormalizationFactor<int>(normalize_to, weights.get(),
+//                                     amount_of_frequencies, fft_lengths.back());
+//     errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
+//         dptr_weights, amount_of_frequencies, normalization_factor));
+//     amount_of_frequencies_vec.push_back(amount_of_frequencies);
+//   }
+//
+//   WriteAccuracyToFile("AccuracyTest.dat", normalize_to, fft_lengths, errors,
+//                       amount_of_frequencies_vec);
+//
+//   cudaFree(dptr_weights);
+// }
+
 int main(){
-  int fft_length_min_log16 = 3;
-  int fft_length_max_log16 = 7;
-  int amount_of_frequencies = 256;
-  double normalize_to = 1.0;
+    int amount_of_frequencies = 256;
+    double normalize_to = 1.0;
 
-  std::unique_ptr<float2[]> weights =
-      std::make_unique<float2[]>(amount_of_frequencies);
-  SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
-  float2* dptr_weights = nullptr;
-  cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
-  cudaMemcpy(dptr_weights, weights.get(),
-             sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
-  cudaDeviceSynchronize();
+    std::unique_ptr<float2[]> weights =
+        std::make_unique<float2[]>(amount_of_frequencies);
+    SetRandomWeights(weights.get(), amount_of_frequencies, 42*42);
 
-  std::vector<int> fft_lengths;
-  std::vector<Errors> errors;
-  std::vector<int> amount_of_frequencies_vec;
+    float2* dptr_weights;
+    cudaMalloc(&dptr_weights, sizeof(float2) * amount_of_frequencies);
+    cudaMemcpy(dptr_weights, weights.get(),
+               sizeof(float2) * amount_of_frequencies, cudaMemcpyHostToDevice);
+    cudaDeviceSynchronize();
 
-  for(int i=fft_length_min_log16; i<=fft_length_max_log16; i++){
-    fft_lengths.push_back(ExactPowerOf2<int>(i*4));
-    std::cout << fft_lengths.back() << std::endl;
-    double normalization_factor =
-        GetNormalizationFactor<int>(normalize_to, weights.get(),
-                                    amount_of_frequencies, fft_lengths.back());
-    errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
-        dptr_weights, amount_of_frequencies, normalization_factor));
-    amount_of_frequencies_vec.push_back(amount_of_frequencies);
-  }
+    Errors test_err = ComputeOurVsFp64Errors<int>(4096, weights.get(), amount_of_frequencies, 1.0);
 
-  WriteAccuracyToFile("AccuracyTest.dat", normalize_to, fft_lengths, errors,
-                      amount_of_frequencies_vec);
-
-  cudaFree(dptr_weights);
+    std::cout << test_err.MaxDiv << std::endl;
+    return true;
 }
