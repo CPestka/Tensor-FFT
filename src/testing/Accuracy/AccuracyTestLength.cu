@@ -44,8 +44,8 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 }
 
 int main(){
-  int fft_length_min_log16 = 3;
-  int fft_length_max_log16 = 7;
+  int fft_length_min_log2 = 8;
+  int fft_length_max_log2 = 28;
   int amount_of_frequencies = 256;
   std::vector<double> normalize_to;
 
@@ -62,9 +62,9 @@ int main(){
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
 
-  for(int i=fft_length_min_log16; i<=fft_length_max_log16; i++){
+  for(int i=fft_length_min_log2; i<=fft_length_max_log2; i++){
     normalize_to.push_back(1.0);
-    fft_lengths.push_back(ExactPowerOf2<int>(i*4));
+    fft_lengths.push_back(ExactPowerOf2<int>(i));
     std::cout << fft_lengths.back() << std::endl;
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to.back(), dptr_weights,
