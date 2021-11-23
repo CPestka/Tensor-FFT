@@ -69,7 +69,7 @@ int main(){
     cudaDeviceSynchronize();
 
     double normalization_factor =
-        GetNormalizationFactor<int>(normalize_to, dptr_weights,
+        GetNormalizationFactor<int>(normalize_to.back(), dptr_weights,
                                     amount_of_frequencies_vec.back(),
                                     fft_length);
 

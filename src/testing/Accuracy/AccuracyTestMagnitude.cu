@@ -67,7 +67,7 @@ int main(){
   std::vector<int> amount_of_frequencies_vec;
 
   for(int i=0; i<static_cast<int>(normalize_to.size()); i++){
-    fft_lengths.push_back(ExactPowerOf2<int>(i*4));
+    fft_lengths.push_back(fft_length);
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
 
     std::cout << fft_lengths.back() << std::endl;

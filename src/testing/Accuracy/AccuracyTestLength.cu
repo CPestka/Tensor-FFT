@@ -67,7 +67,7 @@ int main(){
     fft_lengths.push_back(ExactPowerOf2<int>(i*4));
     std::cout << fft_lengths.back() << std::endl;
     double normalization_factor =
-        GetNormalizationFactor<int>(normalize_to, dptr_weights,
+        GetNormalizationFactor<int>(normalize_to.back(), dptr_weights,
                                     amount_of_frequencies, fft_lengths.back());
     errors.push_back(ComputeOurVsFp64Errors<int>(fft_lengths.back(),
         dptr_weights, amount_of_frequencies, normalization_factor));
