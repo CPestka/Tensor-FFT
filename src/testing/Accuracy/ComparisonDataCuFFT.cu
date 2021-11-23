@@ -63,7 +63,7 @@ std::unique_ptr<cufftDoubleComplex[]> GetComparisionFP64Data(
 
   cudaDeviceSynchronize();
 
-  ScaleResults<int, cufftDoubleComplex>(fft_length, data.get());
+  //ScaleResults<int, cufftDoubleComplex>(fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_data);
