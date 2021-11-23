@@ -112,7 +112,7 @@ std::unique_ptr<cufftComplex[]> GetComparisionFP32Data(
 
   cudaDeviceSynchronize();
 
-  ScaleResults<int, cufftComplex>(fft_length, data.get());
+  //ScaleResults<int, cufftComplex>(fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_data);
@@ -163,7 +163,7 @@ std::unique_ptr<__half2[]> GetComparisionFP16Data(
 
   cudaDeviceSynchronize();
 
-  ScaleResults<long long, __half2>(fft_length, data.get());
+  //ScaleResults<long long, __half2>(fft_length, data.get());
 
   cufftDestroy(plan);
   cudaFree(dptr_data);
