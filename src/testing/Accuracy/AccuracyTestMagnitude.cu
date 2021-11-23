@@ -49,7 +49,7 @@ int main(){
   std::vector<double> normalize_to;
 
   normalize_to.push_back(1.0/static_cast<double>(ExactPowerOf2<int>(15)));
-  for(int i=0; i<30;i++){
+  for(int i=0; i<35;i++){
     normalize_to.push_back(2*normalize_to.back());
   }
 

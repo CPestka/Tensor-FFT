@@ -74,7 +74,7 @@ int main(){
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
   }
 
-  WriteAccuracyToFile("AccuracyTest.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_our_N.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);
