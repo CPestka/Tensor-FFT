@@ -79,7 +79,7 @@ int main(){
         dptr_weights, amount_of_frequencies_vec.back(), normalization_factor));
   }
 
-  WriteAccuracyToFile("AccTest_fp16_nu.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_fp16_nu_2_12.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);
