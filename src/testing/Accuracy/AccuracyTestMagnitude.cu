@@ -48,8 +48,8 @@ int main(){
   int amount_of_frequencies = 256;
   std::vector<double> normalize_to;
 
-  normalize_to.push_back(1.0/static_cast<double>(ExactPowerOf2<int>(15)));
-  for(int i=0; i<35;i++){
+  normalize_to.push_back(1.0/static_cast<double>(ExactPowerOf2<int>(22)));
+  for(int i=0; i<45;i++){
     normalize_to.push_back(2*normalize_to.back());
   }
 
