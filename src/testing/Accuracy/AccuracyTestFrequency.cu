@@ -75,11 +75,11 @@ int main(){
 
     std::cout << normalization_factor << std::endl;
 
-    errors.push_back(ComputeFP16VsFp64Errors(static_cast<long long>(fft_lengths.back()),
+    errors.push_back(ComputeOurVsFp64Errors<int>(static_cast<int>(fft_lengths.back()),
         dptr_weights, amount_of_frequencies_vec.back(), normalization_factor));
   }
 
-  WriteAccuracyToFile("AccTest_fp16_nu_2_12.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_our_nu_20_2_12.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);
