@@ -42,7 +42,7 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 }
 
 int main(){
-  int fft_length = 16*16*16;
+  int fft_length = 16*16*16*16;
   int max_frequencies_log2 = 20;
 
   std::vector<double> normalize_to;
@@ -79,7 +79,7 @@ int main(){
         dptr_weights, amount_of_frequencies_vec.back(), normalization_factor));
   }
 
-  WriteAccuracyToFile("AccTest_our_nu_20_2_12.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_our_nu_20_2_16.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec);
 
   cudaFree(dptr_weights);
