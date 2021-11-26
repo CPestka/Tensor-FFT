@@ -69,7 +69,7 @@ int main(){
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to.back(), dptr_weights,
                                     amount_of_frequencies, fft_lengths.back());
-    errors.push_back(ComputeOurVsFp64Errors(static_cast<int>(fft_lengths.back()),
+    errors.push_back(ComputeOurVsFp64Errors<int>(static_cast<int>(fft_lengths.back()),
         dptr_weights, amount_of_frequencies, normalization_factor));
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
   }
