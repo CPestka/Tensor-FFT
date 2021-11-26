@@ -74,7 +74,7 @@ int main(){
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to[i], dptr_weights,
                                     amount_of_frequencies, fft_lengths.back());
-    errors.push_back(ComputeFP322VsFp64Errors(static_cast<long long>(fft_lengths.back()),
+    errors.push_back(ComputeFP32VsFp64Errors(static_cast<long long>(fft_lengths.back()),
         dptr_weights, amount_of_frequencies, normalization_factor));
   }
 
