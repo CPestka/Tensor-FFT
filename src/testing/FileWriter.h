@@ -56,6 +56,32 @@ std::optional<std::string> WriteAccuracyToFile(
   return std::nullopt;
 }
 
+
+std::optional<std::string> WriteAccuracyToFile(
+    const std::string file_name,
+    const std::vector<double> normalized_to,
+    const std::vector<int> fft_length,
+    const std::vector<Errors> errors,
+    const std::vector<int> amount_of_frequencies,
+    const std::vector<double> norm_factor){
+  std::ofstream myfile (file_name);
+  if (myfile.is_open()) {
+    for(int i=0; i<static_cast<int>(fft_length.size()); i++){
+      myfile << fft_length[i] << " "
+             << normalized_to[i] << " "
+             << amount_of_frequencies[i] << " "
+             << errors[i].MaxDiv << " "
+             << errors[i].MeanAbsoluteError << " "
+             << errors[i].RootMeanSquareError << " "
+             << norm_factor[i] << "\n";
+    }
+    myfile.close();
+  } else {
+    return "Error! Unable to open file.";
+  }
+  return std::nullopt;
+}
+
 std::optional<std::string> WriteBenchResultsToFile(
     const std::string file_name,
     const std::vector<BatchResult> data){
