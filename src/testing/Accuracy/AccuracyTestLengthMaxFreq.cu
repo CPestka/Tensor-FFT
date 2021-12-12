@@ -45,7 +45,7 @@ double GetNormalizationFactor(double normalization_target, float2* dptr_weights,
 
 int main(){
   int fft_length_min_log2 = 12;
-  int fft_length_max_log2 = 16;
+  int fft_length_max_log2 = 28;
   int max_amount_of_frequencies = ExactPowerOf2<int>(fft_length_max_log2);
   std::vector<double> normalize_to;
 
