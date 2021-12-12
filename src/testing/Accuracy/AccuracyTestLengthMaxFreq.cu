@@ -72,12 +72,12 @@ int main(){
         GetNormalizationFactor<int>(normalize_to.back(), dptr_weights,
                                     amount_of_frequencies_vec.back(), fft_lengths.back());
     normalization_factors.push_back(normalization_factor);
-    errors.push_back(ComputeFP16VsFp64Errors(static_cast<long long>(fft_lengths.back()),
+    errors.push_back(ComputeFP32VsFp64Errors(static_cast<int>(fft_lengths.back()),
         dptr_weights, amount_of_frequencies_vec.back(), normalization_factor));
 
   }
 
-  WriteAccuracyToFile("AccTest_fp16_N_nu_max.dat", normalize_to, fft_lengths, errors,
+  WriteAccuracyToFile("AccTest_fp32_N_nu_max.dat", normalize_to, fft_lengths, errors,
                       amount_of_frequencies_vec, normalization_factors);
 
   cudaFree(dptr_weights);
