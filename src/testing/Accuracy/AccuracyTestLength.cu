@@ -61,6 +61,7 @@ int main(){
   std::vector<int> fft_lengths;
   std::vector<Errors> errors;
   std::vector<int> amount_of_frequencies_vec;
+  std::vector<double> normalization_factors;
 
   for(int i=fft_length_min_log2; i<=fft_length_max_log2; i++){
     normalize_to.push_back(1.0);
@@ -69,13 +70,14 @@ int main(){
     double normalization_factor =
         GetNormalizationFactor<int>(normalize_to.back(), dptr_weights,
                                     amount_of_frequencies, fft_lengths.back());
+    normalization_factors.push_back(normalization_factor);
     errors.push_back(ComputeFP16VsFp64Errors(static_cast<long long>(fft_lengths.back()),
         dptr_weights, amount_of_frequencies, normalization_factor*fft_lengths.back()));
     amount_of_frequencies_vec.push_back(amount_of_frequencies);
   }
 
   WriteAccuracyToFile("AccTest_fp16_N_nu_256k_norm.dat", normalize_to, fft_lengths, errors,
-                      amount_of_frequencies_vec);
+                      amount_of_frequencies_vec, normalization_factors);
 
   cudaFree(dptr_weights);
 }
