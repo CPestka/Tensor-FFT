@@ -43,17 +43,20 @@ __global__ void TensorRadix16(__half2* input_data,
   int inter_warp_id_16 = inter_warp_id % 16;
   int inter_warp_id_is_upper_16 = inter_warp_id / 16;
 
-  //4 dynamic shared memory buffers
+  //Buffers for the matrices
    extern __shared__ __half shared_buffer[];
-   int warp_shared_memory_offset = 768 * inter_block_warp_id;
-   __half* buffer_RE = shared_buffer + warp_shared_memory_offset;
-   __half* buffer_IM = shared_buffer + warp_shared_memory_offset + 256;
-   __half* buffer_tmp_RE = shared_buffer + warp_shared_memory_offset + 512;
+   int warp_shared_memory_offset = 1536 * inter_block_warp_id;
+   __half* matrix_b_dft_RE = shared_buffer + warp_shared_memory_offset;
+   __half* matrix_b_dft_IM = shared_buffer + warp_shared_memory_offset + 256;
+   __half* matrix_a_data_RE = shared_buffer + warp_shared_memory_offset + 512;
+   __half* matrix_a_data_IM = shared_buffer + warp_shared_memory_offset + 768;
+   __half* matrix_acc_RE = shared_buffer + warp_shared_memory_offset + 1024;
+   __half* matrix_acc_IM = shared_buffer + warp_shared_memory_offset + 1280;
 
-  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
-      dft_RE_frag;
-  wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
-      dft_IM_frag;
+  // wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+  //     dft_RE_frag;
+  // wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major>
+  //     dft_IM_frag;
 
   //On the fly computation of DFT matrix
   //TODO: test speed and accuracy of cos,cosf,hcos
@@ -69,16 +72,16 @@ __global__ void TensorRadix16(__half2* input_data,
     //            static_cast<__half>(8.0));
     float phase = (static_cast<float>(j * inter_warp_id_16) * M_PI) / 8.0;
 
-    buffer_RE[buffer_array_id] = cosf(phase);
-    buffer_IM[buffer_array_id] = -sinf(phase);
+    matrix_b_dft_RE[buffer_array_id] = cosf(phase);
+    matrix_b_dft_IM[buffer_array_id] = -sinf(phase);
   }
 
   //Literal version of dft matrix.
   //LoadLiteralDFTMatrixToShared(inter_warp_id, buffer_RE, buffer_IM);
 
   //Load DFT matrix into the according fragments
-  wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
-  wmma::load_matrix_sync(dft_IM_frag, buffer_IM, 16);
+  // wmma::load_matrix_sync(dft_RE_frag, buffer_RE, 16);
+  // wmma::load_matrix_sync(dft_IM_frag, buffer_IM, 16);
 
   Integer combined_fft_length = sub_fft_length * 16;
   Integer amount_of_warps_pes_substep = sub_fft_length / 16;
@@ -130,60 +133,106 @@ __global__ void TensorRadix16(__half2* input_data,
 
     //Store modified data to buffer arrays
     //mod_RE = RE*twid_RE - IM*twid_IM
-    buffer_RE[buffer_matrix_memory_offset] =
+    matrix_a_data_RE[buffer_matrix_memory_offset] =
         __hsub(__hmul(input_RE, twiddle_RE), __hmul(input_IM, twiddle_IM));
     //mod_IM = RE*twid_IM + IM*twid_RE
-    buffer_IM[buffer_matrix_memory_offset] =
+    matrix_a_data_IM[buffer_matrix_memory_offset] =
         __hfma(input_RE , twiddle_IM, __hmul(input_IM, twiddle_RE));
   }
 
   //Declare the fragments
-  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      data_RE_frag;
-  wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-      data_IM_frag;
+  // wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
+  //     data_RE_frag;
+  // wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
+  //     data_IM_frag;
 
   //Load the modified data from shared mem buffer
-  wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
-  wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
+  // wmma::load_matrix_sync(data_RE_frag, buffer_RE, 16);
+  // wmma::load_matrix_sync(data_IM_frag, buffer_IM, 16);
 
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
-  wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
+  // wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_1_frag;
+  // wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_RE_2_frag;
+  // wmma::fragment<wmma::accumulator, 16, 16, 16, half> accumulator_IM_frag;
 
   //Initialize the output to zero
-  wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
-  wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
-  wmma::fill_fragment(accumulator_IM_frag, 0.0);
+  // wmma::fill_fragment(accumulator_RE_1_frag, 0.0f);
+  // wmma::fill_fragment(accumulator_RE_2_frag, 0.0f);
+  // wmma::fill_fragment(accumulator_IM_frag, 0.0);
+
+  #pragma unroll
+  for(int i=0; i<8; i++){
+    matrix_acc_RE[i*inter_warp_id] = 0;
+    matrix_acc_IM[i*inter_warp_id] = 0;
+  }
 
   //Perform the matrix multiplication of two complex matrices AxB via 4 matrix
   //multiplications i.e. RE(AxB)=RE(A)xRE(B) - IM(A)xIM(B) and IM(AxB) =
   //RE(A)xIM(B) + IM(A)xRE(B)
-  wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
-                 accumulator_RE_1_frag);
-  wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
-                 accumulator_RE_2_frag);
-  wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
-                 accumulator_IM_frag);
-  wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
-                 accumulator_IM_frag);
+  // wmma::mma_sync(accumulator_RE_1_frag, data_RE_frag, dft_RE_frag,
+  //                accumulator_RE_1_frag);
+  // wmma::mma_sync(accumulator_RE_2_frag, data_IM_frag, dft_IM_frag,
+  //                accumulator_RE_2_frag);
+  // wmma::mma_sync(accumulator_IM_frag, data_IM_frag, dft_RE_frag,
+  //                accumulator_IM_frag);
+  // wmma::mma_sync(accumulator_IM_frag, data_RE_frag, dft_IM_frag,
+  //                accumulator_IM_frag);
+
+  //wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 d, a, b, c;
+
+  //a_IM*b_IM
+  asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
+       "r=" (*static_cast<__half2*>(&(matrix_acc_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_acc_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[14])))
+      );
+
+  //multiply by -1
+  #pragma unroll
+  for(int i=0; i<8; i++){
+    matrix_acc_RE[i*inter_warp_id] = -matrix_acc_RE[i*inter_warp_id];
+  }
+
+  //a_RE * b_RE - (a_IM * b_IM) i.e. RE(AxB)
+  asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
+       "r=" (*static_cast<__half2*>(&(matrix_acc_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_acc_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[14])))
+      );
+
+  //a_RE * b_IM
+  asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
+       "r=" (*static_cast<__half2*>(&(matrix_acc_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_RE[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_IM[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_acc_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[14])))
+      );
+
+  //a_IM * b_RE + a_RE * b_IM i.e. IM(AxB)
+  asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
+       "r=" (*static_cast<__half2*>(&(matrix_acc_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_a_data_IM[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_b_data_RE[14]))),
+       "r=" (*static_cast<__half2*>(&(matrix_acc_IM[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_IM[14])))
+      );
 
   //Store IM part of the output
-  wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
-                          wmma::mem_row_major);
-  wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
-                          wmma::mem_row_major);
+  // wmma::store_matrix_sync(buffer_RE, accumulator_RE_1_frag, 16,
+  //                         wmma::mem_row_major);
+  // wmma::store_matrix_sync(buffer_tmp_RE, accumulator_RE_2_frag, 16,
+  //                         wmma::mem_row_major);
+  // wmma::store_matrix_sync(buffer_IM, accumulator_IM_frag, 16,
+  //                         wmma::mem_row_major);
 
   //RE = RE_1 + RE_2, IM = IM_1 + IM_2
-  #pragma unroll
-  for(int k=0; k<8; k++){
-    int buffer_array_id = inter_warp_id_16 +
-                          (16 *  (k + (8 * inter_warp_id_is_upper_16)));
-
-    buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
-  }
+  // #pragma unroll
+  // for(int k=0; k<8; k++){
+  //   int buffer_array_id = inter_warp_id_16 +
+  //                         (16 *  (k + (8 * inter_warp_id_is_upper_16)));
+  //
+  //   buffer_RE[buffer_array_id] -= buffer_tmp_RE[buffer_array_id];
+  // }
 
   //Store the results in the appropriately reordered way into the output array
   //The data is stored back the way it was intialy the i.e. a 16^mx16 linear=
@@ -199,8 +248,8 @@ __global__ void TensorRadix16(__half2* input_data,
                                    (substep_id * combined_fft_length);
     int buffer_matrix_memory_offset = j + 16 * inter_warp_id_16;
 
-    __half2 tmp = {buffer_RE[buffer_matrix_memory_offset],
-                   buffer_IM[buffer_matrix_memory_offset]};
+    __half2 tmp = {matrix_acc_RE[buffer_matrix_memory_offset],
+                   matrix_acc_IM[buffer_matrix_memory_offset]};
 
     output_data[global_memory_offset] = tmp;
   }
