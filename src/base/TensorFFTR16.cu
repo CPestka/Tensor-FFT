@@ -179,17 +179,21 @@ __global__ void TensorRadix16(__half2* input_data,
 
   //wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 d, a, b, c;
 
-  //__half2 matrix_a_helper_RE[8];
   __half2* matrix_a_helper_RE = (__half2*)matrix_a_data_RE;
+  __half2* matrix_a_helper_IM = (__half2*)matrix_a_data_IM;
+  __half2* matrix_b_helper_RE = (__half2*)matrix_b_data_RE;
+  __half2* matrix_b_helper_IM = (__half2*)matrix_b_data_IM;
+  __half2* matrix_acc_helper_RE = (__half2*)matrix_acc_RE;
+  __half2* matrix_acc_helper_IM = (__half2*)matrix_acc_IM;
 
-  // //a_IM*b_IM
-  // asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
-  //      "r=" (*static_cast<__half2*>(&(matrix_acc_RE[0]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[2]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[4]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[6]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[8]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[10]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[12]))), "r=" (*static_cast<__half2*>(&(matrix_acc_RE[14]))) :
-  //      "r" (*static_cast<__half2*>(&(matrix_a_data_IM[0]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[2]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[4]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[6]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[8]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[10]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[12]))), "r" (*static_cast<__half2*>(&(matrix_a_data_IM[14]))),
-  //      "r" (*static_cast<__half2*>(&(matrix_b_data_IM[0]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[2]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[4]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[6]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[8]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[10]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[12]))), "r" (*static_cast<__half2*>(&(matrix_b_data_IM[14]))),
-  //      "r" (*static_cast<__half2*>(&(matrix_acc_RE[0]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[2]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[4]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[6]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[8]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[10]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[12]))), "r" (*static_cast<__half2*>(&(matrix_acc_RE[14])))
-  //     );
-  //
+  //a_IM*b_IM
+  asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
+       "r=" (matrix_acc_helper_RE[0]), "r=" (matrix_acc_helper_RE[2]), "r=" (matrix_acc_helper_RE[4]), "r=" (matrix_acc_helper_RE[6]), "r=" (matrix_acc_helper_RE[8]), "r=" (matrix_acc_helper_RE[10]), "r=" (matrix_acc_helper_RE[12]), "r=" (matrix_acc_helper_RE[14]) :
+       "r" (matrix_a_helper_IM[0]), "r" (matrix_a_helper_IM[2]), "r" (matrix_a_helper_IM[4]), "r" (matrix_a_helper_IM[6]), "r" (matrix_a_helper_IM[8]), "r" (matrix_a_helper_IM[10]), "r" (matrix_a_helper_IM[12]), "r" (matrix_a_helper_IM[14]),
+       "r" (matrix_b_helper_IM[0]), "r" (matrix_b_helper_IM[2]), "r" (matrix_b_helper_IM[4]), "r" (matrix_b_helper_IM[6]), "r" (matrix_b_helper_IM[8]), "r" (matrix_b_helper_IM[10]), "r" (matrix_b_helper_IM[12]), "r" (matrix_b_helper_IM[14]),
+       "r" (matrix_acc_helper_RE[0]), "r" (matrix_acc_helper_RE[2]), "r" (matrix_acc_helper_RE[4]), "r" (matrix_acc_helper_RE[6]), "r" (matrix_acc_helper_RE[8]), "r" (matrix_acc_helper_RE[10]), "r" (matrix_acc_helper_RE[12]), "r" (matrix_acc_helper_RE[14])
+      );
+
   // //multiply by -1
   // #pragma unroll
   // for(int i=0; i<8; i++){
