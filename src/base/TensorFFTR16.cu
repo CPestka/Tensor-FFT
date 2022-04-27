@@ -187,6 +187,10 @@ __global__ void TensorRadix16(__half2* input_data,
   __half2* matrix_acc_helper_IM = (__half2*)matrix_acc_IM;
 
   //a_IM*b_IM
+  //doesnt work due to stupid restriction that thinks __half2 x in shared mem =/=
+  //.reg .f16 x<2>  although it is the same :)
+  //=> either use ptx for most / the entire kernel or see if it is possible to do
+  //the modifications in the fragments
   asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
        "r=" (matrix_acc_helper_RE[0]), "r=" (matrix_acc_helper_RE[2]), "r=" (matrix_acc_helper_RE[4]), "r=" (matrix_acc_helper_RE[6]), "r=" (matrix_acc_helper_RE[8]), "r=" (matrix_acc_helper_RE[10]), "r=" (matrix_acc_helper_RE[12]), "r=" (matrix_acc_helper_RE[14]) :
        "r" (matrix_a_helper_IM[0]), "r" (matrix_a_helper_IM[2]), "r" (matrix_a_helper_IM[4]), "r" (matrix_a_helper_IM[6]), "r" (matrix_a_helper_IM[8]), "r" (matrix_a_helper_IM[10]), "r" (matrix_a_helper_IM[12]), "r" (matrix_a_helper_IM[14]),
