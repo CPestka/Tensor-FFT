@@ -130,7 +130,8 @@ std::optional<Plan> MakePlan(
                          static_cast<int>((fft_length /
                                            static_cast<int64_t>(256))
                           / static_cast<int64_t>(r16_warps_per_block)),
-                         1536 * sizeof(__half) * r16_warps_per_block};
+                         1536 * static_cast<int>(sizeof(__half)) *
+                         r16_warps_per_block};
 
   for(int i=0; i<my_plan.amount_of_r16_kernels_; i++){
     if (i == 0) {
