@@ -180,7 +180,7 @@ __global__ void TensorRadix16(__half2* input_data,
   //wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 d, a, b, c;
 
   __half2 matrix_a_helper_RE[8];
-  matrix_a_helper_RE = static_cast<__half2*>(matrix_a_data_RE);
+  matrix_a_helper_RE = (__half2*)matrix_a_data_RE;
 
   // //a_IM*b_IM
   // asm ("wmma.mma.sync.aligned.row.row.m16n16k16.f16.f16 {%0, %1, %2, %3, %4, %5, %6, %7}, {%8, %9, %10, %11, %12, %13, %14, %15}, {%16, %17, %18, %19, %20, %21, %22, %23}, {%24, %25, %26, %27, %28, %29, %30, %31};" :
