@@ -181,8 +181,8 @@ __global__ void TensorRadix16(__half2* input_data,
 
   __half2* matrix_a_helper_RE = (__half2*)matrix_a_data_RE;
   __half2* matrix_a_helper_IM = (__half2*)matrix_a_data_IM;
-  __half2* matrix_b_helper_RE = (__half2*)matrix_b_data_RE;
-  __half2* matrix_b_helper_IM = (__half2*)matrix_b_data_IM;
+  __half2* matrix_b_helper_RE = (__half2*)matrix_b_dft_RE;
+  __half2* matrix_b_helper_IM = (__half2*)matrix_b_dft_IM;
   __half2* matrix_acc_helper_RE = (__half2*)matrix_acc_RE;
   __half2* matrix_acc_helper_IM = (__half2*)matrix_acc_IM;
 
